@@ -1,0 +1,269 @@
+:root {
+  --primary-1: #36393f;
+  --primary-2: #2F3136;
+  --primary-3: #1f2023;
+  --danger-1: #e74c3c;
+  --danger-2: #c0392b;
+  --success-1: #2ecc71;
+  --success-2: #27ae60;
+  --gray-1: #f6f6f6;
+  --gray-2: #ddd;
+  --gray-3: #34495e;
+  --text-color: #444;
+  --text-primary-color: #ffffff;
+  --border: 1px solid var(--gray-2);
+  --font-family: "Roboto", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+h1, h2, h3, h4 {
+  margin: 0;
+}
+
+ul {
+  padding: 0;
+  list-style: none;
+}
+
+p {
+  margin: 0;
+}
+
+img {
+  max-width: 100%;
+}
+
+a {
+  color: var(--text-color);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+body {
+  min-height: 100vh;
+  padding: 0;
+  margin: 0;
+  font-family: var(--font-family);
+  color: var(--text-color);
+  background-color: var(--primary-1);
+}
+
+input, textarea, select {
+  border: var(--border);
+  border-radius: 4px;
+  padding: 8px 15px;
+}
+
+label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-3);
+}
+
+.form-error {
+  color: var(--danger-1);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.d-flex {
+  display: flex;
+}
+
+.flex-rox {
+  flex-direction: row;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.justify-content-center {
+  justify-content: center;
+}
+
+.justify-content-end {
+  justify-content: flex-end;
+}
+
+.align-items-center {
+  align-items: center;
+}
+
+.align-items-start {
+  align-items: flex-start;
+}
+
+.flex-fill {
+  flex: 1 1 auto;
+}
+
+.p-10 {
+  padding: 10px;
+}
+
+.p-20 {
+  padding: 20px;
+}
+
+.px-20 {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.p-30 {
+  padding: 30px;
+}
+
+.m-10 {
+  margin: 10px;
+}
+
+.mr-10 {
+  margin-right: 10px;
+}
+
+.mr-20 {
+  margin-right: 20px;
+}
+
+.mb-5 {
+  margin-bottom: 5px;
+}
+
+.mb-10 {
+  margin-bottom: 10px;
+}
+
+.mb-20 {
+  margin-bottom: 20px;
+}
+
+.m-20 {
+  margin: 20px;
+}
+
+.mt-20 {
+  margin-top: 20px;
+}
+
+.m-30 {
+  margin: 30px;
+}
+
+.btn {
+  padding: 8px 15px;
+  border: 0;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.btn-primary {
+  background: var(--primary-1);
+  color: var(--text-primary-color);
+}
+.btn-primary:hover {
+  background: var(--primary-2);
+}
+
+.btn-danger {
+  background: var(--danger-1);
+  color: var(--text-primary-color);
+}
+.btn-danger:hover {
+  background: var(--danger-2);
+}
+
+.btn-success {
+  background: var(--success-1);
+  color: var(--text-primary-color);
+}
+.btn-success:hover {
+  background: var(--success-2);
+}
+
+.card {
+  border: var(--border);
+  border-radius: 4px;
+  background-color: white;
+  padding: 30px;
+}
+
+.active {
+  background-color: #3d4045;
+}
+
+h2 {
+  font-size: 2rem;
+}
+
+.form-signup-container {
+  color: white;
+  margin-top: 4rem;
+  width: 100%;
+}
+.form-signup-container .form-signup label {
+  color: white;
+  font-size: 1rem;
+}
+.form-signup-container .form-signup input {
+  height: 55px;
+  width: 400px;
+  min-width: 150px;
+  border: none;
+  outline: none;
+  background-color: var(--primary-3);
+  color: white;
+}
+.form-signup-container .form-signup p {
+  font-size: 0.8rem;
+}
+.form-signup-container .form-signup a {
+  color: #236cab;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+.form-signup-container .form-signup button {
+  height: 55px;
+  cursor: pointer;
+  outline: none;
+  border: none;
+  color: white;
+  background-color: #236cab;
+  width: 100%;
+  border-radius: 4px;
+}
+.form-signup-container .form-signup .validation-error {
+  color: #d50707;
+}
+
+.label-file {
+  cursor: pointer;
+  color: #00b1ca;
+  font-weight: bold;
+}
+
+.label-file:hover {
+  color: #25a5c4;
+}
+
+.input-file {
+  display: none;
+}
+
+.calc {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  height: 100vh;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+/*# sourceMappingURL=base.css.map */

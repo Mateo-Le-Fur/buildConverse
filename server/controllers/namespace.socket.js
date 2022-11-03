@@ -35,6 +35,7 @@ const namespaces = {
           });
 
           nsSocket.on("leaveRoom", (roomId) => {
+            console.log(roomId);
             nsSocket.leave(`/${roomId}`);
           });
 

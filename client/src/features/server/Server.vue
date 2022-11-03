@@ -21,7 +21,7 @@ socketStore.joinNamespace(nsSocket, route.params.idChannel as string);
 
 function changeRoom(room: RoomInterface) {
   if (socketStore.activeRoom?.id !== room.id) {
-    socketStore.ioClient.emit("leaveRoom", socketStore.activeNsSocket.nsp);
+    socketStore.activeNsSocket.emit("leaveRoom", socketStore.activeRoom?.id);
     socketStore.joinRoom(room);
   }
 }

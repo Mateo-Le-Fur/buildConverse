@@ -38,21 +38,25 @@ const { value: dataValue, errorMessage: dataError } = useField("data");
   <div class="chat-container d-flex flex-column flex-fill">
     <div class="message-container">
       <template v-for="message of socketStore.messages">
-        <div class="d-flex flex-column message">
-          <div class="d-flex align-items-center">
+        <div class="d-flex message">
+          <div>
             <img
               class="mr-10"
               src="https://images.unsplash.com/photo-1666712867915-559da259e7ef?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxlZGl0b3JpYWwtZmVlZHw0fHx8ZW58MHx8fHw%3D&auto=format&fit=crop&w=500&q=60"
             />
-            <p>
-              {{ message.author_name
-              }}<span>{{
-                new Date(message.created_at).toLocaleString("fr-FR")
-              }}</span>
-            </p>
           </div>
-          <div>
-            <p>{{ message.data }}</p>
+          <div class="d-flex flex-column w-100">
+            <div class="d-flex align-items-center mb-5">
+              <p class="author">
+                {{ message.author_name
+                }}<span>{{
+                  new Date(message.created_at).toLocaleString("fr-FR")
+                }}</span>
+              </p>
+            </div>
+            <div class="d-flex w-100">
+              <p class="message-color">{{ message.data }}</p>
+            </div>
           </div>
         </div>
       </template>
@@ -96,16 +100,26 @@ const { value: dataValue, errorMessage: dataError } = useField("data");
     border: solid 3px transparent;
   }
 
+  .author {
+    color: white;
+    font-weight: 500;
+    font-size: 1.1rem;
+  }
+
   .message {
     width: 99%;
-    gap: 6px;
+    gap: 10px;
     color: white;
     margin-top: 20px;
 
     img {
-      width: 35px;
-      height: 35px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
+    }
+
+    .message-color {
+      color: #edeaea;
     }
 
     p {
@@ -114,7 +128,7 @@ const { value: dataValue, errorMessage: dataError } = useField("data");
     }
 
     span {
-      font-size: 0.9rem;
+      font-size: 0.8rem;
       margin-left: 10px;
       color: #bbb;
     }

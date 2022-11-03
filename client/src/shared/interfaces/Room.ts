@@ -1,6 +1,6 @@
 import type { Namespace } from "@/shared/interfaces/Namespace";
 
-export interface Room {
+export interface RoomInterface {
   id: number;
   name: string;
   index: string;

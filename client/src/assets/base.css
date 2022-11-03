@@ -118,6 +118,10 @@ label {
   padding: 30px;
 }
 
+.w-100 {
+  width: 100%;
+}
+
 .m-10 {
   margin: 10px;
 }

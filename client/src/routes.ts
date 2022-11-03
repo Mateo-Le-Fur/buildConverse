@@ -36,7 +36,7 @@ export const router = createRouter({
 
     {
       path: "/channels/:idChannel",
-      beforeEnter: [isAuthenticatedGaurd],
+      beforeEnter: [isAuthenticatedGaurd, initNamespace],
       component: () => import("@/features/server/Server.vue"),
     },
   ],

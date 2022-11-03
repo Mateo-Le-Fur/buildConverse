@@ -10,9 +10,7 @@ const socketStore = useSocket();
 
 <template>
   <div class="app-container d-flex">
-    <Namespace
-      v-if="userStore.isAuthenticated && socketStore.isNamespaceLoaded"
-    />
+    <Namespace v-if="userStore.isAuthenticated" />
     <router-view v-slot="{ Component, route }">
       <Component :is="Component" :key="route.fullPath" />
     </router-view>

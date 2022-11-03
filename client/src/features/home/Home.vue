@@ -8,9 +8,9 @@ import { useSocket } from "@/shared/stores/socketStore";
 <template>
   <div class="home-container d-flex">
     <FriendsList />
-    <router-view v-slot="{ Component, route }">
-      <Component :is="Component" :key="route.fullPath" />
-    </router-view>
+    <!--    <router-view v-slot="{ Component, route }">-->
+    <!--      <Component :is="Component" :key="route.fullPath" />-->
+    <!--    </router-view>-->
   </div>
 </template>
 

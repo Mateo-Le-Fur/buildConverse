@@ -16,7 +16,8 @@ const router = useRouter();
 
 async function logout() {
   await userStore.logout();
-  socketStore.ioClient.emit("close");
+  socketStore.ioClient.emit("leave");
+  socketStore.initSocket = false;
   await router.push("/connexion");
 }
 </script>

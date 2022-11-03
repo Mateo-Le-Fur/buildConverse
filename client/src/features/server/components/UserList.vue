@@ -11,7 +11,6 @@ const socketStore = useSocket();
 
 const userList: User[] = [];
 
-console.time("start");
 socketStore.userList.forEach((element: any) => {
   element.forEach((user: User) => {
     if (
@@ -21,8 +20,6 @@ socketStore.userList.forEach((element: any) => {
     }
   });
 });
-
-console.timeEnd("start");
 </script>
 
 <template>

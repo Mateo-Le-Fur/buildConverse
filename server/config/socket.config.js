@@ -1,101 +1,16 @@
 const socketio = require("socket.io");
 const { server } = require("../app");
+const { instrument } = require("@socket.io/admin-ui");
 const { ensureAuthenticatedOnSocketHandshake } = require("./security.config");
+const namespaces = require("../controllers/namespace.socket");
 const { User, Namespace, Room, Message } = require("../models");
 
 let ios;
 
-const initNamespaces = async (init, data) => {
-  console.log(data);
-
-  try {
-    const ns = ios.of(/^\/\w+$/);
-
-    ns.on("connect", async (nsSocket) => {
-      console.log(nsSocket.request.user);
-
-      try {
-        const namespace_id = nsSocket.nsp.name.slice(1, 3);
-
-        const userList = await Namespace.findByPk(namespace_id, {
-          include: [
-            {
-              model: User,
-              as: "namespaceHasUsers",
-              attributes: { exclude: ["password"] },
-            },
-          ],
-        });
-
-        const rooms = await Room.findAll({
-          include: ["namespaces"],
-          where: {
-            namespace_id,
-          },
-        });
-
-        nsSocket.emit("rooms", rooms);
-
-        nsSocket.emit("userList", userList.namespaceHasUsers);
-      } catch (e) {
-        throw e;
-      }
-
-      nsSocket.on("joinRoom", async (roomId) => {
-        try {
-          nsSocket.join(`/${roomId}`);
-
-          const messages = await Message.findAll({
-            where: {
-              room_id: roomId,
-            },
-            order: [["created_at", "desc"]],
-          });
-
-          console.log(roomId);
-
-          nsSocket.emit("history", messages);
-        } catch (e) {
-          console.error(e);
-        }
-      });
-
-      nsSocket.on("leaveRoom", (roomId) => {
-        nsSocket.leave(`/${roomId}`);
-      });
-
-      nsSocket.on("userList", async () => {});
-
-      nsSocket.on("message", async ({ text, roomId }) => {
-        try {
-          const { id, pseudo } = nsSocket.request.user;
-
-          const message = await Message.create({
-            data: text,
-            data_type: "text",
-            room_id: roomId,
-            user_id: id,
-            author_name: pseudo,
-          });
-
-          ns.to(`/${roomId}`).emit("message", message);
-        } catch (e) {
-          throw e;
-        }
-      });
-
-      nsSocket.on("disconnect", () => {
-        console.log("disconnect");
-      });
-    });
-  } catch (e) {
-    throw e;
-  }
-};
-
 const initSocketServer = async () => {
   ios = socketio(server, {
     allowRequest: ensureAuthenticatedOnSocketHandshake,
+    credentials: true,
     cors: {
       origin: "*",
     },
@@ -118,15 +33,6 @@ const initSocketServer = async () => {
       console.error(e);
     }
 
-    socket.on("joinNamespace", (data) => {
-      console.log("Join namespace");
-      try {
-        initNamespaces(false, data, socket);
-      } catch (e) {
-        console.error(e);
-      }
-    });
-
     socket.on("createNamespace", async (data) => {
       try {
         const userId = socket.request.user.id;
@@ -148,26 +54,25 @@ const initSocketServer = async () => {
         const user = await User.findByPk(socket.request.user.id);
 
         await user.addUserHasNamespaces(createNamespace);
-
-        const userNamespaces = (
-          await User.findByPk(userId, {
-            include: ["userHasNamespaces"],
-          })
-        ).toJSON();
-
-        socket.emit("namespaces", userNamespaces.userHasNamespaces);
       } catch (e) {
         console.error(e);
       }
     });
 
-    initNamespaces(true, "", null);
+    namespaces.initNamespaces(ios);
+
+    socket.on("leave", () => {
+      socket.disconnect(true);
+    });
 
     socket.on("disconnect", () => {
       console.log("disconnect home");
-      socket.removeAllListeners();
     });
   });
 };
 
 initSocketServer();
+
+instrument(ios, {
+  auth: false,
+});

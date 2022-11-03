@@ -45,8 +45,12 @@ const submit = handleSubmit((formValue: Namespace) => {
       invite_code: generateInviteCode(),
       img: "https://images.unsplash.com/photo-1667143297634-31c6c5f70381?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxlZGl0b3JpYWwtZmVlZHw5fHx8ZW58MHx8fHw%3D&auto=format&fit=crop&w=500&q=60",
     });
-    (socketStore.rooms = []), (socketStore.userList = []);
+    // (socketStore.rooms = []),
+    //   (socketStore.userList = []),
+    //   (socketStore.namespaceSockets = []);
+    socketStore.$reset();
     addServerPopup.value = false;
+    location.assign("/home");
   } catch (e: string | any) {
     setErrors({
       name: e.message,
@@ -56,23 +60,9 @@ const submit = handleSubmit((formValue: Namespace) => {
 
 const { value: nameValue, errorMessage: nameError } = useField("name");
 
-function leaveNamespace(home: boolean) {
-  console.log("leave namespace");
-  if (socketStore.activeNsSocket) {
-    if (socketStore.activeNsSocket.nsp !== socketStore.namespaces[0].id) {
-      if (!home) {
-        socketStore.activeNsSocket.emit(
-          "leaveRoom",
-          socketStore.activeRoom?.id
-        );
-      } else {
-        socketStore.activeNsSocket.emit(
-          "leaveRoom",
-          socketStore.activeRoom?.id
-        );
-      }
-    }
-  }
+function leaveNamespace() {
+  console.log("leave");
+  socketStore.activeNsSocket.emit("leaveRoom", socketStore.activeRoom?.id);
 }
 </script>
 
@@ -80,11 +70,14 @@ function leaveNamespace(home: boolean) {
   <nav
     class="namespace-container flex-fill d-flex flex-column align-items-center"
   >
-    <router-link @click="leaveNamespace(true)" to="/home">
+    <router-link
+      @click="socketStore.activeNsSocket ? leaveNamespace() : ''"
+      to="/home"
+    >
       <div class="private-message tooltip">
         <img
           class="namespace-avatar"
-          src="/src/assets/images/chat.svg"
+          src="@/assets/images/chat.svg"
           alt="logo"
         />
         <div class="right">
@@ -96,7 +89,10 @@ function leaveNamespace(home: boolean) {
     </router-link>
     <template v-if="socketStore.namespaces.length">
       <template v-for="namespace of socketStore.namespaces" :key="namespace.id">
-        <router-link :to="`/channels/${namespace.id}`">
+        <router-link
+          @click="socketStore.activeNsSocket ? leaveNamespace() : ''"
+          :to="`/channels/${namespace.id}`"
+        >
           <div class="namespace tooltip">
             <img
               class="namespace-avatar"
@@ -131,7 +127,7 @@ function leaveNamespace(home: boolean) {
         <label for="file" class="label-file">
           <img
             style="color: white"
-            :src="src ? src : '/src/assets/images/upload.svg'"
+            :src="src ? src : 'src/assets/images/upload.svg'"
           />
         </label>
 

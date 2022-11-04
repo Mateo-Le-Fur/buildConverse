@@ -80,6 +80,8 @@ export const useSocket = defineStore("socket", {
       });
 
       this.ioClient.on("createdNamespace", (data: []) => {
+        console.log(data);
+
         this.namespaces.push(...data);
 
         const ns = data[0];

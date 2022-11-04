@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import uploadImgUrl from "@/assets/images/upload.svg";
 import { useSocket } from "@/shared/stores/socketStore";
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { toFormValidator } from "@vee-validate/zod";
 import { z } from "zod";
 import { useField, useForm } from "vee-validate";
@@ -13,9 +13,14 @@ const socketStore = useSocket();
 const addServerPopup = ref<boolean>(false);
 
 let src = ref<string | ArrayBuffer | null>();
+let namespaceImage = ref<File>();
+
+watch(namespaceImage, (NewValue, Oldvalue) => {
+  namespaceImage.value = NewValue;
+  console.log(namespaceImage.value);
+});
 
 function previewAvatar(e: HTMLInputElement & Event) {
-  console.log(e);
   const target = e.target as HTMLInputElement;
   const file = target.files[0];
 
@@ -24,9 +29,9 @@ function previewAvatar(e: HTMLInputElement & Event) {
 
   reader.onloadend = () => {
     src.value = reader.result;
-
-    return file;
   };
+
+  namespaceImage.value = file;
 }
 
 const validationSchema = toFormValidator(
@@ -46,8 +51,8 @@ const submit = handleSubmit((formValue: Namespace) => {
     socketStore.ioClient.emit("createNamespace", {
       name: formValue.name,
       invite_code: generateInviteCode(),
-      img_url:
-        "https://images.unsplash.com/photo-1667481020991-31186b791c13?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
+      img_name: namespaceImage.value?.name,
+      img_url: namespaceImage.value,
     });
     // (socketStore.rooms = []),
     //   (socketStore.userList = []),
@@ -100,8 +105,8 @@ function leaveNamespace() {
           <div class="namespace tooltip">
             <img
               class="namespace-avatar"
-              :src="`${namespace.img_url}`"
-              alt="logo"
+              :src="'data:image/jpeg;base64,' + namespace.img_url"
+              :alt="namespace.name"
             />
             <div class="right">
               <h3>{{ namespace.name }}</h3>

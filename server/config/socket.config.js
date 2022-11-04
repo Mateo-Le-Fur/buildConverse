@@ -1,15 +1,17 @@
 const socketio = require("socket.io");
 const { server } = require("../app");
-const { instrument } = require("@socket.io/admin-ui");
+const fs = require("fs");
+const path = require("path");
 const { ensureAuthenticatedOnSocketHandshake } = require("./security.config");
 const namespaces = require("../controllers/namespace.socket");
-const { User, Namespace, Room, Message } = require("../models");
+const { User, Namespace, Room } = require("../models");
 
 let ios;
 
 const initSocketServer = async () => {
   ios = socketio(server, {
     allowRequest: ensureAuthenticatedOnSocketHandshake,
+    maxHttpBufferSize: 1e14,
     credentials: true,
     cors: {
       origin: "*",
@@ -22,13 +24,24 @@ const initSocketServer = async () => {
     try {
       const userId = socket.request.user.id;
 
-      const userNamespaces = (
+      let userNamespaces = (
         await User.findByPk(userId, {
           include: ["userHasNamespaces"],
         })
       ).toJSON();
 
-      socket.emit("namespaces", userNamespaces.userHasNamespaces);
+      userNamespaces = userNamespaces.userHasNamespaces.map((namespace) => {
+        const buf = fs.readFileSync(
+          path.join(__dirname, `..${namespace.img_url}`)
+        );
+
+        return {
+          ...namespace,
+          img_url: buf.toString("base64"),
+        };
+      });
+
+      socket.emit("namespaces", userNamespaces);
     } catch (e) {
       console.error(e);
     }
@@ -37,10 +50,25 @@ const initSocketServer = async () => {
       try {
         const userId = socket.request.user.id;
 
+        data.img_name = Date.now() + ".jpg";
+
+        const writer = fs.createWriteStream(
+          path.join(__dirname, "../upload/" + data.img_name),
+          {
+            encoding: "base64",
+          }
+        );
+
+        writer.write(data.img_url);
+        writer.end();
+        writer.on("finish", () => {
+          console.log("image uploaded");
+        });
+
         const createNamespace = await Namespace.create({
           name: data.name,
           invite_code: data.invite_code,
-          img_url: data.img_url,
+          img_url: `/upload/${data.img_name}`,
         });
 
         const { id } = createNamespace.toJSON();
@@ -55,7 +83,16 @@ const initSocketServer = async () => {
 
         await user.addUserHasNamespaces(createNamespace);
 
-        socket.emit("createdNamespace", [createNamespace]);
+        fs.readFile(
+          path.join(__dirname, `..${createNamespace.dataValues.img_url}`),
+          (err, buf) => {
+            const namespace = {
+              ...createNamespace.dataValues,
+              img_url: buf.toString("base64"),
+            };
+            socket.emit("createdNamespace", [namespace]);
+          }
+        );
       } catch (e) {
         console.error(e);
       }
@@ -74,7 +111,3 @@ const initSocketServer = async () => {
 };
 
 initSocketServer();
-
-instrument(ios, {
-  auth: false,
-});

@@ -1,7 +1,7 @@
 import { useUser } from "@/shared/stores";
 import { useSocket } from "@/shared/stores/socketStore";
 
-let initSocket: boolean = false;
+const initSocket: boolean = false;
 
 export function isAuthenticatedGaurd() {
   const userStore = useUser();
@@ -18,11 +18,14 @@ export function isNotAuthenticatedGaurd() {
 }
 
 export function initNamespace() {
-  if (!initSocket) {
-    const socketStore = useSocket();
-    socketStore.init();
-    socketStore.initNamespaces();
-
-    initSocket = true;
-  }
+  const socketStore = useSocket();
+  const userStore = useUser();
+  //
+  // if (!initSocket && userStore.currentUser) {
+  //   socketStore.init();
+  //   socketStore.initNamespaces();
+  //   initSocket = true;
+  // } else {
+  //   initSocket = false;
+  // }
 }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import uploadImgUrl from "@/assets/images/upload.svg";
 import { useSocket } from "@/shared/stores/socketStore";
 import { ref } from "vue";
 import { toFormValidator } from "@vee-validate/zod";
@@ -11,9 +12,9 @@ const socketStore = useSocket();
 
 const addServerPopup = ref<boolean>(false);
 
-const src = ref<string | ArrayBuffer | null>("");
+let src = ref<string | ArrayBuffer | null>();
 
-function addNamespaceAvatar(e: HTMLInputElement & Event) {
+function previewAvatar(e: HTMLInputElement & Event) {
   console.log(e);
   const target = e.target as HTMLInputElement;
   const file = target.files[0];
@@ -23,6 +24,8 @@ function addNamespaceAvatar(e: HTMLInputElement & Event) {
 
   reader.onloadend = () => {
     src.value = reader.result;
+
+    return file;
   };
 }
 
@@ -43,14 +46,15 @@ const submit = handleSubmit((formValue: Namespace) => {
     socketStore.ioClient.emit("createNamespace", {
       name: formValue.name,
       invite_code: generateInviteCode(),
-      img: "https://images.unsplash.com/photo-1667143297634-31c6c5f70381?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxlZGl0b3JpYWwtZmVlZHw5fHx8ZW58MHx8fHw%3D&auto=format&fit=crop&w=500&q=60",
+      img_url:
+        "https://images.unsplash.com/photo-1667481020991-31186b791c13?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
     });
     // (socketStore.rooms = []),
     //   (socketStore.userList = []),
     //   (socketStore.namespaceSockets = []);
-    socketStore.$reset();
+    // socketStore.$reset();
     addServerPopup.value = false;
-    location.assign("/home");
+    // location.assign("/home");
   } catch (e: string | any) {
     setErrors({
       name: e.message,
@@ -125,14 +129,11 @@ function leaveNamespace() {
       <div class="d-flex align-items-center flex-column add-server">
         <h2>Créer un serveur</h2>
         <label for="file" class="label-file">
-          <img
-            style="color: white"
-            :src="src ? src : 'src/assets/images/upload.svg'"
-          />
+          <img style="color: white" :src="src ? src : uploadImgUrl" />
         </label>
 
         <input
-          @change="addNamespaceAvatar($event)"
+          @change="previewAvatar($event)"
           id="file"
           class="input-file"
           type="file"

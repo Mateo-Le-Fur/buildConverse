@@ -37,7 +37,7 @@ const { value: dataValue, errorMessage: dataError } = useField("data");
 <template>
   <div class="chat-container d-flex flex-column flex-fill">
     <div class="message-container">
-      <template v-for="message of socketStore.messages">
+      <template v-for="message of socketStore.messages" :key="message.id">
         <div class="d-flex message">
           <div>
             <img

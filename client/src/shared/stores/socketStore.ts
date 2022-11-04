@@ -67,30 +67,49 @@ export const useSocket = defineStore("socket", {
 
     initNamespaces() {
       this.ioClient.on("namespaces", (data: []) => {
-        this.namespaces = data;
+        this.namespaces.push(...data);
         this.isNamespaceLoaded = true;
 
         for (const ns of this.namespaces) {
           const nsSocket = io(`/${ns.id}`);
 
-          nsSocket.on("rooms", (data) => {
-            this.rooms.push(...data);
-          });
-
-          nsSocket.on("userList", (data) => {
-            this.userList.push(data);
-          });
-
-          nsSocket.on("history", (data) => {
-            this.messages = data;
-          });
-
-          nsSocket.on("message", (data) => {
-            this.messages.unshift(data);
-          });
+          this.initNamespaceData(nsSocket);
 
           this.namespaceSockets.push(nsSocket);
         }
+      });
+
+      this.ioClient.on("createdNamespace", (data: []) => {
+        this.namespaces.push(...data);
+
+        const ns = data[0];
+
+        console.log(ns);
+
+        const nsSocket = io(`/${ns.id}`);
+
+        this.initNamespaceData(nsSocket);
+
+        this.namespaceSockets.push(nsSocket);
+      });
+    },
+
+    initNamespaceData(nsSocket: any) {
+      nsSocket.on("rooms", (data: RoomInterface[]) => {
+        console.log(data);
+        this.rooms.push(...data);
+      });
+
+      nsSocket.on("userList", (data: User) => {
+        this.userList.push(data);
+      });
+
+      nsSocket.on("history", (data: Message[]) => {
+        this.messages = data;
+      });
+
+      nsSocket.on("message", (data: Message) => {
+        this.messages.unshift(data);
       });
     },
 

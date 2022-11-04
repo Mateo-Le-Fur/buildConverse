@@ -22,6 +22,7 @@ export function initNamespace() {
     const socketStore = useSocket();
     socketStore.init();
     socketStore.initNamespaces();
+
     initSocket = true;
   }
 }

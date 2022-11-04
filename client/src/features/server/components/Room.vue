@@ -57,7 +57,7 @@ const emit = defineEmits<{
         @room-popup="hiddenPopup"
       />
 
-      <template v-for="room of rooms">
+      <template v-for="room of rooms" :key="room.id">
         <div
           @click="emit('changeRoom', room)"
           :class="{ active: activeRoomId === room.id }"

@@ -40,7 +40,7 @@ const initSocketServer = async () => {
         const createNamespace = await Namespace.create({
           name: data.name,
           invite_code: data.invite_code,
-          img_url: data.img,
+          img_url: data.img_url,
         });
 
         const { id } = createNamespace.toJSON();
@@ -54,6 +54,8 @@ const initSocketServer = async () => {
         const user = await User.findByPk(socket.request.user.id);
 
         await user.addUserHasNamespaces(createNamespace);
+
+        socket.emit("createdNamespace", [createNamespace]);
       } catch (e) {
         console.error(e);
       }

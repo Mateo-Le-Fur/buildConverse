@@ -15,6 +15,8 @@ const nsSocket = socketStore.namespaceSockets.find(
   (ns: any) => ns.nsp === `/${route.params.idChannel}`
 );
 
+console.log(nsSocket);
+
 // Je me connecte au serveur
 
 socketStore.joinNamespace(nsSocket, route.params.idChannel as string);

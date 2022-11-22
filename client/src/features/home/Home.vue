@@ -2,11 +2,11 @@
 import FriendsList from "@/features/home/components/FriendsList.vue";
 import { useSocket } from "@/shared/stores/socketStore";
 
-// const socketStore = useSocket();
+const socketStore = useSocket();
 </script>
 
 <template>
-  <div class="home-container d-flex">
+  <div v-if="socketStore.isNamespacesLoaded" class="home-container d-flex">
     <FriendsList />
     <!--    <router-view v-slot="{ Component, route }">-->
     <!--      <Component :is="Component" :key="route.fullPath" />-->

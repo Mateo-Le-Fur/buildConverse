@@ -17,7 +17,7 @@ const router = useRouter();
 async function logout() {
   await userStore.logout();
   socketStore.ioClient.emit("leave");
-  socketStore.initSocket = false;
+  socketStore.$reset();
   await router.push("/connexion");
 }
 </script>
@@ -71,7 +71,6 @@ async function logout() {
 <style scoped lang="scss">
 .profil-container {
   position: relative;
-  color: white;
   background-color: #292b2f;
   padding: 8px;
 
@@ -147,7 +146,6 @@ async function logout() {
       padding: 15px 10px;
       border-radius: 5px;
       background-color: #d50707;
-      color: white;
     }
   }
 }

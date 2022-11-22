@@ -38,6 +38,14 @@ export const router = createRouter({
       path: "/channels/:idChannel",
       beforeEnter: [isAuthenticatedGaurd, initNamespace],
       component: () => import("@/features/server/Server.vue"),
+      children: [
+        {
+          path: ":idRoom",
+          name: "room",
+          component: () => import("@/features/server/views/Chat.vue"),
+          props: true,
+        },
+      ],
     },
   ],
 });

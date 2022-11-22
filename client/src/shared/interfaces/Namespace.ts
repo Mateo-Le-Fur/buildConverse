@@ -1,4 +1,4 @@
-import type { Room } from "@/shared/interfaces/Room";
+import type { RoomInterface } from "@/shared/interfaces/Room";
 import type { User } from "@/shared/interfaces/User";
 
 export interface Namespace {
@@ -6,7 +6,7 @@ export interface Namespace {
   name: string;
   invite_code: string;
   img_url: string;
-  rooms: Room[];
+  rooms: RoomInterface[];
   namespaceHasUser: User[];
   created_at: string;
   updated_at: string;

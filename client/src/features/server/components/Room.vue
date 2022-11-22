@@ -6,10 +6,10 @@ import { ref } from "vue";
 import CreateRoomPopup from "./CreateRoomPopup.vue";
 
 // Je récupère l'id de mon serveur dans le paramètre de ma route
-defineProps<{
+const props = defineProps<{
   rooms: RoomInterface[];
   params: RouteParams;
-  activeRoomId: number;
+  activeRoomId?: number;
 }>();
 
 const createRoomPopup = ref<boolean>(false);
@@ -58,13 +58,15 @@ const emit = defineEmits<{
       />
 
       <template v-for="room of rooms" :key="room.id">
-        <div
-          @click="emit('changeRoom', room)"
-          :class="{ active: activeRoomId === room.id }"
-          class="rooms d-flex flex-column justify-content-center"
-        >
-          <p>{{ room.name }}</p>
-        </div>
+        <router-link :to="{ name: 'room', params: { idRoom: room.id } }">
+          <div
+            @click="emit('changeRoom', room)"
+            :class="{ active: activeRoomId === room.id }"
+            class="rooms d-flex flex-column justify-content-center"
+          >
+            <p>{{ room.name }}</p>
+          </div>
+        </router-link>
       </template>
     </nav>
     <Profil />
@@ -73,7 +75,6 @@ const emit = defineEmits<{
 
 <style scoped lang="scss">
 .nav-container {
-  color: white;
   width: 240px;
   background-color: var(--primary-2);
 

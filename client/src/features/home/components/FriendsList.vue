@@ -35,7 +35,6 @@ const state = reactive<{
 
 <style scoped lang="scss">
 .nav-container {
-  color: white;
   width: 240px;
   background-color: var(--primary-2);
 

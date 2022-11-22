@@ -33,12 +33,11 @@ const submit = handleSubmit((formValue: Namespace) => {
   console.log(formValue);
   try {
     socketStore.activeNsSocket.emit("createRoom", {
-      name: formValue.name,
+      name: `# ${formValue.name}`,
       index: 1,
       namespaceId: props.params.idChannel,
     });
     emit("roomPopup", false);
-    socketStore.createdRoom(props.params.idChannel as string);
   } catch (e: string | any) {
     setErrors({
       name: e.message,
@@ -56,8 +55,11 @@ const { value: nameValue, errorMessage: nameError } = useField("name");
     </Teleport>
     <div class="d-flex align-items-center flex-column add-room">
       <h2>Créer un salon</h2>
-      <form @submit.prevent="submit">
-        <input v-model="nameValue" type="text" placeholder="Nom du salon" />
+      <form class="d-flex flex-column" @submit.prevent="submit">
+        <div>
+          <span>#</span>
+          <input v-model="nameValue" type="text" placeholder="Nom du salon" />
+        </div>
         <p v-if="nameError">{{ nameError }}</p>
         <button>Créer</button>
       </form>
@@ -69,7 +71,6 @@ const { value: nameValue, errorMessage: nameError } = useField("name");
 .add-room {
   position: fixed;
   gap: 15px;
-  color: white;
   background-color: var(--primary-3);
   top: 30%;
   left: 50%;
@@ -78,6 +79,21 @@ const { value: nameValue, errorMessage: nameError } = useField("name");
   padding: 15px;
   border-radius: 10px;
   z-index: 10;
+
+  form {
+    gap: 10px;
+  }
+
+  div {
+    background-color: var(--primary-2);
+    border-radius: 4px;
+    padding: 3px 0 3px 8px;
+
+    span {
+      font-size: 1.1rem;
+      color: #f4f4f4;
+    }
+  }
 
   input {
     outline: none;
@@ -88,6 +104,17 @@ const { value: nameValue, errorMessage: nameError } = useField("name");
     a::placeholder {
       background-color: #edeaea;
     }
+  }
+
+  button {
+    cursor: pointer;
+    width: 60%;
+    margin: auto;
+    height: 30px;
+    outline: none;
+    border: none;
+    border-radius: 4px;
+    background-color: #236cab;
   }
 }
 </style>

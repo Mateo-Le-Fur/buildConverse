@@ -79,18 +79,12 @@ CREATE TABLE "ban" (
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE "admin" (
-    "id" int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    "user_id" int NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-    "namespace_id" int NOT NULL REFERENCES "namespace"(id) ON DELETE CASCADE,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
 
 CREATE TABLE "user_has_namespace" (
     "id" int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     "user_id" int NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     "namespace_id" int NOT NULL REFERENCES "namespace"(id) ON DELETE CASCADE,
+    "admin" boolean NOT NULL DEFAULT false,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

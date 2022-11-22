@@ -25,10 +25,39 @@ const rooms = {
         where: {
           room_id: roomId,
         },
-        order: [["created_at", "desc"]],
+        order: [["created_at", "asc"]],
       });
 
       nsSocket.emit("history", messages);
+    } catch (e) {
+      console.error(e);
+    }
+  },
+
+  async createRoom(ios, data) {
+    try {
+      const room = await Room.create({
+        name: data.name,
+        index: data.index,
+        namespace_id: data.namespaceId,
+      });
+
+      ios.of(data.namespaceId).emit("rooms", [room]);
+    } catch (e) {
+      console.error(e);
+    }
+  },
+
+  async deleteRoom(ios, data) {
+    console.log(data);
+    try {
+      await Room.destroy({
+        where: {
+          id: data.id,
+        },
+      });
+
+      ios.of(data.namespaceId).emit("deleteRoom", data);
     } catch (e) {
       console.error(e);
     }

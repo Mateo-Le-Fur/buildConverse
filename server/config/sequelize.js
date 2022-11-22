@@ -6,6 +6,7 @@ const sequelize = new Sequelize("postgres://chat:chat@localhost/chat", {
     updatedAt: "updated_at",
   },
 
+  // benchmark: true,
   logging: false,
 });
 

@@ -2,6 +2,7 @@ const User = require("./User");
 const Room = require("./Room");
 const Namespace = require("./Namespace");
 const Message = require("./Message");
+const UserHasNamespace = require("./UserHasNamespace");
 
 Namespace.hasMany(Room, {
   foreignKey: "namespace_id",
@@ -57,7 +58,7 @@ Namespace.belongsToMany(User, {
 
 User.belongsToMany(Namespace, {
   as: "userHasNamespaces",
-  through: "user_has_namespace",
+  through: UserHasNamespace,
   foreignKey: "user_id",
   otherKey: "namespace_id",
   timestamps: false,
@@ -65,24 +66,10 @@ User.belongsToMany(Namespace, {
 
 Namespace.belongsToMany(User, {
   as: "namespaceHasUsers",
-  through: "user_has_namespace",
+  through: UserHasNamespace,
   foreignKey: "namespace_id",
   otherKey: "user_id",
   timestamps: false,
-});
-
-User.belongsToMany(Namespace, {
-  as: "admins",
-  through: "admin",
-  foreignKey: "user_id",
-  otherKey: "namespace_id",
-});
-
-Namespace.belongsToMany(User, {
-  as: "namespace_has_admins",
-  through: "admin",
-  foreignKey: "namespace_id",
-  otherKey: "user_id",
 });
 
 module.exports = {
@@ -90,4 +77,5 @@ module.exports = {
   Room,
   Namespace,
   Message,
+  UserHasNamespace,
 };

@@ -12,6 +12,12 @@ const { faker } = require("@faker-js/faker");
 // }
 //
 
+function getRandomIntInclusive(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1) + min); // The maximum is inclusive and the minimum is inclusive
+}
+
 function pgQuoteEscape(row) {
   const newRow = {};
   Object.entries(row).forEach(([prop, value]) => {
@@ -25,6 +31,7 @@ function pgQuoteEscape(row) {
 }
 
 const users = [];
+const namespaceUsers = [];
 
 function generateUsers(userNb) {
   for (let i = 0; i < userNb; i++) {
@@ -74,8 +81,48 @@ async function insertUsers(users) {
   return result.rows;
 }
 
-(async () => {
-  generateUsers(20000);
+function generateUserHasNamespace(nb) {
+  for (let i = 0; i < nb; i++) {
+    const user = {
+      user_id: i + 1,
+      namespace_id: getRandomIntInclusive(55, 59),
+      admin: false,
+    };
 
-  const userData = await insertUsers(users);
+    namespaceUsers.push(user);
+  }
+  return namespaceUsers;
+}
+
+async function insertUserHasNamespace(namespaceUsers) {
+  const userValues = namespaceUsers.map((user) => {
+    const newUser = pgQuoteEscape(user);
+    return `(
+          '${newUser.user_id}',
+          '${newUser.namespace_id}',
+          '${newUser.admin}'
+      )`;
+  });
+
+  const queryStr = `
+           INSERT INTO "user_has_namespace"
+           (
+            "user_id",
+            "namespace_id",
+            "admin"
+           )
+           VALUES
+           ${userValues}
+           RETURNING id
+   `;
+  const result = await client.query(queryStr);
+  return result.rows;
+}
+
+(async () => {
+  // generateUsers(160000);
+  generateUserHasNamespace(80000);
+
+  // const userData = await insertUsers(users);
+  const userDataTwo = await insertUserHasNamespace(namespaceUsers);
 })();

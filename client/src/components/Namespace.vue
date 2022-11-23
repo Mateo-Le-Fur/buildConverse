@@ -1,10 +1,10 @@
-<script setup lang="ts" xmlns="http://www.w3.org/1999/html">
+<script setup lang="ts">
 import tippy from "tippy.js";
 import "tippy.js/dist/tippy.css";
 import "tippy.js/dist/svg-arrow.css";
 import uploadImgUrl from "@/assets/images/upload.svg";
 import { useSocket } from "@/shared/stores/socketStore";
-import { onMounted, onUpdated, ref, watch } from "vue";
+import { ref, watch } from "vue";
 import { toFormValidator } from "@vee-validate/zod";
 import { z } from "zod";
 import { useField, useForm } from "vee-validate";
@@ -26,11 +26,9 @@ watch(
   () => socketStore.isNamespacesLoaded,
   () => {
     setTimeout(() => {
-      const anchorElem: NodeListOf<HTMLAnchorElement> = [
+      const anchorElem = [
         ...document.querySelectorAll(".tooltip"),
-      ];
-
-      console.log(anchorElem);
+      ] as HTMLAnchorElement[];
 
       for (let i = 0; i < anchorElem.length; i++) {
         tippy(anchorElem[i], {
@@ -56,7 +54,7 @@ watch(
   }
 );
 
-function previewAvatar(e: HTMLInputElement & Event) {
+function previewAvatar(e: Event) {
   const target = e.target as HTMLInputElement;
   const file = target.files![0];
 
@@ -104,19 +102,19 @@ const submitNamespace = handleSubmit((formValue: Namespace) => {
       img_url: namespaceImage.value,
     });
     socketStore.isNamespaceCreated = false;
-  } catch (e: string | any) {
+  } catch (e: any) {
     setErrors({
       name: e.message,
     });
   }
 });
 
-const submitInviteCode = handleSubmit((formValue: any) => {
+const submitInviteCode = handleSubmit((formValue: Partial<Namespace>) => {
   try {
     socketStore.ioClient.emit("invitationToNamespace", {
       inviteCode: formValue.inviteCode,
     });
-  } catch (e: string | any) {
+  } catch (e: any) {
     setErrors({
       inviteCode: e.message,
     });

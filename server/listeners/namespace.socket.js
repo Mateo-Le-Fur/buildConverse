@@ -1,6 +1,8 @@
 const room = require("./room.socket");
 const user = require("./user.socket");
 const { User, Namespace, Room, Message } = require("../models");
+const fs = require("fs");
+const path = require("path");
 
 const namespaces = {
   getNamespacesData(ios, clients) {
@@ -20,7 +22,7 @@ const namespaces = {
 
         nsSocket.on("getNamespaceUsers", async (namespaceId) => {
           console.log(namespaceId);
-          await user.getNamespaceUsers(nsSocket, namespaceId, clients);
+          await namespaces.getNamespaceUsers(nsSocket, namespaceId, clients);
         });
 
         nsSocket.on("joinRoom", async (roomId) => {
@@ -35,9 +37,14 @@ const namespaces = {
           await room.createRoom(ios, data);
         });
 
+        // TODO A finir après avoir fait le crud utilisateur
         nsSocket.on("deleteRoom", async (data) => {
           await room.deleteRoom(ios, data);
         });
+
+        // nsSocket.on("updateUser", async (data) => {
+        //   await user.updateUser(ios, data);
+        // });
 
         nsSocket.on("message", async ({ text, roomId }) => {
           try {
@@ -57,14 +64,55 @@ const namespaces = {
           }
         });
 
-        nsSocket.on("leave", () => {
-          nsSocket.disconnect(true);
-        });
-
         nsSocket.on("disconnect", () => {
+          nsSocket.disconnect();
           console.log("disconnect");
         });
       });
+    } catch (e) {
+      throw e;
+    }
+  },
+
+  async getNamespaceUsers(nsSocket, namespaceId, clients) {
+    try {
+      let userList = (
+        await Namespace.findByPk(namespaceId, {
+          include: [
+            {
+              model: User,
+              as: "namespaceHasUsers",
+              attributes: {
+                exclude: ["password", "email", "created_at", "updated_at"],
+              },
+            },
+          ],
+        })
+      ).toJSON();
+
+      userList = userList.namespaceHasUsers.map((element) => {
+        const checkIfUserConnected = clients.get(element.id);
+
+        const buffer = fs.readFileSync(
+          path.join(
+            __dirname,
+            `..${
+              element.avatar_url ? element.avatar_url : "/images/default-avatar"
+            }`
+          ),
+          {
+            encoding: "base64",
+          }
+        );
+
+        return {
+          ...element,
+          avatar_url: buffer,
+          status: checkIfUserConnected ? "online" : "offline",
+        };
+      });
+
+      nsSocket.emit("userList", userList);
     } catch (e) {
       throw e;
     }

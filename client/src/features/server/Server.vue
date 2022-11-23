@@ -35,7 +35,7 @@ function joinNamespace() {
   socketStore.joinNamespace(
     nsSocket,
     route.params.idRoom as string,
-    route.params.idChannel
+    route.params.idChannel as string
   );
 }
 
@@ -57,13 +57,13 @@ function changeRoom(room: RoomInterface) {
   <div v-if="socketStore.isNamespacesLoaded" class="channel-container d-flex">
     <Room
       @change-room="changeRoom"
-      :rooms="socketStore.getRoom(route.params.idChannel.toString())"
+      :rooms="socketStore.getRoom(route.params.idChannel?.toString())"
       :active-room-id="socketStore.activeRoom?.id"
       :params="route.params"
     />
     <router-view></router-view>
     <UserList
-      :user-list="socketStore.getUser(route.params.idChannel.toString())"
+      :user-list="socketStore.getUser(route.params.idChannel?.toString())"
       :params="route.params"
     />
   </div>

@@ -2,6 +2,8 @@ const { User } = require("../models");
 const bcrypt = require("bcrypt");
 const ApiError = require("../errors/apiError");
 const jwtToken = require("../config/jwt.config");
+const fs = require("fs");
+const path = require("path");
 
 const authController = {
   async signin(req, res) {
@@ -69,13 +71,31 @@ const authController = {
   async getCurrent(req, res) {
     const { id } = req.user;
 
-    const user = await User.findByPk(id, {
+    let user = await User.findByPk(id, {
+      attributes: { exclude: ["password"] },
       raw: true,
     });
 
-    const { password, description, email, ...rest } = user;
+    if (!user.avatar_url) {
+      const buf = fs.readFileSync(
+        path.join(__dirname, "../images/default-avatar")
+      );
 
-    res.json(rest);
+      user = {
+        ...user,
+        avatar_url: buf.toString("base64"),
+      };
+
+      res.json(user);
+    } else {
+      const buf = fs.readFileSync(path.join(__dirname, `..${user.avatar_url}`));
+
+      user = {
+        ...user,
+        avatar_url: buf.toString("base64"),
+      };
+      res.json(user);
+    }
   },
 };
 

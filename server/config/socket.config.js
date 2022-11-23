@@ -1,4 +1,4 @@
-const socketio = require("socket.io");
+const { Server } = require("socket.io");
 const { server } = require("../app");
 const fs = require("fs");
 const path = require("path");
@@ -6,6 +6,8 @@ const { promisify } = require("util");
 const { ensureAuthenticatedOnSocketHandshake } = require("./security.config");
 const namespaces = require("../listeners/namespace.socket");
 const { User, Namespace, Room, UserHasNamespace } = require("../models");
+const user = require("../listeners/user.socket");
+
 const sharp = require("sharp");
 
 let ios;
@@ -13,7 +15,7 @@ let ios;
 const clients = new Map();
 
 const initSocketServer = async () => {
-  ios = socketio(server, {
+  ios = new Server(server, {
     allowRequest: ensureAuthenticatedOnSocketHandshake,
     maxHttpBufferSize: 1e7,
     credentials: true,
@@ -69,6 +71,8 @@ const initSocketServer = async () => {
 
     socket.on("invitationToNamespace", async (data) => {
       try {
+        console.time("invite");
+
         const userId = socket.request.user.id;
 
         let namespace = (
@@ -115,6 +119,8 @@ const initSocketServer = async () => {
 
         socket.emit("createdNamespace", [namespace]);
         ios.of(namespace.id).emit("newUserOnServer", newUser.namespaceHasUsers);
+
+        console.timeEnd("invite");
       } catch (e) {
         console.error(e);
       }
@@ -127,7 +133,7 @@ const initSocketServer = async () => {
         data.img_name = Date.now();
 
         const buffer = await sharp(data.img_url)
-          .resize(96, 96)
+          .resize(80, 80)
           .webp({
             quality: 80,
           })
@@ -193,11 +199,12 @@ const initSocketServer = async () => {
       }
     });
 
-    socket.on("leave", () => {
-      socket.disconnect(true);
+    socket.on("updateUser", async (data) => {
+      await user.updateUser(socket, ios, data);
     });
 
     socket.on("disconnect", () => {
+      socket.disconnect();
       console.log("disconnect home");
     });
   });

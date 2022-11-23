@@ -19,7 +19,7 @@ function hiddenPopup(data: boolean): void {
 }
 
 const emit = defineEmits<{
-  (e: "changeRoom", data: boolean): void;
+  (e: "changeRoom", data: RoomInterface): void;
 }>();
 </script>
 

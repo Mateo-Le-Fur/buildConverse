@@ -94,12 +94,15 @@ const initSocketServer = async () => {
         });
 
         const buf = fs.readFileSync(
-          path.join(__dirname, `..${namespace.img_url}`)
+          path.join(__dirname, `..${namespace.img_url}`),
+          {
+            encoding: "base64",
+          }
         );
 
         namespace = {
           ...namespace,
-          img_url: buf.toString("base64"),
+          img_url: buf,
         };
 
         const newUser = (
@@ -136,6 +139,7 @@ const initSocketServer = async () => {
           .resize(80, 80)
           .webp({
             quality: 80,
+            effort: 0,
           })
           .toBuffer();
 

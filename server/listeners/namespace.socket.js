@@ -76,6 +76,8 @@ const namespaces = {
 
   async getNamespaceUsers(nsSocket, namespaceId, clients) {
     try {
+      const t0 = performance.now();
+
       let userList = (
         await Namespace.findByPk(namespaceId, {
           include: [
@@ -111,6 +113,10 @@ const namespaces = {
           status: checkIfUserConnected ? "online" : "offline",
         };
       });
+
+      const t1 = performance.now();
+
+      console.log(t1 - t0 + "ms");
 
       nsSocket.emit("userList", userList);
     } catch (e) {

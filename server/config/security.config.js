@@ -7,11 +7,14 @@ exports.ensureAuthenticatedOnSocketHandshake = async (request, success) => {
     const cookies = cookieParser.parse(request.headers.cookie || "");
     if (cookies && cookies.jwt) {
       request.user = decodedToken(cookies.jwt);
-      success(null, "true");
+      console.log("success");
+      success(null, true);
     } else {
-      success(403, "false");
+      console.log("pas success");
+
+      success(403, false);
     }
   } catch (e) {
-    success(400, "false");
+    success(400, false);
   }
 };

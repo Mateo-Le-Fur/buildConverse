@@ -1,5 +1,11 @@
 import { defineStore } from "pinia";
-import io from "socket.io-client";
+import {
+  io,
+  Socket,
+  type ManagerOptions,
+  type SocketOptions,
+} from "socket.io-client";
+
 import type { Namespace } from "@/shared/interfaces/Namespace";
 import type { RoomInterface } from "@/shared/interfaces/Room";
 import type { Message } from "@/shared/interfaces/Message";
@@ -7,7 +13,8 @@ import type { User } from "@/shared/interfaces/User";
 import { useUser } from "@/shared/stores/authStore";
 
 interface SocketState {
-  ioClient: any;
+  ioClient: Socket | null;
+  opts: Partial<ManagerOptions>;
   activeNsSocket: any;
   activeRoom: RoomInterface | null;
   namespaces: Namespace[];
@@ -17,6 +24,7 @@ interface SocketState {
   userList: User[];
   isNamespacesLoaded: boolean;
   isNamespaceCreated: boolean | null;
+  isUsersLoaded: boolean;
   count: number;
   error: any;
 }
@@ -33,8 +41,10 @@ export const useSocket = defineStore("socket", {
     userList: [],
     isNamespacesLoaded: false,
     isNamespaceCreated: null,
+    isUsersLoaded: false,
     count: 0,
     error: null,
+    opts: { forceNew: true, reconnection: false, transports: ["websocket"] },
   }),
 
   getters: {
@@ -78,9 +88,7 @@ export const useSocket = defineStore("socket", {
 
   actions: {
     init() {
-      this.ioClient = io({
-        forceNew: true,
-      });
+      this.ioClient = io(this.opts);
 
       this.ioClient.on("connect", () => {
         console.log("socket on");
@@ -89,7 +97,7 @@ export const useSocket = defineStore("socket", {
 
     initNamespaces() {
       // TODO: Utiliser un fetch a la place pour récupérés les données
-      this.ioClient.on("namespaces", (data: Namespace[]) => {
+      this.ioClient?.on("namespaces", (data: Namespace[]) => {
         if (!data.length) this.isNamespacesLoaded = true;
 
         this.namespaces.push(...data);
@@ -103,7 +111,7 @@ export const useSocket = defineStore("socket", {
         }
       });
 
-      this.ioClient.on("createdNamespace", async (data: Namespace[]) => {
+      this.ioClient?.on("createdNamespace", async (data: Namespace[]) => {
         console.log(data);
         this.namespaces.push(...data);
 
@@ -139,8 +147,9 @@ export const useSocket = defineStore("socket", {
       });
 
       nsSocket.on("userList", (data: User[]) => {
-        console.log(data);
         this.userList = data;
+
+        this.isUsersLoaded = true;
         // for (let i = 0; i < data.length; i++) {
         //   this.userList.push(data[i]);
         // }
@@ -202,6 +211,7 @@ export const useSocket = defineStore("socket", {
       if (
         this.userList[0]?.UserHasNamespace.namespace_id !== Number(channelId)
       ) {
+        this.isUsersLoaded = false;
         this.activeNsSocket.emit("getNamespaceUsers", channelId);
       }
     },

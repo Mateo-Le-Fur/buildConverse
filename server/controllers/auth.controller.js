@@ -36,7 +36,7 @@ const authController = {
 
   async login(req, res) {
     const { email, password } = req.body;
-    const user = await User.findOne({
+    let user = await User.findOne({
       where: {
         email,
       },
@@ -60,6 +60,21 @@ const authController = {
 
     delete user.password;
 
+    const buf = fs.readFileSync(
+      path.join(
+        __dirname,
+        `..${user.avatar_url ? user.avatar_url : "/images/default-avatar"}`
+      ),
+      {
+        encoding: "base64",
+      }
+    );
+
+    user = {
+      ...user,
+      avatar_url: buf,
+    };
+
     res.json(user);
   },
 
@@ -78,22 +93,31 @@ const authController = {
 
     if (!user.avatar_url) {
       const buf = fs.readFileSync(
-        path.join(__dirname, "../images/default-avatar")
+        path.join(__dirname, "../images/default-avatar"),
+        {
+          encoding: "base64",
+        }
       );
 
       user = {
         ...user,
-        avatar_url: buf.toString("base64"),
+        avatar_url: buf,
       };
 
       res.json(user);
     } else {
-      const buf = fs.readFileSync(path.join(__dirname, `..${user.avatar_url}`));
+      const buf = fs.readFileSync(
+        path.join(__dirname, `..${user.avatar_url}`),
+        {
+          encoding: "base64",
+        }
+      );
 
       user = {
         ...user,
-        avatar_url: buf.toString("base64"),
+        avatar_url: buf,
       };
+
       res.json(user);
     }
   },

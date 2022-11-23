@@ -2,6 +2,10 @@
 import type { User } from "@/shared/interfaces/User";
 import type { RouteParams } from "vue-router";
 import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
+import { useSocket } from "@/shared/stores/socketStore";
+import UserLoading from "./UserLoading.vue";
+
+const socketStore = useSocket();
 
 defineProps<{
   userList: User[];
@@ -12,7 +16,12 @@ defineProps<{
 <template>
   <div class="user-container d-flex flex-column">
     <p>Membres: {{ userList.length }}</p>
-    <DynamicScroller :items="userList" :min-item-size="54" class="scroller">
+    <DynamicScroller
+      v-if="socketStore.isUsersLoaded"
+      :items="userList"
+      :min-item-size="54"
+      class="scroller"
+    >
       <template v-slot="{ item, index, active }">
         <DynamicScrollerItem
           :item="item"
@@ -35,6 +44,7 @@ defineProps<{
         </DynamicScrollerItem>
       </template>
     </DynamicScroller>
+    <UserLoading v-else />
   </div>
 </template>
 

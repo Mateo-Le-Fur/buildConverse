@@ -3,7 +3,7 @@ import type { User } from "@/shared/interfaces/User";
 import type { RouteParams } from "vue-router";
 import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
 
-const props = defineProps<{
+defineProps<{
   userList: User[];
   params: RouteParams;
 }>();
@@ -21,9 +21,7 @@ const props = defineProps<{
           :size-dependencies="[item.name]"
         >
           <div class="user d-flex align-items-center">
-            <img
-              src="https://plus.unsplash.com/premium_photo-1663054403667-63a04e2e49a6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1499&q=80"
-            />
+            <img :src="'data:image/jpeg;base64,' + item.avatar_url" />
             <p :class="{ admin: item.UserHasNamespace?.admin }">
               {{ item.pseudo }}
             </p>

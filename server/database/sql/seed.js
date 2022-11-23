@@ -85,7 +85,7 @@ function generateUserHasNamespace(nb) {
   for (let i = 0; i < nb; i++) {
     const user = {
       user_id: i + 1,
-      namespace_id: getRandomIntInclusive(55, 59),
+      namespace_id: getRandomIntInclusive(82, 200),
       admin: false,
     };
 
@@ -120,9 +120,8 @@ async function insertUserHasNamespace(namespaceUsers) {
 }
 
 (async () => {
-  // generateUsers(160000);
-  generateUserHasNamespace(80000);
-
+  // generateUsers(250000);
+  generateUserHasNamespace(250000);
   // const userData = await insertUsers(users);
   const userDataTwo = await insertUserHasNamespace(namespaceUsers);
 })();

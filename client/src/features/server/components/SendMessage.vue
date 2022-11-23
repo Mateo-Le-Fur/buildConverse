@@ -33,13 +33,18 @@ const submit = handleSubmit((formValue: Message) => {
     });
   }
 });
+
+function resetField(e: Event) {
+  const target = e.target as HTMLInputElement;
+  target.value = "";
+}
 </script>
 
 <template>
   <form @submit.prevent="submit" class="form-message">
     <div>
       <input
-        @keyup.enter="$event.target.value = ''"
+        @keyup.enter="resetField($event)"
         v-model="dataValue"
         type="text"
         placeholder="Envoyer un message"

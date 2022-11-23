@@ -1,22 +1,8 @@
 <script setup lang="ts">
 import Namespace from "@/components/Namespace.vue";
 import { useUser } from "@/shared/stores";
-import { useSocket } from "@/shared/stores/socketStore";
-import { watch } from "vue";
-
-const socketStore = useSocket();
 
 const userStore = useUser();
-
-watch(
-  () => userStore.isAuthenticated,
-  () => {
-    if (userStore.isAuthenticated) {
-      socketStore.init();
-      socketStore.initNamespaces();
-    }
-  }
-);
 </script>
 
 <template>

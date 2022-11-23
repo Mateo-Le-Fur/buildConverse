@@ -1,5 +1,6 @@
 import { useUser } from "@/shared/stores";
 import { useSocket } from "@/shared/stores/socketStore";
+import { watch } from "vue";
 
 const initSocket: boolean = false;
 

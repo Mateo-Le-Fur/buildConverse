@@ -32,7 +32,6 @@ export const useUser = defineStore("user", {
   actions: {
     async login(loginForm: LoginForm) {
       try {
-        console.log(loginForm);
         this.currentUser = await login(loginForm);
       } catch (e) {
         throw e;

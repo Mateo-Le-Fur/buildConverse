@@ -48,6 +48,7 @@ const rooms = {
     }
   },
 
+  // TODO A finir après avoir fait le crud utilisateur
   async deleteRoom(ios, data) {
     console.log(data);
     try {

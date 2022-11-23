@@ -4,7 +4,7 @@ import type { Namespace } from "@/shared/interfaces/Namespace";
 import type { RoomInterface } from "@/shared/interfaces/Room";
 import type { Message } from "@/shared/interfaces/Message";
 import type { User } from "@/shared/interfaces/User";
-import { initNamespace } from "@/shared/guards";
+import { useUser } from "@/shared/stores/authStore";
 
 interface SocketState {
   ioClient: any;
@@ -80,7 +80,6 @@ export const useSocket = defineStore("socket", {
     init() {
       this.ioClient = io({
         forceNew: true,
-        transports: ["websocket"],
       });
 
       this.ioClient.on("connect", () => {
@@ -140,7 +139,7 @@ export const useSocket = defineStore("socket", {
       });
 
       nsSocket.on("userList", (data: User[]) => {
-        console.log(data.length);
+        console.log(data);
         this.userList = data;
         // for (let i = 0; i < data.length; i++) {
         //   this.userList.push(data[i]);
@@ -149,6 +148,23 @@ export const useSocket = defineStore("socket", {
 
       nsSocket.on("newUserOnServer", (data: User[]) => {
         this.userList.push(...data);
+      });
+
+      nsSocket.on("updateUser", async (data: User[]) => {
+        console.log(data);
+        const userIndex = this.userList.findIndex(
+          (user) =>
+            user.id === data[0].id &&
+            user.UserHasNamespace.namespace_id ===
+              data[0].UserHasNamespace.namespace_id
+        );
+
+        if (userIndex !== -1) {
+          this.userList[userIndex] = data[0];
+        }
+
+        const userStore = useUser();
+        await userStore.fetchCurrentUser();
       });
 
       nsSocket.on("history", (data: Message[]) => {
@@ -160,6 +176,7 @@ export const useSocket = defineStore("socket", {
       });
 
       nsSocket.on("deleteRoom", (data: number) => {
+        // TODO A finir après avoir fait le crud utilisateur
         console.log(data);
       });
     },
@@ -169,7 +186,6 @@ export const useSocket = defineStore("socket", {
       this.activeRoom = room;
     },
 
-    // TODO FAIRE UNE FONCTION joinAfterCreatedNamespace POUR UNE MEILLEUR MAINTENABILITÉ
     joinNamespace(nsSocket: any, roomId: string, channelId: string) {
       this.activeNsSocket = nsSocket;
 
@@ -179,7 +195,15 @@ export const useSocket = defineStore("socket", {
 
       this.joinRoom(room!);
 
-      this.activeNsSocket.emit("getNamespaceUsers", channelId);
+      /* Je vérifie que l'id du serveur ne corresponde pas à l'id du serveur contenu dans ma liste d'utilisateurs
+      si c'est le cas cela veut dire que j'accède au serveur sur lequel j'étais déjà et donc cela m'évite de renvoyer une
+      requête au serveur.
+       */
+      if (
+        this.userList[0]?.UserHasNamespace.namespace_id !== Number(channelId)
+      ) {
+        this.activeNsSocket.emit("getNamespaceUsers", channelId);
+      }
     },
 
     getRoom(namespaceId: string) {

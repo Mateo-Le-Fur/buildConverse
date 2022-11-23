@@ -1,34 +1,114 @@
 <script setup lang="ts">
-import { reactive } from "vue";
+import { reactive, ref, watch } from "vue";
 import { useUser } from "@/shared/stores";
 import { useRouter } from "vue-router";
 import { useSocket } from "@/shared/stores/socketStore";
-
-const state = reactive<{
-  isProfilOpen: boolean;
-}>({
-  isProfilOpen: false,
-});
+import type { User } from "@/shared/interfaces/User";
+import { toFormValidator } from "@vee-validate/zod";
+import { z } from "zod";
+import { useField, useForm } from "vee-validate";
 
 const userStore = useUser();
 const socketStore = useSocket();
 const router = useRouter();
 
+const state = reactive<{
+  isProfilOpen: boolean;
+  user: User | null;
+}>({
+  isProfilOpen: false,
+  user: null,
+});
+let avatar = ref<File>();
+let src = ref<string | ArrayBuffer | null>();
+
 async function logout() {
   await userStore.logout();
-  socketStore.ioClient.emit("leave");
+  socketStore.ioClient.disconnect();
+  socketStore.namespaceSockets.forEach((nsSocket: any) => {
+    nsSocket.disconnect();
+  });
   socketStore.$reset();
+  userStore.$reset();
   await router.push("/connexion");
 }
+
+function previewAvatar(e: Event) {
+  const target = e.target as HTMLInputElement;
+  const file = target.files![0];
+
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+
+  reader.onloadend = () => {
+    src.value = reader.result;
+  };
+
+  avatar.value = file;
+}
+
+watch(
+  () => state.isProfilOpen,
+  () => {
+    pseudoValue.value = userStore.currentUser?.pseudo;
+    emailValue.value = userStore.currentUser?.email;
+  }
+);
+
+watch(avatar, (NewValue) => {
+  avatar.value = NewValue;
+});
+
+const validationSchema = toFormValidator(
+  z.object({
+    pseudo: z.string({ required_error: "Le champ doit être remplie : (" }),
+
+    email: z
+      .string({ required_error: "Le champ doit être remplie : (" })
+      .email("Le format de l'email n'est pas valide : ("),
+  })
+);
+
+const { handleSubmit, setErrors } = useForm<User>({
+  validationSchema,
+});
+
+const submit = handleSubmit(async (formValue: User) => {
+  try {
+    if (
+      formValue.pseudo !== userStore.currentUser?.pseudo ||
+      formValue.email !== userStore.currentUser?.email
+    ) {
+      const namespaces = socketStore.namespaces.map((ns) => {
+        return ns.id;
+      });
+
+      socketStore.ioClient.emit("updateUser", {
+        pseudo: formValue.pseudo,
+        email: formValue.email,
+        namespaces,
+        userId: userStore.currentUser?.id,
+        avatar: avatar.value ? avatar.value : null,
+        avatarName: avatar.value ? avatar.value?.name : null,
+      });
+      state.isProfilOpen = false;
+    }
+  } catch (e: string | any) {
+    setErrors({});
+  }
+});
+
+const { value: pseudoValue, errorMessage: pseudoError } = useField("pseudo");
+const { value: emailValue, errorMessage: emailError } = useField("email");
 </script>
 
 <template>
   <div class="profil-container d-flex align-items-center">
     <img
-      src="https://images.unsplash.com/photo-1666797698030-15a431eea3f4?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80"
+      :src="'data:image/jpeg;base64,' + userStore.currentUser?.avatar_url"
       alt=""
     />
-    <p>{{ userStore.currentUser.pseudo }}</p>
+    <p>{{ userStore.currentUser?.pseudo }}</p>
     <div class="d-flex flex-fill justify-content-end">
       <div class="settings d-flex justify-content-end">
         <svg
@@ -42,24 +122,60 @@ async function logout() {
         </svg>
         <div v-if="state.isProfilOpen" class="d-flex flex-column profil-popup">
           <div class="d-flex flex-column profil-content">
-            <div class="d-flex align-items-center">
+            <div class="d-flex flex-column align-items-center">
               <label for="file" class="label-file">
                 <img
                   class="avatar"
-                  src="https://images.unsplash.com/photo-1666797698030-15a431eea3f4?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80"
+                  :src="
+                    src
+                      ? src
+                      : 'data:image/jpeg;base64,' +
+                        userStore.currentUser?.avatar_url
+                  "
                 />
               </label>
-              <input id="file" class="input-file" type="file" />
-              <p class="profil-content-pseudo">
-                {{ userStore.currentUser.pseudo }}
-              </p>
+              <input
+                @change="previewAvatar($event)"
+                id="file"
+                class="input-file"
+                type="file"
+              />
+
+              <form
+                @submit.prevent="submit"
+                class="d-flex flex-column align-items-center"
+              >
+                <div class="d-flex flex-column profil-content-pseudo mb-10">
+                  <label for="pseudo">Pseudo</label>
+                  <input
+                    id="pseudo"
+                    type="text"
+                    autocomplete="off"
+                    v-model="pseudoValue"
+                  />
+                </div>
+                <div class="d-flex flex-column profil-content-email mb-10">
+                  <label for="pseudo">Email</label>
+                  <input
+                    id="pseudo"
+                    type="text"
+                    autocomplete="off"
+                    v-model="emailValue"
+                  />
+                </div>
+                <div class="d-flex">
+                  <button class="update">Enregistrer</button>
+                </div>
+              </form>
             </div>
-            <button
-              @click="logout(), (state.isProfilOpen = false)"
-              class="logout mb-20"
-            >
-              Déconnexion
-            </button>
+            <div class="d-flex align-items-center justify-content-center">
+              <button
+                @click="logout(), (state.isProfilOpen = false)"
+                class="logout mb-20"
+              >
+                Déconnexion
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -116,12 +232,13 @@ async function logout() {
     position: absolute;
     top: -370px;
     padding: 15px;
-    right: -100px;
+    right: -30px;
     height: 350px;
-    width: 350px;
+    width: 280px;
     background-color: #282a2f;
     z-index: 2;
-    border-radius: 10px;
+    border-radius: 4px;
+    box-shadow: 3px 0px 10px 4px rgba(0, 0, 0, 0.5);
 
     .profil-content {
       gap: 15px;
@@ -132,14 +249,46 @@ async function logout() {
       }
 
       .profil-content-pseudo {
-        font-size: 1.5rem;
+        label {
+          color: #f4f4f4;
+        }
+
+        input {
+          outline: none;
+          background-color: #1f2023;
+          color: #f4f4f4;
+          font-size: 1.1rem;
+        }
       }
+
+      .profil-content-email {
+        label {
+          color: #f4f4f4;
+        }
+
+        input {
+          outline: none;
+          background-color: #1f2023;
+          color: #f4f4f4;
+          font-size: 1.1rem;
+        }
+      }
+    }
+
+    .update {
+      text-align: center;
+      width: 150px;
+      cursor: pointer;
+      border: none;
+      outline: none;
+      padding: 15px 10px;
+      border-radius: 5px;
+      background-color: #236cab;
     }
 
     .logout {
       text-align: center;
       width: 150px;
-      text-align: center;
       cursor: pointer;
       border: none;
       outline: none;

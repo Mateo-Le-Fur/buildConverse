@@ -3,6 +3,9 @@ const user = require("./user.socket");
 const { User, Namespace, Room, Message } = require("../models");
 const fs = require("fs");
 const path = require("path");
+const UserHasNamespace = require("../models/UserHasNamespace");
+const client = require("../config/sequelize");
+const { QueryTypes } = require("sequelize");
 
 const namespaces = {
   getNamespacesData(ios, clients) {
@@ -21,8 +24,11 @@ const namespaces = {
         }
 
         nsSocket.on("getNamespaceUsers", async (namespaceId) => {
-          console.log(namespaceId);
           await namespaces.getNamespaceUsers(nsSocket, namespaceId, clients);
+        });
+
+        nsSocket.on("loadMoreUser", async (data) => {
+          await namespaces.loadMoreUser(nsSocket, data, clients);
         });
 
         nsSocket.on("joinRoom", async (roomId) => {
@@ -76,23 +82,24 @@ const namespaces = {
 
   async getNamespaceUsers(nsSocket, namespaceId, clients) {
     try {
-      const t0 = performance.now();
+      let namespace = await Namespace.findByPk(namespaceId);
 
-      let userList = (
-        await Namespace.findByPk(namespaceId, {
-          include: [
-            {
-              model: User,
-              as: "namespaceHasUsers",
-              attributes: {
-                exclude: ["password", "email", "created_at", "updated_at"],
-              },
-            },
-          ],
-        })
-      ).toJSON();
+      const user = await client.query(
+        `SELECT COUNT("User"."id") AS "numberOfUsers" FROM "user" AS "User"
+          INNER JOIN "user_has_namespace" AS "UserHasNamespace"
+          ON "UserHasNamespace"."namespace_id" = ${namespaceId} GROUP BY "User"."id"
+          LIMIT 1`,
+        { type: QueryTypes.SELECT }
+      );
 
-      userList = userList.namespaceHasUsers.map((element) => {
+      let users = await namespace.getNamespaceHasUsers({
+        limit: 20,
+        offset: 0,
+        raw: true,
+        nest: true,
+      });
+
+      users = users.map((element) => {
         const checkIfUserConnected = clients.get(element.id);
 
         const buffer = fs.readFileSync(
@@ -114,14 +121,56 @@ const namespaces = {
         };
       });
 
-      const t1 = performance.now();
-
-      console.log(t1 - t0 + "ms");
-
-      nsSocket.emit("userList", userList);
+      nsSocket.emit("userList", {
+        users,
+        numberOfUsers: user[0].numberOfUsers,
+      });
     } catch (e) {
       throw e;
     }
+  },
+
+  async loadMoreUser(nsSocket, data, clients) {
+    const { length, namespaceId } = data;
+
+    const t0 = performance.now();
+
+    let namespace = await Namespace.findByPk(namespaceId);
+
+    let user = await namespace.getNamespaceHasUsers({
+      limit: 20,
+      offset: length,
+      raw: true,
+      nest: true,
+    });
+
+    user = user.map((element) => {
+      const checkIfUserConnected = clients.get(element.id);
+
+      const buffer = fs.readFileSync(
+        path.join(
+          __dirname,
+          `..${
+            element.avatar_url ? element.avatar_url : "/images/default-avatar"
+          }`
+        ),
+        {
+          encoding: "base64",
+        }
+      );
+
+      return {
+        ...element,
+        avatar_url: buffer,
+        status: checkIfUserConnected ? "online" : "offline",
+      };
+    });
+
+    const t1 = performance.now();
+
+    console.log(t1 - t0 + "ms");
+
+    nsSocket.emit("loadMoreUser", user);
   },
 };
 

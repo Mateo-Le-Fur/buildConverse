@@ -7,28 +7,35 @@ import UserLoading from "./UserLoading.vue";
 
 const socketStore = useSocket();
 
-defineProps<{
+const props = defineProps<{
   userList: User[];
   params: RouteParams;
 }>();
+
+function onScrollToBottom({
+  target: { scrollTop, clientHeight, scrollHeight },
+}: any) {
+  if (scrollTop + clientHeight + 300 >= scrollHeight) {
+    socketStore.activeNsSocket.emit("loadMoreUser", {
+      length: props.userList.length,
+      namespaceId: props.params.idChannel,
+    });
+  }
+}
 </script>
 
 <template>
   <div class="user-container d-flex flex-column">
-    <p>Membres: {{ userList.length }}</p>
+    <p>Membres: {{ socketStore.numberOfUsers }}</p>
     <DynamicScroller
+      @scroll="onScrollToBottom"
       v-if="socketStore.isUsersLoaded"
       :items="userList"
-      :min-item-size="54"
+      :min-item-size="1"
       class="scroller"
     >
       <template v-slot="{ item, index, active }">
-        <DynamicScrollerItem
-          :item="item"
-          :active="active"
-          :data-index="index"
-          :size-dependencies="[item.name]"
-        >
+        <DynamicScrollerItem :item="item" :active="active" :data-index="index">
           <div class="user d-flex align-items-center">
             <img :src="'data:image/jpeg;base64,' + item.avatar_url" />
             <p :class="{ admin: item.UserHasNamespace?.admin }">

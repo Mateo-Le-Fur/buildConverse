@@ -40,6 +40,7 @@ function generateUsers(userNb) {
       email: faker.random.alphaNumeric(20),
       password: faker.name.middleName(),
       status: faker.name.firstName(),
+      avatar_url: "/images/12345",
     };
 
     users.push(user);
@@ -57,6 +58,7 @@ async function insertUsers(users) {
           '${newUser.email}',
           '${newUser.password}',
           '${newUser.status}',
+          '${newUser.avatar_url}',
           '${newUser.description}'
       )`;
   });
@@ -68,6 +70,7 @@ async function insertUsers(users) {
             "email",
             "password",
             "status",
+            "avatar_url",
             "description"
            )
            VALUES
@@ -82,7 +85,7 @@ function generateUserHasNamespace(nb) {
   for (let i = 0; i < nb; i++) {
     const user = {
       user_id: i + 1,
-      namespace_id: getRandomIntInclusive(213, 214),
+      namespace_id: getRandomIntInclusive(219, 220),
       admin: false,
     };
 
@@ -117,9 +120,9 @@ async function insertUserHasNamespace(namespaceUsers) {
 }
 
 (async () => {
-  generateUsers(3000);
+  generateUsers(8000);
   const userData = await insertUsers(users);
-
-  generateUserHasNamespace(1500);
+  //
+  generateUserHasNamespace(7500);
   const userDataTwo = await insertUserHasNamespace(namespaceUsers);
 })();

@@ -22,6 +22,7 @@ interface SocketState {
   rooms: RoomInterface[];
   messages: Message[];
   userList: User[];
+  numberOfUsers: number;
   isNamespacesLoaded: boolean;
   isNamespaceCreated: boolean | null;
   isUsersLoaded: boolean;
@@ -39,6 +40,7 @@ export const useSocket = defineStore("socket", {
     rooms: [],
     messages: [],
     userList: [],
+    numberOfUsers: 0,
     isNamespacesLoaded: false,
     isNamespaceCreated: null,
     isUsersLoaded: false,
@@ -146,13 +148,18 @@ export const useSocket = defineStore("socket", {
         }
       });
 
-      nsSocket.on("userList", (data: User[]) => {
-        this.userList = data;
+      nsSocket.on(
+        "userList",
+        (data: { users: User[]; numberOfUsers: number }) => {
+          this.userList = data.users;
+          this.numberOfUsers = data.numberOfUsers;
 
-        this.isUsersLoaded = true;
-        // for (let i = 0; i < data.length; i++) {
-        //   this.userList.push(data[i]);
-        // }
+          this.isUsersLoaded = true;
+        }
+      );
+
+      nsSocket.on("loadMoreUser", (data: User[]) => {
+        this.userList.push(...data);
       });
 
       nsSocket.on("newUserOnServer", (data: User[]) => {
@@ -196,6 +203,8 @@ export const useSocket = defineStore("socket", {
     },
 
     joinNamespace(nsSocket: any, roomId: string, channelId: string) {
+      this.userList = [];
+
       this.activeNsSocket = nsSocket;
 
       const room = this.rooms.find(
@@ -212,6 +221,7 @@ export const useSocket = defineStore("socket", {
         this.userList[0]?.UserHasNamespace.namespace_id !== Number(channelId)
       ) {
         this.isUsersLoaded = false;
+
         this.activeNsSocket.emit("getNamespaceUsers", channelId);
       }
     },

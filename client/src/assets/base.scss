@@ -334,8 +334,14 @@ h2 {
 }
 
 // vue-scroller
+.vue-recycle-scroller__item-view > div:first-child {
 
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 8px 0;
 
+}
 
 .direction-vertical {
   &::-webkit-scrollbar {

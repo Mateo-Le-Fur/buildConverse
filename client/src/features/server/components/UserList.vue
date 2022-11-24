@@ -36,18 +36,16 @@ function onScrollToBottom({
     >
       <template v-slot="{ item, index, active }">
         <DynamicScrollerItem :item="item" :active="active" :data-index="index">
-          <div class="user d-flex align-items-center">
-            <img :src="'data:image/jpeg;base64,' + item.avatar_url" />
-            <p :class="{ admin: item.UserHasNamespace?.admin }">
-              {{ item.pseudo }}
-            </p>
-            <div
-              :class="{
-                online: item.status === 'online',
-                offline: item.status === 'offline',
-              }"
-            ></div>
-          </div>
+          <img :src="'data:image/jpeg;base64,' + item.avatar_url" />
+          <p :class="{ admin: item.UserHasNamespace?.admin }">
+            {{ item.pseudo }}
+          </p>
+          <div
+            :class="{
+              online: item.status === 'online',
+              offline: item.status === 'offline',
+            }"
+          ></div>
         </DynamicScrollerItem>
       </template>
     </DynamicScroller>
@@ -69,7 +67,6 @@ function onScrollToBottom({
 
   .user {
     gap: 15px;
-    padding-bottom: 15px;
   }
 
   div {
@@ -82,7 +79,7 @@ function onScrollToBottom({
 
     .online {
       position: absolute;
-      bottom: 15px;
+      bottom: 8px;
       left: 25px;
       background-color: green;
       height: 17px;
@@ -93,7 +90,7 @@ function onScrollToBottom({
 
     .offline {
       position: absolute;
-      bottom: 15px;
+      bottom: 8px;
       left: 25px;
       background-color: #6d6d6d;
       height: 17px;

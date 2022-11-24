@@ -299,6 +299,13 @@ h2 {
   border-right-color: #1f2023;
 }
 
+.vue-recycle-scroller__item-view > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 8px 0;
+}
+
 .direction-vertical::-webkit-scrollbar {
   width: 10px;
 }

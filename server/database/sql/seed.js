@@ -12,6 +12,16 @@ const { faker } = require("@faker-js/faker");
 // }
 //
 
+const images = [
+  "12345",
+  "123456",
+  "1234567",
+  "12345678",
+  "123456789",
+  "1222",
+  "1333",
+];
+
 function getRandomIntInclusive(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
@@ -35,11 +45,14 @@ const namespaceUsers = [];
 
 function generateUsers(userNb) {
   for (let i = 0; i < userNb; i++) {
+    const random = Math.floor(Math.random() * images.length);
+
     const user = {
       pseudo: faker.name.firstName(),
       email: faker.random.alphaNumeric(20),
       password: faker.name.middleName(),
       status: faker.name.firstName(),
+      avatar_url: `/images/${images[random]}`,
     };
 
     users.push(user);
@@ -57,6 +70,7 @@ async function insertUsers(users) {
           '${newUser.email}',
           '${newUser.password}',
           '${newUser.status}',
+          '${newUser.avatar_url}',
           '${newUser.description}'
       )`;
   });
@@ -68,6 +82,7 @@ async function insertUsers(users) {
             "email",
             "password",
             "status",
+            "avatar_url",
             "description"
            )
            VALUES
@@ -82,7 +97,7 @@ function generateUserHasNamespace(nb) {
   for (let i = 0; i < nb; i++) {
     const user = {
       user_id: i + 1,
-      namespace_id: getRandomIntInclusive(213, 214),
+      namespace_id: getRandomIntInclusive(229, 229),
       admin: false,
     };
 
@@ -119,7 +134,7 @@ async function insertUserHasNamespace(namespaceUsers) {
 (async () => {
   generateUsers(3000);
   const userData = await insertUsers(users);
-
+  //
   generateUserHasNamespace(1500);
   const userDataTwo = await insertUserHasNamespace(namespaceUsers);
 })();

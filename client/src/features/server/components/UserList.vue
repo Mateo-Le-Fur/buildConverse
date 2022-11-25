@@ -7,44 +7,75 @@ import UserLoading from "./UserLoading.vue";
 
 const socketStore = useSocket();
 
-defineProps<{
+const props = defineProps<{
   userList: User[];
   params: RouteParams;
 }>();
+
+function onScrollToBottom({
+  target: { scrollTop, clientHeight, scrollHeight },
+}: any) {
+  if (scrollTop + clientHeight >= scrollHeight) {
+    socketStore.activeNsSocket.emit("loadMoreUser", {
+      length: props.userList.length,
+      namespaceId: props.params.idChannel,
+    });
+  }
+}
 </script>
+<!--<template>-->
+<!--  <div class="user-container d-flex flex-column">-->
+<!--    <p>Membres: {{ socketStore.numberOfUsers }}</p>-->
+<!--    <RecycleScroller-->
+<!--        @scroll="onScrollToBottom"-->
+<!--        v-if="socketStore.isUsersLoaded"-->
+<!--        :items="userList"-->
+<!--        :min-item-size="1"-->
+<!--        v-slot="{ item }"-->
+<!--        class="scroller"-->
+<!--    >-->
+<!--      <template v-slot="{ item, index, active }">-->
+<!--        <DynamicScrollerItem :item="item" :active="active" :data-index="index">-->
+<!--          <img :src="'data:image/jpeg;base64,' + item.avatar_url" />-->
+<!--          <p :class="{ admin: item.UserHasNamespace?.admin }">-->
+<!--            {{ item.pseudo }}-->
+<!--          </p>-->
+<!--          <div-->
+<!--              :class="{-->
+<!--              online: item.status === 'online',-->
+<!--              offline: item.status === 'offline',-->
+<!--            }"-->
+<!--          ></div>-->
+<!--        </DynamicScrollerItem>-->
+<!--      </template>-->
+<!--    </RecycleScroller>-->
+<!--    <UserLoading v-else />-->
+<!--  </div>-->
+<!--</template>-->
 
 <template>
   <div class="user-container d-flex flex-column">
-    <p>Membres: {{ userList.length }}</p>
-    <DynamicScroller
-      v-if="socketStore.isUsersLoaded"
+    <p>Membres: {{ socketStore.numberOfUsers }}</p>
+    <RecycleScroller
+      @scroll="onScrollToBottom"
       :items="userList"
-      :min-item-size="54"
+      :item-size="50"
+      v-slot="{ item }"
       class="scroller"
     >
-      <template v-slot="{ item, index, active }">
-        <DynamicScrollerItem
-          :item="item"
-          :active="active"
-          :data-index="index"
-          :size-dependencies="[item.name]"
-        >
-          <div class="user d-flex align-items-center">
-            <img :src="'data:image/jpeg;base64,' + item.avatar_url" />
-            <p :class="{ admin: item.UserHasNamespace?.admin }">
-              {{ item.pseudo }}
-            </p>
-            <div
-              :class="{
-                online: item.status === 'online',
-                offline: item.status === 'offline',
-              }"
-            ></div>
-          </div>
-        </DynamicScrollerItem>
-      </template>
-    </DynamicScroller>
-    <UserLoading v-else />
+      <div>
+        <img :src="'data:image/jpeg;base64,' + item.avatar_url" />
+        <p :class="{ admin: item.UserHasNamespace?.admin }">
+          {{ item.pseudo }}
+        </p>
+        <div
+          :class="{
+            online: item.status === 'online',
+            offline: item.status === 'offline',
+          }"
+        ></div>
+      </div>
+    </RecycleScroller>
   </div>
 </template>
 
@@ -62,7 +93,6 @@ defineProps<{
 
   .user {
     gap: 15px;
-    padding-bottom: 15px;
   }
 
   div {
@@ -75,7 +105,7 @@ defineProps<{
 
     .online {
       position: absolute;
-      bottom: 15px;
+      bottom: 8px;
       left: 25px;
       background-color: green;
       height: 17px;
@@ -86,7 +116,7 @@ defineProps<{
 
     .offline {
       position: absolute;
-      bottom: 15px;
+      bottom: 8px;
       left: 25px;
       background-color: #6d6d6d;
       height: 17px;

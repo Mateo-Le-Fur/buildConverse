@@ -3,14 +3,39 @@ const user = require("./user.socket");
 const { User, Namespace, Room, Message } = require("../models");
 const fs = require("fs");
 const path = require("path");
+const UserHasNamespace = require("../models/UserHasNamespace");
+const client = require("../config/sequelize");
+const { QueryTypes } = require("sequelize");
 
 const namespaces = {
-  getNamespacesData(ios, clients) {
+  getNamespacesData(ios, socket, clients) {
     try {
       const ns = ios.of(/^\/\w+$/);
 
+      // Je vérifie que l'utilisateur a les droits de se connecter au serveur
+      ns.use(async (socket, next) => {
+        const { id } = socket.request.user;
+        const namespaceId = socket.nsp.name.substring(1);
+
+        const namespace = await Namespace.findByPk(namespaceId);
+
+        const isAuthorize = await namespace.getNamespaceHasUsers({
+          where: {
+            id,
+          },
+        });
+
+        if (isAuthorize.length) {
+          next();
+        } else {
+          next(new Error("Tu n'as pas accès à ce serveur "));
+        }
+      });
+
       ns.on("connect", async (nsSocket) => {
-        console.log(nsSocket.request.user);
+        console.log(
+          `L'utilisateur : ${nsSocket.request.user.pseudo} est connecté sur le serveur ${nsSocket.nsp.name}`
+        );
 
         try {
           const namespaceId = nsSocket.nsp.name.slice(1);
@@ -21,8 +46,11 @@ const namespaces = {
         }
 
         nsSocket.on("getNamespaceUsers", async (namespaceId) => {
-          console.log(namespaceId);
           await namespaces.getNamespaceUsers(nsSocket, namespaceId, clients);
+        });
+
+        nsSocket.on("loadMoreUser", async (data) => {
+          await namespaces.loadMoreUser(nsSocket, data, clients);
         });
 
         nsSocket.on("joinRoom", async (roomId) => {
@@ -78,21 +106,24 @@ const namespaces = {
     try {
       const t0 = performance.now();
 
-      let userList = (
-        await Namespace.findByPk(namespaceId, {
-          include: [
-            {
-              model: User,
-              as: "namespaceHasUsers",
-              attributes: {
-                exclude: ["password", "email", "created_at", "updated_at"],
-              },
-            },
-          ],
-        })
-      ).toJSON();
+      let namespace = await Namespace.findByPk(namespaceId);
 
-      userList = userList.namespaceHasUsers.map((element) => {
+      const user = await client.query(
+        `SELECT COUNT("User"."id") AS "numberOfUsers" FROM "user" AS "User"
+          INNER JOIN "user_has_namespace" AS "UserHasNamespace"
+          ON "UserHasNamespace"."namespace_id" = ${namespaceId} GROUP BY "User"."id"
+          LIMIT 1`,
+        { type: QueryTypes.SELECT }
+      );
+
+      let users = await namespace.getNamespaceHasUsers({
+        limit: 50,
+        offset: 0,
+        raw: true,
+        nest: true,
+      });
+
+      users = users.map((element) => {
         const checkIfUserConnected = clients.get(element.id);
 
         const buffer = fs.readFileSync(
@@ -116,12 +147,60 @@ const namespaces = {
 
       const t1 = performance.now();
 
-      console.log(t1 - t0 + "ms");
+      console.log(`get user list : ${t1 - t0} ms`);
 
-      nsSocket.emit("userList", userList);
+      nsSocket.emit("userList", {
+        users,
+        numberOfUsers: user[0].numberOfUsers,
+      });
     } catch (e) {
       throw e;
     }
+  },
+
+  async loadMoreUser(nsSocket, data, clients) {
+    const { length, namespaceId } = data;
+
+    const t0 = performance.now();
+
+    let namespace = await Namespace.findByPk(namespaceId);
+
+    console.log(length);
+
+    let user = await namespace.getNamespaceHasUsers({
+      limit: 50,
+      offset: length,
+      raw: true,
+      nest: true,
+    });
+
+    user = user.map((element) => {
+      const checkIfUserConnected = clients.get(element.id);
+
+      const buffer = fs.readFileSync(
+        path.join(
+          __dirname,
+          `..${
+            element.avatar_url ? element.avatar_url : "/images/default-avatar"
+          }`
+        ),
+        {
+          encoding: "base64",
+        }
+      );
+
+      return {
+        ...element,
+        avatar_url: buffer,
+        status: checkIfUserConnected ? "online" : "offline",
+      };
+    });
+
+    const t1 = performance.now();
+
+    console.log(`load more user : ${t1 - t0} ms`);
+
+    nsSocket.emit("loadMoreUser", user);
   },
 };
 

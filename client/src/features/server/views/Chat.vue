@@ -1,21 +1,20 @@
 <script setup lang="ts">
 import { useSocket } from "@/shared/stores/socketStore";
 import SendMessage from "../components/SendMessage.vue";
+import { onUpdated, ref } from "vue";
 
-// onUpdated(() => {
-//   const element = ref<HTMLDivElement | null>(
-//     document.querySelector(".message-container")
-//   );
-//
-//   if (element.value?.scrollHeight !== 0) {
-//     console.log(element.value?.scrollHeight);
-//
-//     element.value?.scrollTo({
-//       top: element.value?.scrollHeight,
-//       left: 0,
-//     });
-//   }
-// });
+onUpdated(() => {
+  const element = ref<HTMLDivElement | null>(
+    document.querySelector(".message-container")
+  );
+
+  if (element.value?.scrollHeight !== 0) {
+    element.value?.scrollTo({
+      top: element.value?.scrollHeight,
+      left: 0,
+    });
+  }
+});
 
 const socketStore = useSocket();
 </script>
@@ -86,6 +85,10 @@ const socketStore = useSocket();
     gap: 10px;
     margin-top: 20px;
     padding: 0 20px 10px 20px;
+
+    &:hover {
+      background-color: #32353bff;
+    }
 
     img {
       width: 40px;

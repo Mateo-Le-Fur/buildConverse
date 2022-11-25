@@ -86,6 +86,10 @@ const socketStore = useSocket();
     margin-top: 20px;
     padding: 0 20px 10px 20px;
 
+    &:hover {
+      background-color: #32353bff;
+    }
+
     img {
       width: 40px;
       height: 40px;

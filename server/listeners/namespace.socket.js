@@ -8,12 +8,34 @@ const client = require("../config/sequelize");
 const { QueryTypes } = require("sequelize");
 
 const namespaces = {
-  getNamespacesData(ios, clients) {
+  getNamespacesData(ios, socket, clients) {
     try {
       const ns = ios.of(/^\/\w+$/);
 
+      // Je vérifie que l'utilisateur a les droits de se connecter au serveur
+      ns.use(async (socket, next) => {
+        const { id } = socket.request.user;
+        const namespaceId = socket.nsp.name.substring(1);
+
+        const namespace = await Namespace.findByPk(namespaceId);
+
+        const isAuthorize = await namespace.getNamespaceHasUsers({
+          where: {
+            id,
+          },
+        });
+
+        if (isAuthorize.length) {
+          next();
+        } else {
+          next(new Error("Tu n'as pas accès à ce serveur "));
+        }
+      });
+
       ns.on("connect", async (nsSocket) => {
-        console.log(nsSocket.request.user);
+        console.log(
+          `L'utilisateur : ${nsSocket.request.user.pseudo} est connecté sur le serveur ${nsSocket.nsp.name}`
+        );
 
         try {
           const namespaceId = nsSocket.nsp.name.slice(1);
@@ -82,6 +104,8 @@ const namespaces = {
 
   async getNamespaceUsers(nsSocket, namespaceId, clients) {
     try {
+      const t0 = performance.now();
+
       let namespace = await Namespace.findByPk(namespaceId);
 
       const user = await client.query(
@@ -93,7 +117,7 @@ const namespaces = {
       );
 
       let users = await namespace.getNamespaceHasUsers({
-        limit: 20,
+        limit: 50,
         offset: 0,
         raw: true,
         nest: true,
@@ -121,6 +145,10 @@ const namespaces = {
         };
       });
 
+      const t1 = performance.now();
+
+      console.log(`get user list : ${t1 - t0} ms`);
+
       nsSocket.emit("userList", {
         users,
         numberOfUsers: user[0].numberOfUsers,
@@ -137,8 +165,10 @@ const namespaces = {
 
     let namespace = await Namespace.findByPk(namespaceId);
 
+    console.log(length);
+
     let user = await namespace.getNamespaceHasUsers({
-      limit: 20,
+      limit: 50,
       offset: length,
       raw: true,
       nest: true,
@@ -168,7 +198,7 @@ const namespaces = {
 
     const t1 = performance.now();
 
-    console.log(t1 - t0 + "ms");
+    console.log(`load more user : ${t1 - t0} ms`);
 
     nsSocket.emit("loadMoreUser", user);
   },

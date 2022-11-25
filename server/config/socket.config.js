@@ -62,7 +62,7 @@ const initSocketServer = async () => {
         })
       );
 
-      namespaces.getNamespacesData(ios, clients);
+      namespaces.getNamespacesData(ios, socket, clients);
 
       socket.emit("namespaces", result);
     } catch (e) {

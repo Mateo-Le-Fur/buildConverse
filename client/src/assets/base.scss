@@ -1,8 +1,8 @@
 :root {
 
-  --primary-1: #36393f;
+  --primary-1: #36393FFF;
   --primary-2: #2F3136;
-  --primary-3: #1f2023;
+  --primary-3: #202225FF;
   --danger-1: #e74c3c;
   --danger-2: #c0392b;
   --success-1: #2ecc71;
@@ -334,15 +334,6 @@ h2 {
 }
 
 // vue-scroller
-.vue-recycle-scroller__item-view > div:first-child {
-
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  padding: 8px 0;
-
-}
-
 .direction-vertical {
   &::-webkit-scrollbar {
     width: 10px;
@@ -358,3 +349,16 @@ h2 {
     border: solid 3px transparent;
   }
 }
+
+.vue-recycle-scroller__item-view > div:first-child {
+
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 8px 0;
+
+}
+
+
+
+

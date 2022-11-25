@@ -95,6 +95,10 @@ export const useSocket = defineStore("socket", {
       this.ioClient.on("connect", () => {
         console.log("socket on");
       });
+
+      this.ioClient.on("connect_error", (err) => {
+        console.log(err.message);
+      });
     },
 
     initNamespaces() {
@@ -159,6 +163,7 @@ export const useSocket = defineStore("socket", {
       );
 
       nsSocket.on("loadMoreUser", (data: User[]) => {
+        console.log(data);
         this.userList.push(...data);
       });
 
@@ -195,6 +200,10 @@ export const useSocket = defineStore("socket", {
         // TODO A finir après avoir fait le crud utilisateur
         console.log(data);
       });
+
+      nsSocket.on("connect_error", (err: Error) => {
+        console.log(err.message);
+      });
     },
 
     joinRoom(room: RoomInterface) {
@@ -203,8 +212,6 @@ export const useSocket = defineStore("socket", {
     },
 
     joinNamespace(nsSocket: any, roomId: string, channelId: string) {
-      this.userList = [];
-
       this.activeNsSocket = nsSocket;
 
       const room = this.rooms.find(

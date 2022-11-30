@@ -1,7 +1,7 @@
 const { User, Namespace } = require("../models");
-const sharp = require("sharp");
 const fs = require("fs");
 const path = require("path");
+const runService = require("../services/runService");
 const user = {
   async updateUser(socket, ios, data) {
     try {
@@ -10,26 +10,21 @@ const user = {
       if (data.avatar) {
         const t0 = performance.now();
 
-        const buffer = await sharp(data.avatar)
-          .resize(80, 80)
-          .webp({
-            quality: 80,
-            effort: 0,
-          })
-          .toBuffer();
+        const buffer = await runService("./services/compressWorker.js", {
+          data,
+        });
 
-        const t1 = performance.now();
-
-        const writer = fs.createWriteStream(
+        fs.writeFileSync(
           path.join(__dirname, "../images/" + avatar_name),
+          buffer,
           {
             encoding: "base64",
           }
         );
 
-        writer.write(buffer);
-        writer.end();
-        console.log(`time ${data.userId} : ${t1 - t0} ms`);
+        const t1 = performance.now();
+
+        console.log(`compression done : ${t1 - t0} ms`);
       }
 
       const { avatar_url: oldAvatar } = await User.findByPk(data.userId, {
@@ -92,7 +87,7 @@ const user = {
           };
         });
 
-        ios.of(ns).emit("updateUser", user);
+        ios.of(ns).emit("updateUser", ...user);
       }
     } catch (e) {
       console.error(e);

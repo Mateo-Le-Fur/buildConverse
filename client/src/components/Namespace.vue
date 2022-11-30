@@ -95,7 +95,7 @@ const submitNamespace = handleSubmit((formValue: Namespace) => {
     if (namespaceImage.value?.size! > 1e7) {
       throw new Error("10Mo Maximum pour la taille des images");
     }
-    socketStore.ioClient.emit("createNamespace", {
+    socketStore.ioClient?.emit("createNamespace", {
       name: formValue.name,
       invite_code: generateInviteCode(),
       img_name: namespaceImage.value?.name,
@@ -111,7 +111,7 @@ const submitNamespace = handleSubmit((formValue: Namespace) => {
 
 const submitInviteCode = handleSubmit((formValue: Partial<Namespace>) => {
   try {
-    socketStore.ioClient.emit("invitationToNamespace", {
+    socketStore.ioClient?.emit("invitationToNamespace", {
       inviteCode: formValue.inviteCode,
     });
   } catch (e: any) {

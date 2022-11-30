@@ -5,10 +5,14 @@ import { useRoute } from "vue-router";
 import { useSocket } from "@/shared/stores/socketStore";
 import type { RoomInterface } from "@/shared/interfaces/Room";
 import { watch } from "vue";
+import { useRoom } from "@/features/server/stores/roomStore";
+import { useNsUser } from "@/features/server/stores/userStore";
 
 const route = useRoute();
 
 const socketStore = useSocket();
+const roomStore = useRoom();
+const userNsStore = useNsUser();
 
 //  création ou récupération de namespaces
 watch(
@@ -40,9 +44,9 @@ function joinNamespace() {
 }
 
 function changeRoom(room: RoomInterface) {
-  if (socketStore.activeRoom?.id !== room.id) {
-    socketStore.activeNsSocket.emit("leaveRoom", socketStore.activeRoom?.id);
-    socketStore.joinRoom(room);
+  if (roomStore.activeRoom?.id !== room.id) {
+    socketStore.activeNsSocket.emit("leaveRoom", roomStore.activeRoom?.id);
+    roomStore.joinRoom(room);
   }
 }
 </script>
@@ -57,13 +61,15 @@ function changeRoom(room: RoomInterface) {
   <div v-if="socketStore.isNamespacesLoaded" class="channel-container d-flex">
     <Room
       @change-room="changeRoom"
-      :rooms="socketStore.getRoom(route.params.idChannel?.toString())"
-      :active-room-id="socketStore.activeRoom?.id"
+      :rooms="roomStore.getRooms(route.params.idChannel?.toString())"
+      :active-room-id="roomStore.activeRoom?.id"
       :params="route.params"
     />
     <router-view></router-view>
     <UserList
-      :user-list="socketStore.getUser(route.params.idChannel?.toString())"
+      :user-list="
+        userNsStore.getUsersNamespace(route.params.idChannel?.toString())
+      "
       :params="route.params"
     />
   </div>

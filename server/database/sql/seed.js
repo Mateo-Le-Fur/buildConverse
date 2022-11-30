@@ -52,7 +52,7 @@ function generateUsers(userNb) {
       email: faker.random.alphaNumeric(20),
       password: faker.name.middleName(),
       status: faker.name.firstName(),
-      avatar_url: `/images/${images[random]}`,
+      avatar_url: `/images/default-avatar`,
     };
 
     users.push(user);
@@ -97,7 +97,7 @@ function generateUserHasNamespace(nb) {
   for (let i = 0; i < nb; i++) {
     const user = {
       user_id: i + 1,
-      namespace_id: getRandomIntInclusive(229, 229),
+      namespace_id: getRandomIntInclusive(244, 244),
       admin: false,
     };
 
@@ -132,9 +132,9 @@ async function insertUserHasNamespace(namespaceUsers) {
 }
 
 (async () => {
-  generateUsers(3000);
+  generateUsers(2000);
   const userData = await insertUsers(users);
   //
-  generateUserHasNamespace(1500);
+  generateUserHasNamespace(1000);
   const userDataTwo = await insertUserHasNamespace(namespaceUsers);
 })();

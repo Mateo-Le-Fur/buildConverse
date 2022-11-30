@@ -159,7 +159,13 @@ const user = {
     // // console.log(`time : ${t1 - t0} ms`);
   },
 
-  async deleteUser(socket, ios, data) {},
+  async deleteUser(socket, ios, data) {
+    const { id, namespacesId } = data;
+
+    for (let nsId of namespacesId) {
+      ios.of(`/${nsId}`).emit("deleteUser", { id });
+    }
+  },
 };
 
 module.exports = user;

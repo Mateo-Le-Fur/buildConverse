@@ -55,5 +55,14 @@ export const useNsUser = defineStore("userSocket", {
       const userStore = useUser();
       await userStore.fetchCurrentUser();
     },
+
+    async deleteUser(data: { id: number }) {
+      const userIndex = this.userList.findIndex((user) => user.id === data.id);
+
+      if (userIndex !== -1) {
+        this.userList.splice(userIndex, 1);
+        this.numberOfUsers--;
+      }
+    },
   },
 });

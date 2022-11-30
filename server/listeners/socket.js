@@ -107,7 +107,7 @@ const initSocketServer = async () => {
           img_url: buf,
         };
 
-        const newUser = (
+        let newUser = (
           await Namespace.findByPk(namespace.id, {
             include: [
               {
@@ -122,8 +122,21 @@ const initSocketServer = async () => {
           })
         ).toJSON();
 
+        const userAvatar = fs.readFileSync(
+          path.join(__dirname, `..${newUser.namespaceHasUsers[0].avatar_url}`),
+          {
+            encoding: "base64",
+          }
+        );
+
+        newUser = {
+          ...newUser.namespaceHasUsers[0],
+          avatar_url: userAvatar,
+          status: "online",
+        };
+
         socket.emit("createdNamespace", [namespace]);
-        ios.of(namespace.id).emit("newUserOnServer", newUser.namespaceHasUsers);
+        ios.of(namespace.id).emit("newUserOnServer", [newUser]);
 
         console.timeEnd("invite");
       } catch (e) {

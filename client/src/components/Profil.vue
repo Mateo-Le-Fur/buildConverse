@@ -49,11 +49,21 @@ function previewAvatar(e: Event) {
 }
 
 async function deleteAccount() {
+  const namespacesId: number[] = [];
+  socketStore.namespaces.forEach((ns) => {
+    namespacesId.push(ns.id);
+  });
   await deleteUser(userStore.currentUser?.id);
+
+  socketStore.ioClient?.emit("deleteUser", {
+    namespacesId,
+    id: userStore.currentUser?.id,
+  });
 
   router.push("/connexion");
 
   userStore.$reset();
+  socketStore.$reset();
 }
 
 watch(

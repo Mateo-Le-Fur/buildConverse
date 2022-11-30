@@ -130,6 +130,10 @@ export const useSocket = defineStore("socket", {
         await userNsStore.updateUser(data);
       });
 
+      nsSocket.on("deleteUser", async (data: { id: number }) => {
+        await userNsStore.deleteUser(data);
+      });
+
       nsSocket.on("newUserOnServer", (data: User[]) => {
         userNsStore.addNewUser(data);
       });

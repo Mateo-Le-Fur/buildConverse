@@ -26,6 +26,7 @@ const authController = {
         pseudo,
         email,
         password: hashPassword,
+        avatar_url: "/images/default-avatar",
       })
     ).get();
 

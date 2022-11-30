@@ -3,10 +3,12 @@ const { server, app } = require("../app");
 const fs = require("fs");
 const path = require("path");
 const { promisify } = require("util");
-const { ensureAuthenticatedOnSocketHandshake } = require("./security.config");
-const namespaces = require("../listeners/namespace.socket");
+const {
+  ensureAuthenticatedOnSocketHandshake,
+} = require("../config/security.config");
+const namespaces = require("./namespace.socket");
 const { User, Namespace, Room, UserHasNamespace } = require("../models");
-const user = require("../listeners/user.socket");
+const user = require("./user.socket");
 
 const sharp = require("sharp");
 
@@ -205,6 +207,10 @@ const initSocketServer = async () => {
 
     socket.on("updateUser", async (data) => {
       await user.updateUser(socket, ios, data);
+    });
+
+    socket.on("deleteUser", async (data) => {
+      await user.deleteUser(socket, ios, data);
     });
 
     socket.on("disconnect", () => {

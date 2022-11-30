@@ -4,6 +4,7 @@ const path = require("path");
 const runService = require("../services/runService");
 const user = {
   async updateUser(socket, ios, data) {
+    console.log(data);
     try {
       const avatar_name = data.avatarName ? Date.now() : null;
 
@@ -35,6 +36,7 @@ const user = {
         {
           pseudo: data.pseudo,
           email: data.email,
+          description: data.description,
           avatar_url: data.avatar ? `/images/${avatar_name}` : oldAvatar,
         },
         {
@@ -43,6 +45,10 @@ const user = {
           },
         }
       );
+
+      if (!data.namespaces.length) {
+        socket.emit("updateUser", "update user");
+      }
 
       for await (const ns of data.namespaces) {
         let user = (
@@ -152,6 +158,8 @@ const user = {
     // //
     // // console.log(`time : ${t1 - t0} ms`);
   },
+
+  async deleteUser(socket, ios, data) {},
 };
 
 module.exports = user;

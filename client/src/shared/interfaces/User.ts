@@ -3,6 +3,7 @@ export interface User {
   pseudo: string;
   email: string;
   password: string;
+  description: string;
   admin: boolean;
   status: string | null;
   avatar_url: string;

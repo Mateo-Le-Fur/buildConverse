@@ -45,6 +45,7 @@ export const useUser = defineStore("user", {
 
     async fetchCurrentUser() {
       this.currentUser = await fetchCurrentUser();
+
       this.loaded = true;
     },
   },

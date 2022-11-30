@@ -3,10 +3,12 @@ const { server, app } = require("../app");
 const fs = require("fs");
 const path = require("path");
 const { promisify } = require("util");
-const { ensureAuthenticatedOnSocketHandshake } = require("./security.config");
-const namespaces = require("../listeners/namespace.socket");
+const {
+  ensureAuthenticatedOnSocketHandshake,
+} = require("../config/security.config");
+const namespaces = require("./namespace.socket");
 const { User, Namespace, Room, UserHasNamespace } = require("../models");
-const user = require("../listeners/user.socket");
+const user = require("./user.socket");
 
 const sharp = require("sharp");
 
@@ -105,7 +107,7 @@ const initSocketServer = async () => {
           img_url: buf,
         };
 
-        const newUser = (
+        let newUser = (
           await Namespace.findByPk(namespace.id, {
             include: [
               {
@@ -120,8 +122,21 @@ const initSocketServer = async () => {
           })
         ).toJSON();
 
+        const userAvatar = fs.readFileSync(
+          path.join(__dirname, `..${newUser.namespaceHasUsers[0].avatar_url}`),
+          {
+            encoding: "base64",
+          }
+        );
+
+        newUser = {
+          ...newUser.namespaceHasUsers[0],
+          avatar_url: userAvatar,
+          status: "online",
+        };
+
         socket.emit("createdNamespace", [namespace]);
-        ios.of(namespace.id).emit("newUserOnServer", newUser.namespaceHasUsers);
+        ios.of(namespace.id).emit("newUserOnServer", [newUser]);
 
         console.timeEnd("invite");
       } catch (e) {
@@ -205,6 +220,10 @@ const initSocketServer = async () => {
 
     socket.on("updateUser", async (data) => {
       await user.updateUser(socket, ios, data);
+    });
+
+    socket.on("deleteUser", async (data) => {
+      await user.deleteUser(socket, ios, data);
     });
 
     socket.on("disconnect", () => {

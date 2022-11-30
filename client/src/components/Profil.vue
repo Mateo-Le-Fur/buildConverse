@@ -7,6 +7,7 @@ import type { User } from "@/shared/interfaces/User";
 import { toFormValidator } from "@vee-validate/zod";
 import { z } from "zod";
 import { useField, useForm } from "vee-validate";
+import { deleteUser, fetchCurrentUser } from "@/shared/services";
 
 const userStore = useUser();
 const socketStore = useSocket();
@@ -14,12 +15,12 @@ const router = useRouter();
 
 const state = reactive<{
   isProfilOpen: boolean;
-  user: User | null;
+  user: Partial<User> | null;
 }>({
   isProfilOpen: false,
   user: null,
 });
-let avatar = ref<File>();
+let avatar = ref<File | null>();
 let src = ref<string | ArrayBuffer | null>();
 
 async function logout() {
@@ -47,11 +48,30 @@ function previewAvatar(e: Event) {
   avatar.value = file;
 }
 
+async function deleteAccount() {
+  const namespacesId: number[] = [];
+  socketStore.namespaces.forEach((ns) => {
+    namespacesId.push(ns.id);
+  });
+  await deleteUser(userStore.currentUser?.id);
+
+  socketStore.ioClient?.emit("deleteUser", {
+    namespacesId,
+    id: userStore.currentUser?.id,
+  });
+
+  router.push("/connexion");
+
+  userStore.$reset();
+  socketStore.$reset();
+}
+
 watch(
   () => state.isProfilOpen,
   () => {
     pseudoValue.value = userStore.currentUser?.pseudo;
     emailValue.value = userStore.currentUser?.email;
+    state.user = { description: userStore.currentUser!.description };
   }
 );
 
@@ -74,11 +94,15 @@ const { handleSubmit, setErrors } = useForm<User>({
 });
 
 const submit = handleSubmit(async (formValue: User) => {
-  console.log(avatar.value);
   try {
+    const description = document.getElementById(
+      "description"
+    ) as HTMLTextAreaElement;
+
     if (
       formValue.pseudo !== userStore.currentUser?.pseudo ||
       formValue.email !== userStore.currentUser?.email ||
+      description.value !== userStore.currentUser?.description ||
       avatar.value
     ) {
       const namespaces = socketStore.namespaces.map((ns) => {
@@ -88,11 +112,14 @@ const submit = handleSubmit(async (formValue: User) => {
       socketStore.ioClient?.emit("updateUser", {
         pseudo: formValue.pseudo,
         email: formValue.email,
+        description: description.value,
         namespaces,
         userId: userStore.currentUser?.id,
         avatar: avatar.value ? avatar.value : null,
         avatarName: avatar.value ? avatar.value?.name : null,
       });
+
+      avatar.value = null;
       state.isProfilOpen = false;
     }
   } catch (e: string | any) {
@@ -144,29 +171,60 @@ const { value: emailValue, errorMessage: emailError } = useField("email");
               />
 
               <form
+                id="usrForm"
                 @submit.prevent="submit"
                 class="d-flex flex-column align-items-center"
               >
-                <div class="d-flex flex-column profil-content-pseudo mb-10">
-                  <label for="pseudo">Pseudo</label>
-                  <input
-                    id="pseudo"
-                    type="text"
-                    autocomplete="off"
-                    v-model="pseudoValue"
-                  />
+                <div class="d-flex justify-content-center g-15 mb-10">
+                  <div class="d-flex flex-column profil-content-pseudo">
+                    <label for="pseudo">Pseudo</label>
+                    <input
+                      id="pseudo"
+                      type="text"
+                      autocomplete="off"
+                      v-model="pseudoValue"
+                    />
+                  </div>
+                  <div class="d-flex flex-column profil-content-email">
+                    <label for="pseudo">Email</label>
+                    <input
+                      id="pseudo"
+                      type="text"
+                      autocomplete="off"
+                      v-model="emailValue"
+                    />
+                  </div>
                 </div>
-                <div class="d-flex flex-column profil-content-email mb-10">
-                  <label for="pseudo">Email</label>
-                  <input
-                    id="pseudo"
-                    type="text"
-                    autocomplete="off"
-                    v-model="emailValue"
-                  />
+                <div
+                  class="d-flex justify-content-center align-items-center profil-content-description"
+                >
+                  <div class="d-flex flex-column w-100 mb-10">
+                    <label for="description">Description</label>
+                    <textarea
+                      v-model="state.user.description"
+                      form="usrForm"
+                      id="description"
+                    ></textarea>
+                  </div>
                 </div>
-                <div class="d-flex">
-                  <button class="update">Enregistrer</button>
+                <div class="d-flex g-15">
+                  <button class="update">Sauvegarder mes informations</button>
+                  <button
+                    type="button"
+                    @click="state.isProfilOpen = false"
+                    class="back"
+                  >
+                    Ne rien changer
+                  </button>
+                </div>
+                <div class="d-flex justify-content-center w-100 danger-line">
+                  <button
+                    @click="deleteAccount()"
+                    class="delete-account"
+                    type="button"
+                  >
+                    Supprimer le compte
+                  </button>
                 </div>
               </form>
             </div>
@@ -238,16 +296,32 @@ const { value: emailValue, errorMessage: emailError } = useField("email");
   }
 
   .profil-popup {
+    overflow-y: auto;
+    overflow-x: hidden;
     position: absolute;
-    top: -400px;
+    bottom: 60px;
     padding: 15px;
-    right: -30px;
-    height: 400px;
-    width: 320px;
+    left: -195px;
+    height: 450px;
+    width: 524px;
     background-color: #282a2f;
     z-index: 2;
     border-radius: 4px;
     box-shadow: 3px 0px 10px 4px rgba(0, 0, 0, 0.5);
+
+    &::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    &::-webkit-scrollbar-track {
+      box-shadow: inset 0 0 10px 10px var(--primary-1);
+      border: solid 3px transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      box-shadow: inset 0 0 10px 10px var(--primary-3);
+      border: solid 3px transparent;
+    }
 
     .profil-content {
       position: relative;
@@ -259,6 +333,8 @@ const { value: emailValue, errorMessage: emailError } = useField("email");
       }
 
       .profil-content-pseudo {
+        width: 45%;
+
         label {
           color: #f4f4f4;
         }
@@ -270,22 +346,39 @@ const { value: emailValue, errorMessage: emailError } = useField("email");
           font-size: 1.1rem;
         }
       }
-
       .profil-content-email {
+        width: 45%;
+
         label {
           color: #f4f4f4;
         }
-
         input {
           outline: none;
           background-color: #1f2023;
           color: #f4f4f4;
           font-size: 1.1rem;
+        }
+      }
+
+      .profil-content-description {
+        width: calc(90% + 15px);
+
+        label {
+          color: #f4f4f4;
+        }
+
+        textarea {
+          width: 100%;
+          height: 120px;
+          outline: none;
+          resize: none;
+          background-color: #1f2023;
         }
       }
     }
 
     .update {
+      //margin-bottom: 160px;
       text-align: center;
       width: 150px;
       cursor: pointer;
@@ -294,6 +387,35 @@ const { value: emailValue, errorMessage: emailError } = useField("email");
       padding: 15px 10px;
       border-radius: 5px;
       background-color: #236cab;
+    }
+
+    .back {
+      text-align: center;
+      width: 150px;
+      cursor: pointer;
+      border: none;
+      outline: none;
+      padding: 15px 10px;
+      border-radius: 5px;
+      background-color: crimson;
+    }
+
+    .danger-line {
+      width: 90%;
+      border-top: 1px solid #e10c0c;
+      margin-top: 50px;
+      padding-top: 30px;
+
+      .delete-account {
+        text-align: center;
+        width: 150px;
+        cursor: pointer;
+        border: none;
+        outline: none;
+        padding: 15px 10px;
+        border-radius: 5px;
+        background-color: #e10c0c;
+      }
     }
 
     .logout {

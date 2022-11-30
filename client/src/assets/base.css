@@ -159,6 +159,18 @@ label {
   margin: 30px;
 }
 
+.g-5 {
+  gap: 5px;
+}
+
+.g-10 {
+  gap: 10px;
+}
+
+.g-15 {
+  gap: 15px;
+}
+
 button {
   color: #f4f4f4;
 }

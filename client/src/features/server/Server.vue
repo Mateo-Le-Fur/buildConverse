@@ -14,6 +14,8 @@ const socketStore = useSocket();
 const roomStore = useRoom();
 const userNsStore = useNsUser();
 
+console.log("hello");
+
 //  création ou récupération de namespaces
 watch(
   () => socketStore.isNamespacesLoaded,

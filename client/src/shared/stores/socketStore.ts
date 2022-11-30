@@ -12,6 +12,7 @@ import type { Message } from "@/shared/interfaces/Message";
 import type { User } from "@/shared/interfaces/User";
 import { useRoom } from "@/features/server/stores/roomStore";
 import { useNsUser } from "@/features/server/stores/userStore";
+import { useUser } from "@/shared/stores/authStore";
 
 interface SocketState {
   ioClient: Socket | null;
@@ -46,6 +47,11 @@ export const useSocket = defineStore("socket", {
 
       this.ioClient.on("connect", () => {
         console.log("socket on");
+      });
+
+      this.ioClient.on("updateUser", async (data: User) => {
+        const userStore = useUser();
+        await userStore.fetchCurrentUser();
       });
 
       this.ioClient.on("connect_error", (err) => {
@@ -120,12 +126,16 @@ export const useSocket = defineStore("socket", {
         userNsStore.loadMoreUser(data);
       });
 
-      nsSocket.on("newUserOnServer", (data: User[]) => {
-        userNsStore.addNewUser(data);
-      });
-
       nsSocket.on("updateUser", async (data: User) => {
         await userNsStore.updateUser(data);
+      });
+
+      nsSocket.on("deleteUser", async (data: { id: number }) => {
+        await userNsStore.deleteUser(data);
+      });
+
+      nsSocket.on("newUserOnServer", (data: User[]) => {
+        userNsStore.addNewUser(data);
       });
 
       nsSocket.on("history", (data: Message[]) => {

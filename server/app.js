@@ -14,7 +14,7 @@ module.exports = { server, app };
 app.use(cookieParser());
 
 require("./config/jwt.config");
-require("./config/socket.config");
+require("./listeners/socket");
 
 app.use(cors("*"));
 app.use(express.static(path.join(__dirname, "../client/dist")));

@@ -4,18 +4,19 @@ import type { RouteParams } from "vue-router";
 import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
 import { useSocket } from "@/shared/stores/socketStore";
 import UserLoading from "./UserLoading.vue";
+import { useNsUser } from "@/features/server/stores/userStore";
 
 const socketStore = useSocket();
+const userNsStore = useNsUser();
 
 const props = defineProps<{
   userList: User[];
   params: RouteParams;
 }>();
 
-function onScrollToBottom({
-  target: { scrollTop, clientHeight, scrollHeight },
-}: any) {
-  if (scrollTop + clientHeight >= scrollHeight) {
+function loadMoreUser(e: Event) {
+  const target = e.target as HTMLDivElement;
+  if (target.scrollTop + target.clientHeight >= target.scrollHeight) {
     socketStore.activeNsSocket.emit("loadMoreUser", {
       length: props.userList.length,
       namespaceId: props.params.idChannel,
@@ -55,9 +56,9 @@ function onScrollToBottom({
 
 <template>
   <div class="user-container d-flex flex-column">
-    <p>Membres: {{ socketStore.numberOfUsers }}</p>
+    <p>Membres: {{ userNsStore.numberOfUsers }}</p>
     <RecycleScroller
-      @scroll="onScrollToBottom"
+      @scroll="loadMoreUser($event)"
       :items="userList"
       :item-size="50"
       v-slot="{ item }"

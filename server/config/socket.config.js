@@ -1,5 +1,5 @@
 const { Server } = require("socket.io");
-const { server } = require("../app");
+const { server, app } = require("../app");
 const fs = require("fs");
 const path = require("path");
 const { promisify } = require("util");
@@ -215,3 +215,5 @@ const initSocketServer = async () => {
 };
 
 initSocketServer();
+
+app.set("socketio", ios);

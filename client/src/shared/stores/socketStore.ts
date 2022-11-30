@@ -10,23 +10,19 @@ import type { Namespace } from "@/shared/interfaces/Namespace";
 import type { RoomInterface } from "@/shared/interfaces/Room";
 import type { Message } from "@/shared/interfaces/Message";
 import type { User } from "@/shared/interfaces/User";
-import { useUser } from "@/shared/stores/authStore";
+import { useRoom } from "@/features/server/stores/roomStore";
+import { useNsUser } from "@/features/server/stores/userStore";
 
 interface SocketState {
   ioClient: Socket | null;
   opts: Partial<ManagerOptions>;
   activeNsSocket: any;
-  activeRoom: RoomInterface | null;
   namespaces: Namespace[];
   namespaceSockets: [] | any;
-  rooms: RoomInterface[];
   messages: Message[];
-  userList: User[];
-  numberOfUsers: number;
   isNamespacesLoaded: boolean;
   isNamespaceCreated: boolean | null;
-  isUsersLoaded: boolean;
-  count: number;
+  countLoadedNamespace: number;
   error: any;
 }
 
@@ -34,59 +30,15 @@ export const useSocket = defineStore("socket", {
   state: (): SocketState => ({
     ioClient: null,
     activeNsSocket: null,
-    activeRoom: null,
     namespaceSockets: [],
     namespaces: [],
-    rooms: [],
     messages: [],
-    userList: [],
-    numberOfUsers: 0,
     isNamespacesLoaded: false,
     isNamespaceCreated: null,
-    isUsersLoaded: false,
-    count: 0,
+    countLoadedNamespace: 0,
     error: null,
     opts: { forceNew: true, reconnection: false, transports: ["websocket"] },
   }),
-
-  getters: {
-    getRooms(state): RoomInterface[] {
-      return state.rooms?.filter(
-        (room: RoomInterface) =>
-          `/${room.namespace_id}` === state.activeNsSocket?.nsp
-      );
-    },
-
-    getNamespacesSockets(state) {
-      return state.namespaceSockets;
-    },
-
-    getNamespaceRooms(state): (namespaceId: string) => RoomInterface[] {
-      return (namespaceId: string) =>
-        state.rooms.filter(
-          (room: RoomInterface) => room.namespace_id.toString() === namespaceId
-        );
-    },
-
-    getUsersNamespace(state): (namespaceId: string) => User[] {
-      return (namespaceId: string) =>
-        state.userList.filter(
-          (user: User) =>
-            user.UserHasNamespace.namespace_id.toString() === namespaceId
-        );
-    },
-    //
-    // getAllUser(state): (namespaceId: string) => void {
-    //   return (namespaceId: string) =>
-    //     state.userList.filter((element: User[]) => {
-    //       return element.filter((user: User) => {
-    //         return (
-    //           user.user_has_namespace.namespace_id.toString() === namespaceId
-    //         );
-    //       });
-    //     });
-    // },
-  },
 
   actions: {
     init() {
@@ -118,7 +70,8 @@ export const useSocket = defineStore("socket", {
       });
 
       this.ioClient?.on("createdNamespace", async (data: Namespace[]) => {
-        console.log(data);
+        const roomStore = useRoom();
+
         this.namespaces.push(...data);
 
         const ns = data[0];
@@ -130,7 +83,7 @@ export const useSocket = defineStore("socket", {
         this.namespaceSockets.push(nsSocket);
 
         if (this.activeNsSocket) {
-          this.activeNsSocket.emit("leaveRoom", this.activeRoom?.id);
+          this.activeNsSocket.emit("leaveRoom", roomStore.activeRoom?.id);
         }
 
         this.isNamespaceCreated = true;
@@ -141,51 +94,38 @@ export const useSocket = defineStore("socket", {
     },
 
     initNamespaceData(nsSocket: any, numberOfnamespace: number) {
+      const roomStore = useRoom();
+      const userNsStore = useNsUser();
+
       this.isNamespacesLoaded = false;
       nsSocket.on("rooms", (data: RoomInterface[]) => {
-        this.rooms.push(...data);
-        this.count++;
+        roomStore.getRoomsData(data);
 
-        if (this.count === numberOfnamespace) {
+        this.countLoadedNamespace++;
+
+        if (this.countLoadedNamespace === numberOfnamespace) {
           this.isNamespacesLoaded = true;
-          this.count = 0;
+          this.countLoadedNamespace = 0;
         }
       });
 
       nsSocket.on(
         "userList",
         (data: { users: User[]; numberOfUsers: number }) => {
-          this.userList = data.users;
-          this.numberOfUsers = data.numberOfUsers;
-
-          this.isUsersLoaded = true;
+          userNsStore.getUsersData(data);
         }
       );
 
       nsSocket.on("loadMoreUser", (data: User[]) => {
-        console.log(data);
-        this.userList.push(...data);
+        userNsStore.loadMoreUser(data);
       });
 
       nsSocket.on("newUserOnServer", (data: User[]) => {
-        this.userList.push(...data);
+        userNsStore.addNewUser(data);
       });
 
-      nsSocket.on("updateUser", async (data: User[]) => {
-        console.log(data);
-        const userIndex = this.userList.findIndex(
-          (user) =>
-            user.id === data[0].id &&
-            user.UserHasNamespace.namespace_id ===
-              data[0].UserHasNamespace.namespace_id
-        );
-
-        if (userIndex !== -1) {
-          this.userList[userIndex] = data[0];
-        }
-
-        const userStore = useUser();
-        await userStore.fetchCurrentUser();
+      nsSocket.on("updateUser", async (data: User) => {
+        await userNsStore.updateUser(data);
       });
 
       nsSocket.on("history", (data: Message[]) => {
@@ -206,39 +146,28 @@ export const useSocket = defineStore("socket", {
       });
     },
 
-    joinRoom(room: RoomInterface) {
-      this.activeNsSocket.emit("joinRoom", room.id);
-      this.activeRoom = room;
-    },
-
     joinNamespace(nsSocket: any, roomId: string, channelId: string) {
+      const roomStore = useRoom();
+      const userNsStore = useNsUser();
+
       this.activeNsSocket = nsSocket;
 
-      const room = this.rooms.find(
-        (room: RoomInterface) => room.id === Number(roomId)
-      );
+      const room = roomStore.findRoom(roomId);
 
-      this.joinRoom(room!);
+      roomStore.joinRoom(room);
 
       /* Je vérifie que l'id du serveur ne corresponde pas à l'id du serveur contenu dans ma liste d'utilisateurs
       si c'est le cas cela veut dire que j'accède au serveur sur lequel j'étais déjà et donc cela m'évite de renvoyer une
       requête au serveur.
        */
       if (
-        this.userList[0]?.UserHasNamespace.namespace_id !== Number(channelId)
+        userNsStore.userList[0]?.UserHasNamespace.namespace_id !==
+        Number(channelId)
       ) {
-        this.isUsersLoaded = false;
+        userNsStore.isUsersLoaded = false;
 
         this.activeNsSocket.emit("getNamespaceUsers", channelId);
       }
-    },
-
-    getRoom(namespaceId: string) {
-      return this.getNamespaceRooms(namespaceId);
-    },
-
-    getUser(namespaceId: string) {
-      return this.getUsersNamespace(namespaceId);
     },
   },
 });

@@ -4,8 +4,10 @@ import { z } from "zod";
 import { useField, useForm } from "vee-validate";
 import type { Message } from "@/shared/interfaces/Message";
 import { useSocket } from "@/shared/stores/socketStore";
+import { useRoom } from "@/features/server/stores/roomStore";
 
 const socketStore = useSocket();
+const roomStore = useRoom();
 
 const validationSchema = toFormValidator(
   z.object({
@@ -23,7 +25,7 @@ const submit = handleSubmit((formValue: Message) => {
   try {
     socketStore.activeNsSocket.emit("message", {
       text: formValue.data,
-      roomId: socketStore.activeRoom?.id,
+      roomId: roomStore.activeRoom?.id,
     });
 
     dataValue.value = null;

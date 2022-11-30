@@ -61,10 +61,7 @@ const authController = {
     delete user.password;
 
     const buf = fs.readFileSync(
-      path.join(
-        __dirname,
-        `..${user.avatar_url ? user.avatar_url : "/images/default-avatar"}`
-      ),
+      path.join(__dirname, `..${user.avatar_url ?? "/images/default-avatar"}`),
       {
         encoding: "base64",
       }

@@ -1,15 +1,9 @@
 <script setup lang="ts"></script>
 
 <template>
-  <div>
-    <div
-      v-for="items of 20"
-      :key="items"
-      class="user d-flex align-items-center"
-    >
-      <div class="circle"></div>
-      <div class="bar"></div>
-    </div>
+  <div v-for="items of 20" :key="items" class="user d-flex align-items-center">
+    <div class="circle"></div>
+    <div class="bar"></div>
   </div>
 </template>
 

@@ -23,6 +23,7 @@ interface SocketState {
   messages: Message[];
   isNamespacesLoaded: boolean;
   isNamespaceCreated: boolean | null;
+  isNamespaceUpdated: boolean;
   countLoadedNamespace: number;
   error: any;
 }
@@ -36,10 +37,18 @@ export const useSocket = defineStore("socket", {
     messages: [],
     isNamespacesLoaded: false,
     isNamespaceCreated: null,
+    isNamespaceUpdated: false,
     countLoadedNamespace: 0,
     error: null,
     opts: { forceNew: true, reconnection: false, transports: ["websocket"] },
   }),
+
+  getters: {
+    currentNamespace(state): (namespaceId: string) => Namespace | undefined {
+      return (namespaceId: string) =>
+        state.namespaces.find((ns: Namespace) => ns.id === Number(namespaceId));
+    },
+  },
 
   actions: {
     init() {
@@ -47,11 +56,6 @@ export const useSocket = defineStore("socket", {
 
       this.ioClient.on("connect", () => {
         console.log("socket on");
-      });
-
-      this.ioClient.on("updateUser", async (data: User) => {
-        const userStore = useUser();
-        await userStore.fetchCurrentUser();
       });
 
       this.ioClient.on("connect_error", (err) => {
@@ -96,6 +100,11 @@ export const useSocket = defineStore("socket", {
 
         // @ts-ignore
         await this.router.push(`/channels/${ns.id}/${ns.rooms[0].id}`);
+      });
+
+      this.ioClient?.on("updateUser", async () => {
+        const userStore = useUser();
+        await userStore.fetchCurrentUser();
       });
     },
 
@@ -151,6 +160,36 @@ export const useSocket = defineStore("socket", {
         console.log(data);
       });
 
+      nsSocket.on("updateNamespace", async (data: Namespace) => {
+        this.isNamespaceUpdated = true;
+
+        const namespaceIndex = this.namespaces.findIndex(
+          (ns) => ns.id === data.id
+        );
+
+        this.namespaces[namespaceIndex] = data;
+      });
+
+      nsSocket.on("deleteNamespace", async (data: { id: number }) => {
+        const namespaceIndex = this.namespaces.findIndex(
+          (ns) => ns.id === data.id
+        );
+
+        const namespaceSocket = this.namespaceSockets.find(
+          (nsSocket: any) => nsSocket.nsp === `/${data.id}`
+        );
+
+        namespaceSocket.disconnect();
+
+        if (namespaceIndex !== -1) {
+          this.namespaces.splice(namespaceIndex, 1);
+
+          // @ts-ignore
+          await this.router.push("/home");
+        }
+        console.log("deleted namespace");
+      });
+
       nsSocket.on("connect_error", (err: Error) => {
         console.log(err.message);
       });
@@ -178,6 +217,17 @@ export const useSocket = defineStore("socket", {
 
         this.activeNsSocket.emit("getNamespaceUsers", channelId);
       }
+    },
+
+    getCurrentNamespace(namespaceId: string) {
+      return this.currentNamespace(namespaceId);
+    },
+
+    setError(message: string) {
+      this.error = message;
+      setTimeout(() => {
+        this.error = null;
+      }, 2000);
     },
   },
 });

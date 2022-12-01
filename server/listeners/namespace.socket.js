@@ -6,8 +6,50 @@ const path = require("path");
 const UserHasNamespace = require("../models/UserHasNamespace");
 const client = require("../config/sequelize");
 const { QueryTypes } = require("sequelize");
+const sharp = require("sharp");
+const { promisify } = require("util");
 
 const namespaces = {
+  async getUserNamespaces(ios, socket, clients) {
+    const userId = socket.request.user.id;
+
+    let currentUserNamespaces = (
+      await User.findByPk(userId, {
+        include: {
+          model: Namespace,
+          as: "userHasNamespaces",
+          include: ["rooms"],
+        },
+      })
+    ).toJSON();
+
+    const readFileAsync = promisify(fs.readFile);
+
+    let promises = [];
+    currentUserNamespaces.userHasNamespaces.forEach((namespace) => {
+      promises.push({
+        ...namespace,
+        img_url: readFileAsync(
+          path.join(__dirname, `..${namespace.img_url}`),
+          "base64"
+        ),
+      });
+    });
+
+    const result = await Promise.all(
+      promises.map(async (el) => {
+        return {
+          ...el,
+          img_url: await el.img_url,
+        };
+      })
+    );
+
+    namespaces.getNamespacesData(ios, socket, clients);
+
+    socket.emit("namespaces", result);
+  },
+
   getNamespacesData(ios, socket, clients) {
     try {
       const ns = ios.of(/^\/\w+$/);
@@ -44,6 +86,34 @@ const namespaces = {
         } catch (e) {
           console.error(e);
         }
+
+        nsSocket.on("updateNamespace", async (data, callback) => {
+          try {
+            await namespaces.updateNamespace(ios, nsSocket, data);
+            callback({
+              status: "ok",
+            });
+          } catch (e) {
+            callback({
+              status: "error",
+              message: e.message,
+            });
+          }
+        });
+
+        nsSocket.on("deleteNamespace", async (data, callback) => {
+          try {
+            await namespaces.deleteNamespace(ios, nsSocket, data);
+            callback({
+              status: "ok",
+            });
+          } catch (e) {
+            callback({
+              status: "error",
+              message: e.message,
+            });
+          }
+        });
 
         nsSocket.on("getNamespaceUsers", async (namespaceId) => {
           await namespaces.getNamespaceUsers(nsSocket, namespaceId, clients);
@@ -201,6 +271,264 @@ const namespaces = {
     console.log(`load more user : ${t1 - t0} ms`);
 
     nsSocket.emit("loadMoreUser", user);
+  },
+
+  async createNamespace(ios, socket, data) {
+    console.time("create");
+
+    data.img_name = Date.now();
+
+    const buffer = await sharp(data.img_url)
+      .resize(150, 150)
+      .webp({
+        quality: 80,
+        effort: 0,
+      })
+      .toBuffer();
+
+    const writer = fs.createWriteStream(
+      path.join(__dirname, "../images/" + data.img_name),
+      {
+        encoding: "base64",
+      }
+    );
+
+    writer.write(buffer);
+    writer.end();
+
+    const createNamespace = await Namespace.create({
+      name: data.name,
+      invite_code: data.invite_code,
+      img_url: `/images/${data.img_name}`,
+    });
+
+    const { id } = createNamespace.toJSON();
+
+    await Room.create({
+      name: "# Général",
+      index: 1,
+      namespace_id: id,
+    });
+
+    const user = (await User.findByPk(socket.request.user.id)).toJSON();
+
+    await UserHasNamespace.create({
+      user_id: user.id,
+      namespace_id: id,
+      admin: true,
+    });
+
+    let getNewNamespace = (
+      await Namespace.findByPk(id, {
+        include: {
+          model: Room,
+          as: "rooms",
+        },
+      })
+    ).toJSON();
+
+    fs.readFile(
+      path.join(__dirname, `..${getNewNamespace.img_url}`),
+      (err, buf) => {
+        const namespace = {
+          ...getNewNamespace,
+          img_url: buf.toString("base64"),
+        };
+
+        socket.emit("createdNamespace", [namespace]);
+      }
+    );
+
+    console.timeEnd("create");
+  },
+
+  async updateNamespace(ios, socket, data) {
+    const { id, values, avatar } = data;
+    let { avatarName } = data;
+
+    const userId = socket.request.user.id;
+
+    console.log(userId);
+
+    const checkIfUserIsAdmin = await UserHasNamespace.findOne({
+      where: {
+        user_id: userId,
+        namespace_id: id,
+        admin: true,
+      },
+      raw: true,
+    });
+
+    console.log(checkIfUserIsAdmin);
+
+    if (!checkIfUserIsAdmin) {
+      throw new Error("Tu dois être administrateur pour modifier le serveur");
+    }
+
+    const newAvatarName = avatarName ? Date.now() : null;
+
+    if (avatar) {
+      const buffer = await sharp(avatar)
+        .resize(150, 150)
+        .webp({
+          quality: 80,
+          effort: 0,
+        })
+        .toBuffer();
+
+      const writer = fs.createWriteStream(
+        path.join(__dirname, "../images/" + newAvatarName),
+        {
+          encoding: "base64",
+        }
+      );
+
+      writer.write(buffer);
+      writer.end();
+    }
+
+    const { img_url: oldAvatar } = await Namespace.findByPk(id, {
+      raw: true,
+    });
+
+    await Namespace.update(
+      {
+        name: values.name,
+        invite_code: values.invite_code,
+        img_url: newAvatarName ? `/images/${newAvatarName}` : oldAvatar,
+      },
+      {
+        where: {
+          id,
+        },
+      }
+    );
+
+    let updateNamespace = (
+      await Namespace.findByPk(id, {
+        include: {
+          model: Room,
+          as: "rooms",
+        },
+      })
+    ).toJSON();
+
+    const buffer = fs.readFileSync(
+      path.join(__dirname, ".." + updateNamespace.img_url),
+      {
+        encoding: "base64",
+      }
+    );
+
+    updateNamespace = {
+      ...updateNamespace,
+      img_url: buffer,
+    };
+
+    ios.of(`/${id}`).emit("updateNamespace", updateNamespace);
+  },
+
+  async deleteNamespace(ios, socket, data) {
+    const { id } = data;
+    console.log(data);
+
+    const userId = socket.request.user.id;
+
+    const checkIfUserIsAdmin = await UserHasNamespace.findOne({
+      where: {
+        user_id: userId,
+        namespace_id: id,
+        admin: true,
+      },
+      raw: true,
+    });
+
+    if (!checkIfUserIsAdmin) {
+      throw new Error("Tu dois être administrateur pour supprimer le serveur");
+    }
+
+    ios.of(`/${id}`).emit("deleteNamespace", { id });
+
+    const namespace = await Namespace.findByPk(id, {
+      raw: true,
+    });
+
+    fs.unlinkSync(path.join(__dirname, `..${namespace.img_url}`));
+
+    await Namespace.destroy({
+      where: {
+        id,
+      },
+    });
+  },
+
+  async joinInvitation(ios, socket, data) {
+    console.time("invite");
+
+    const userId = socket.request.user.id;
+
+    let namespace = (
+      await Namespace.findOne({
+        include: ["rooms"],
+        where: {
+          invite_code: data.inviteCode,
+        },
+      })
+    ).toJSON();
+
+    if (!namespace) throw new Error("Code non valide");
+
+    const user = await User.findByPk(socket.request.user.id);
+
+    await UserHasNamespace.create({
+      user_id: user.id,
+      namespace_id: namespace.id,
+    });
+
+    const buf = fs.readFileSync(
+      path.join(__dirname, `..${namespace.img_url}`),
+      {
+        encoding: "base64",
+      }
+    );
+
+    namespace = {
+      ...namespace,
+      img_url: buf,
+    };
+
+    let newUser = (
+      await Namespace.findByPk(namespace.id, {
+        include: [
+          {
+            model: User,
+            as: "namespaceHasUsers",
+            attributes: { exclude: ["password"] },
+            where: {
+              id: userId,
+            },
+          },
+        ],
+      })
+    ).toJSON();
+
+    const userAvatar = fs.readFileSync(
+      path.join(__dirname, `..${newUser.namespaceHasUsers[0].avatar_url}`),
+      {
+        encoding: "base64",
+      }
+    );
+
+    newUser = {
+      ...newUser.namespaceHasUsers[0],
+      avatar_url: userAvatar,
+      status: "online",
+    };
+
+    socket.emit("createdNamespace", [namespace]);
+    ios.of(namespace.id).emit("newUserOnServer", [newUser]);
+
+    console.timeEnd("invite");
   },
 };
 

@@ -1,4 +1,4 @@
-export function generateInviteCode() {
+export function generateInviteCode(): string {
   const characters =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 

@@ -7,6 +7,7 @@ import type { RoomInterface } from "@/shared/interfaces/Room";
 import { watch } from "vue";
 import { useRoom } from "@/features/server/stores/roomStore";
 import { useNsUser } from "@/features/server/stores/userStore";
+import ServerOptions from "@/features/server/components/ServerOptions.vue";
 
 const route = useRoute();
 
@@ -54,19 +55,17 @@ function changeRoom(room: RoomInterface) {
 </script>
 
 <template>
-  <!--  <div-->
-  <!--    class="channel-container d-flex align-items-center justify-content-center"-->
-  <!--    v-if="!socketStore.isNamespacesLoaded"-->
-  <!--  >-->
-  <!--    <Spinner />-->
-  <!--  </div>-->
   <div v-if="socketStore.isNamespacesLoaded" class="channel-container d-flex">
-    <Room
-      @change-room="changeRoom"
-      :rooms="roomStore.getRooms(route.params.idChannel?.toString())"
-      :active-room-id="roomStore.activeRoom?.id"
-      :params="route.params"
-    />
+    <div class="d-flex flex-column">
+      <ServerOptions :route-params="route.params" />
+      <Room
+        @change-room="changeRoom"
+        :rooms="roomStore.getRooms(route.params.idChannel?.toString())"
+        :active-room-id="roomStore.activeRoom?.id"
+        :params="route.params"
+      />
+    </div>
+
     <router-view></router-view>
     <UserList
       :user-list="

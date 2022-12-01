@@ -4,7 +4,7 @@ import type { User } from "@/shared/interfaces/User";
 export interface Namespace {
   id: number;
   name: string;
-  inviteCode: string;
+  invite_code: string;
   img_url: string;
   rooms: RoomInterface[];
   namespaceHasUser: User[];

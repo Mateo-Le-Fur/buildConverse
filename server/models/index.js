@@ -43,20 +43,6 @@ User.belongsToMany(User, {
 });
 
 User.belongsToMany(Namespace, {
-  as: "user_ban",
-  through: "ban",
-  foreignKey: "user_id",
-  otherKey: "namespace_id",
-});
-
-Namespace.belongsToMany(User, {
-  as: "users_bans",
-  through: "ban",
-  foreignKey: "namespace_id",
-  otherKey: "user_id",
-});
-
-User.belongsToMany(Namespace, {
   as: "userHasNamespaces",
   through: UserHasNamespace,
   foreignKey: "user_id",

@@ -7,8 +7,6 @@ BEGIN;
         "message",
         "friend",
         "friend_request",
-        "ban",
-        "admin",
         "user_has_namespace";
 
 DROP TYPE data_type;
@@ -72,19 +70,12 @@ CREATE TABLE "friend_request" (
 );
 
 
-CREATE TABLE "ban" (
-    "id" int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    "user_id" int NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-    "namespace_id" int NOT NULL REFERENCES "namespace"(id) ON DELETE CASCADE,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-
 CREATE TABLE "user_has_namespace" (
     "id" int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     "user_id" int NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     "namespace_id" int NOT NULL REFERENCES "namespace"(id) ON DELETE CASCADE,
     "admin" boolean NOT NULL DEFAULT false,
+    "ban" boolean NOT NULL DEFAULT false,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

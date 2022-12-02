@@ -23,25 +23,35 @@ const rooms = {
 
   async getAllMessages(nsSocket, roomId) {
     try {
+
       const { id } = nsSocket.request.user;
 
       nsSocket.join(`/${roomId}`);
 
-      const user = await User.findByPk(id, { attributes: ["avatar_url"], raw: true });
 
-      // const buffer = fs.readFileSync(path.join(__dirname, `..${user.avatar_url}`), "base64");
-
-      const messages = await Message.findAll({
+      let messages = await Message.findAll({
         where: {
           room_id: roomId
         },
-        order: [["created_at", "asc"]]
+        order: [["created_at", "asc"]],
+        raw: true,
+        nest: true
       });
 
-      console.log(messages);
+
+      messages = messages.map((message) => {
+        const buffer = fs.readFileSync(path.join(__dirname, `..${message.avatar_author}`), "base64");
+
+        return {
+          ...message,
+          avatar_author: buffer
+        };
+      });
 
 
       nsSocket.emit("history", messages);
+
+
     } catch (e) {
       console.error(e);
     }

@@ -27,6 +27,11 @@ Message.init(
       type: DataTypes.TEXT,
       allowNull: false,
     },
+
+    avatar_author: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
   },
   {
     sequelize,

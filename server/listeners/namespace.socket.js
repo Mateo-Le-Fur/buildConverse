@@ -56,9 +56,13 @@ const namespaces = {
     try {
       const ns = ios.of(/^\/\w+$/);
 
+
+
+
       // Je vérifie que l'utilisateur a les droits de se connecter au serveur
       ns.use(async (socket, next) => {
         const { id } = socket.request.user;
+
         const namespaceId = socket.nsp.name.substring(1);
 
         const namespace = await Namespace.findByPk(namespaceId);
@@ -77,6 +81,8 @@ const namespaces = {
       });
 
       ns.on("connect", async (nsSocket) => {
+        console.log(socket.request.user);
+
         console.log(
           `L'utilisateur : ${nsSocket.request.user.pseudo} est connecté sur le serveur ${nsSocket.nsp.name}`
         );
@@ -148,9 +154,9 @@ const namespaces = {
 
         nsSocket.on("message", async ({ text, roomId, avatar }) => {
           try {
-            const { id, pseudo } = nsSocket.request.user;
+            const { id } = nsSocket.request.user;
 
-            const user = await User.findByPk(id, { attributes: ["avatar_url"], raw: true });
+            const user = await User.findByPk(id, { attributes: ["avatar_url", "pseudo"], raw: true });
 
             const buffer = fs.readFileSync(path.join(__dirname, `..${user.avatar_url}`), "base64");
 
@@ -159,13 +165,14 @@ const namespaces = {
               data_type: "text",
               room_id: roomId,
               user_id: id,
-              author_name: pseudo
+              author_name: user.pseudo,
+              avatar_author: user.avatar_url
             })).get();
 
 
             message = {
               ...message,
-              avatar_url: buffer
+              avatar_author: buffer
             };
 
             ns.to(`/${roomId}`).emit("message", message);
@@ -357,6 +364,7 @@ const namespaces = {
           img_url: buf.toString("base64")
         };
 
+
         socket.emit("createdNamespace", [namespace]);
       }
     );
@@ -481,6 +489,8 @@ const namespaces = {
         id
       }
     });
+
+    ios._nsps.delete(`/${id}`)
   },
 
   async joinInvitation(ios, socket, data) {

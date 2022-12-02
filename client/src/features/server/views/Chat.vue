@@ -47,7 +47,7 @@ watchEffect(() => {
           <div>
             <img
               class="mr-10"
-              :src="'data:image/jpeg;base64,' + message.avatar_url"
+              :src="'data:image/jpeg;base64,' + message.avatar_author"
             />
           </div>
           <div class="d-flex flex-column w-100">

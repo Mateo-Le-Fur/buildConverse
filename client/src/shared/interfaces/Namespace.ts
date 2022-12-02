@@ -7,7 +7,7 @@ export interface Namespace {
   invite_code: string;
   img_url: string;
   rooms: RoomInterface[];
-  namespaceHasUser: User[];
+  UserHasNamespace: { admin: boolean; namespace_id: number; user_id: number };
   created_at: string;
   updated_at: string;
 }

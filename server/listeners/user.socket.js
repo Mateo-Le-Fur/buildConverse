@@ -4,7 +4,6 @@ const path = require("path");
 const runService = require("../services/runService");
 const user = {
   async updateUser(socket, ios, data) {
-    console.log(data);
     try {
       const avatar_name = data.avatarName ? Date.now() : null;
 

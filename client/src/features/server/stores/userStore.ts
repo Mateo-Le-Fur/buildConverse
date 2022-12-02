@@ -67,7 +67,6 @@ export const useNsUser = defineStore("userSocket", {
 
     userConnect(data: { id: number }) {
 
-      console.log(data);
       let user = this.userList.find(user => user.id === data.id);
 
       if (user) {

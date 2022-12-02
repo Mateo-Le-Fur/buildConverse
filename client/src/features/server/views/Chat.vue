@@ -47,7 +47,7 @@ watchEffect(() => {
           <div>
             <img
               class="mr-10"
-              src="https://images.unsplash.com/photo-1666712867915-559da259e7ef?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxlZGl0b3JpYWwtZmVlZHw0fHx8ZW58MHx8fHw%3D&auto=format&fit=crop&w=500&q=60"
+              :src="'data:image/jpeg;base64,' + message.avatar_url"
             />
           </div>
           <div class="d-flex flex-column w-100">

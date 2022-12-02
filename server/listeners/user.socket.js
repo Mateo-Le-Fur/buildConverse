@@ -5,7 +5,9 @@ const runService = require("../services/runService");
 const user = {
   async updateUser(socket, ios, data) {
     try {
-      const avatar_name = data.avatarName ? Date.now() : null;
+      const avatar_name = data.avatarName ? (`${socket.request.user.id}-${Date.now()}`) : null;
+
+      console.log(avatar_name)
 
       if (data.avatar) {
         const t0 = performance.now();
@@ -167,13 +169,16 @@ const user = {
   },
 
   connectUser(socket, ios, data) {
+    console.log(data);
     const { namespaces } = data;
     const { id } = socket.request.user;
 
+    if (namespaces.length) {
+      namespaces.forEach((ns) => {
+        ios.of(`/${ns}`).emit("userConnect", { id });
+      });
+    }
 
-    namespaces.forEach((ns) => {
-      ios.of(`/${ns}`).emit("userConnect", { id });
-    });
   },
 
   disconnectUser(socket, ios, data) {

@@ -50,6 +50,7 @@ export const useSocket = defineStore("socket", {
     }
   },
 
+
   actions: {
     init() {
       this.ioClient = io(this.opts);
@@ -68,10 +69,15 @@ export const useSocket = defineStore("socket", {
       this.ioClient?.on("namespaces", (data: Namespace[]) => {
         if (!data.length) this.isNamespacesLoaded = true;
 
+        console.log(data);
+
         this.namespaces.push(...data);
 
         for (const ns of this.namespaces) {
           const nsSocket = io(`/${ns.id}`);
+
+          console.log(nsSocket);
+
 
           this.initNamespaceData(nsSocket, data.length);
 
@@ -86,7 +92,9 @@ export const useSocket = defineStore("socket", {
 
         const ns = data[0];
 
+
         const nsSocket = io(`/${ns.id}`);
+
 
         this.initNamespaceData(nsSocket, data.length);
 
@@ -113,9 +121,11 @@ export const useSocket = defineStore("socket", {
       const roomStore = useRoom();
       const userNsStore = useNsUser();
 
+
       this.isNamespacesLoaded = false;
       nsSocket.on("rooms", (data: RoomInterface[]) => {
-        roomStore.getRoomsData(data);
+
+        roomStore.getRoomsData(data)
 
         this.countLoadedNamespace++;
 
@@ -147,14 +157,14 @@ export const useSocket = defineStore("socket", {
       nsSocket.on("userConnect", async (data: { id: number }) => {
         const userNsStore = useNsUser();
 
-        userNsStore.userConnect(data)
+        userNsStore.userConnect(data);
 
       });
 
       nsSocket.on("userDisconnect", async (data: { id: number }) => {
         const userNsStore = useNsUser();
 
-        userNsStore.userDisconnect(data)
+        userNsStore.userDisconnect(data);
 
       });
 
@@ -170,8 +180,8 @@ export const useSocket = defineStore("socket", {
         this.messages.push(data);
       });
 
-      nsSocket.on("createRoom", (data: RoomInterface) => {
-        roomStore.createRoom(data);
+      nsSocket.on("createRoom", async (data: RoomInterface) => {
+        await roomStore.createRoom(data);
       });
 
       nsSocket.on("deleteRoom", (data: number) => {
@@ -194,6 +204,9 @@ export const useSocket = defineStore("socket", {
           (ns) => ns.id === data.id
         );
 
+        const namespaceSocketIndex = this.namespaceSockets.findIndex((ns => ns.nsp === `/${data.id}`));
+
+
         const namespaceSocket = this.namespaceSockets.find(
           (nsSocket: any) => nsSocket.nsp === `/${data.id}`
         );
@@ -202,6 +215,13 @@ export const useSocket = defineStore("socket", {
 
         if (namespaceIndex !== -1) {
           this.namespaces.splice(namespaceIndex, 1);
+
+          // @ts-ignore
+          await this.router.push("/home");
+        }
+
+        if (namespaceSocketIndex !== -1) {
+          this.namespaceSockets.splice(namespaceSocketIndex, 1);
 
           // @ts-ignore
           await this.router.push("/home");

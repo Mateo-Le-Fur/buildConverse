@@ -19,12 +19,15 @@ onMounted(() => {
 });
 
 watch(() => socketStore.isNamespacesLoaded, () => {
-  const namespaces: number[] = [];
-  socketStore.namespaces.forEach((ns) => {
-    namespaces.push(ns.id);
-  });
-  socketStore.ioClient?.emit("join", { namespaces });
-})
+  if (socketStore.isNamespacesLoaded) {
+    const namespaces: number[] = [];
+    socketStore.namespaces.forEach((ns) => {
+      namespaces.push(ns.id);
+    });
+    socketStore.ioClient?.emit("join", { namespaces });
+  }
+
+});
 </script>
 
 <template>

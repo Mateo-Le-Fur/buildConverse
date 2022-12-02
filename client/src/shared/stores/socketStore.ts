@@ -3,7 +3,7 @@ import {
   io,
   Socket,
   type ManagerOptions,
-  type SocketOptions,
+  type SocketOptions
 } from "socket.io-client";
 
 import type { Namespace } from "@/shared/interfaces/Namespace";
@@ -40,14 +40,14 @@ export const useSocket = defineStore("socket", {
     isNamespaceUpdated: false,
     countLoadedNamespace: 0,
     error: null,
-    opts: { forceNew: true, reconnection: false, transports: ["websocket"] },
+    opts: { forceNew: true, reconnection: false, transports: ["websocket"] }
   }),
 
   getters: {
     currentNamespace(state): (namespaceId: string) => Namespace | undefined {
       return (namespaceId: string) =>
         state.namespaces.find((ns: Namespace) => ns.id === Number(namespaceId));
-    },
+    }
   },
 
   actions: {
@@ -106,6 +106,7 @@ export const useSocket = defineStore("socket", {
         const userStore = useUser();
         await userStore.fetchCurrentUser();
       });
+
     },
 
     initNamespaceData(nsSocket: any, numberOfnamespace: number) {
@@ -143,6 +144,20 @@ export const useSocket = defineStore("socket", {
         await userNsStore.deleteUser(data);
       });
 
+      nsSocket.on("userConnect", async (data: { id: number }) => {
+        const userNsStore = useNsUser();
+
+        userNsStore.userConnect(data)
+
+      });
+
+      nsSocket.on("userDisconnect", async (data: { id: number }) => {
+        const userNsStore = useNsUser();
+
+        userNsStore.userDisconnect(data)
+
+      });
+
       nsSocket.on("newUserOnServer", (data: User[]) => {
         userNsStore.addNewUser(data);
       });
@@ -157,7 +172,7 @@ export const useSocket = defineStore("socket", {
 
       nsSocket.on("createRoom", (data: RoomInterface) => {
         roomStore.createRoom(data);
-      })
+      });
 
       nsSocket.on("deleteRoom", (data: number) => {
         // TODO A finir après avoir fait le crud utilisateur
@@ -228,6 +243,6 @@ export const useSocket = defineStore("socket", {
       setTimeout(() => {
         this.error = null;
       }, 2000);
-    },
-  },
+    }
+  }
 });

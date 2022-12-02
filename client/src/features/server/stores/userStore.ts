@@ -13,7 +13,7 @@ export const useNsUser = defineStore("userSocket", {
   state: (): userState => ({
     userList: [],
     numberOfUsers: 0,
-    isUsersLoaded: false,
+    isUsersLoaded: false
   }),
 
   actions: {
@@ -45,7 +45,7 @@ export const useNsUser = defineStore("userSocket", {
         (user) =>
           user.id === data.id &&
           user.UserHasNamespace.namespace_id ===
-            data.UserHasNamespace.namespace_id
+          data.UserHasNamespace.namespace_id
       );
 
       if (userIndex !== -1) {
@@ -64,5 +64,25 @@ export const useNsUser = defineStore("userSocket", {
         this.numberOfUsers--;
       }
     },
-  },
+
+    userConnect(data: { id: number }) {
+
+      console.log(data);
+      let user = this.userList.find(user => user.id === data.id);
+
+      if (user) {
+        user!.status = "online";
+      }
+    },
+
+    userDisconnect(data: { id: number }) {
+
+      console.log(data);
+      let user = this.userList.find(user => user.id === data.id);
+
+      if (user) {
+        user!.status = "offline";
+      }
+    }
+  }
 });

@@ -1,6 +1,6 @@
 const { User, Namespace, Room, Message } = require("../models");
 const client = require("../config/sequelize");
-const {QueryTypes} = require("sequelize");
+const { QueryTypes } = require("sequelize");
 
 
 const rooms = {
@@ -8,9 +8,9 @@ const rooms = {
     try {
       const getRooms = await Room.findAll({
         where: {
-          namespace_id,
+          namespace_id
         },
-        order: [["created_at", "asc"]],
+        order: [["created_at", "asc"]]
       });
 
       nsSocket.emit("rooms", getRooms);
@@ -26,9 +26,9 @@ const rooms = {
 
       const messages = await Message.findAll({
         where: {
-          room_id: roomId,
+          room_id: roomId
         },
-        order: [["created_at", "asc"]],
+        order: [["created_at", "asc"]]
       });
 
 
@@ -43,10 +43,8 @@ const rooms = {
       const room = await Room.create({
         name: data.name,
         index: data.index,
-        namespace_id: data.namespaceId,
+        namespace_id: data.namespaceId
       });
-
-      console.log(room)
 
       ios.of(data.namespaceId).emit("createRoom", room);
     } catch (e) {
@@ -60,15 +58,15 @@ const rooms = {
     try {
       await Room.destroy({
         where: {
-          id: data.id,
-        },
+          id: data.id
+        }
       });
 
       ios.of(data.namespaceId).emit("deleteRoom", data);
     } catch (e) {
       console.error(e);
     }
-  },
+  }
 };
 
 module.exports = rooms;

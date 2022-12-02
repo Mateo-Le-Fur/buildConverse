@@ -9,6 +9,7 @@ const {
 const namespaces = require("./namespace.socket");
 const { User, Namespace } = require("../models");
 const user = require("./user.socket");
+const {errorHandler} = require("../helpers/errorHandler");
 
 let ios;
 
@@ -60,6 +61,7 @@ const initSocketServer = async () => {
   });
 };
 
-initSocketServer();
+(async () => await initSocketServer())() ;
 
 app.set("socketio", ios);
+

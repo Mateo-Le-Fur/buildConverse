@@ -155,6 +155,10 @@ export const useSocket = defineStore("socket", {
         this.messages.push(data);
       });
 
+      nsSocket.on("createRoom", (data: RoomInterface) => {
+        roomStore.createRoom(data);
+      })
+
       nsSocket.on("deleteRoom", (data: number) => {
         // TODO A finir après avoir fait le crud utilisateur
         console.log(data);
@@ -217,10 +221,6 @@ export const useSocket = defineStore("socket", {
 
         this.activeNsSocket.emit("getNamespaceUsers", channelId);
       }
-    },
-
-    getCurrentNamespace(namespaceId: string) {
-      return this.currentNamespace(namespaceId);
     },
 
     setError(message: string) {

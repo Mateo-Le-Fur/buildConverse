@@ -1,10 +1,12 @@
 const { User, Namespace, Room, Message } = require("../models");
+const client = require("../config/sequelize");
+const {QueryTypes} = require("sequelize");
+
 
 const rooms = {
   async getAllRooms(nsSocket, namespace_id) {
     try {
       const getRooms = await Room.findAll({
-        include: ["namespaces"],
         where: {
           namespace_id,
         },
@@ -21,12 +23,14 @@ const rooms = {
     try {
       nsSocket.join(`/${roomId}`);
 
+
       const messages = await Message.findAll({
         where: {
           room_id: roomId,
         },
         order: [["created_at", "asc"]],
       });
+
 
       nsSocket.emit("history", messages);
     } catch (e) {
@@ -42,7 +46,9 @@ const rooms = {
         namespace_id: data.namespaceId,
       });
 
-      ios.of(data.namespaceId).emit("rooms", [room]);
+      console.log(room)
+
+      ios.of(data.namespaceId).emit("createRoom", room);
     } catch (e) {
       console.error(e);
     }

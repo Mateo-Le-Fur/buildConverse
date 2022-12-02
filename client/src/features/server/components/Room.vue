@@ -49,17 +49,19 @@ const emit = defineEmits<{
         @room-popup="hiddenPopup"
       />
 
-      <template v-for="room of rooms" :key="room.id">
-        <router-link :to="{ name: 'room', params: { idRoom: room.id } }">
-          <div
-            @click="emit('changeRoom', room)"
-            :class="{ active: activeRoomId === room.id }"
-            class="rooms d-flex flex-column justify-content-center"
-          >
-            <p>{{ room.name }}</p>
-          </div>
-        </router-link>
-      </template>
+      <div class="room-container d-flex flex-column">
+        <template v-for="room of rooms" :key="room.id">
+          <router-link :to="{ name: 'room', params: { idRoom: room.id } }">
+            <div
+              @click="emit('changeRoom', room)"
+              :class="{ active: activeRoomId === room.id }"
+              class="rooms d-flex flex-column justify-content-center"
+            >
+              <p>{{ room.name }}</p>
+            </div>
+          </router-link>
+        </template>
+      </div>
     </nav>
     <Profil />
   </div>
@@ -93,9 +95,13 @@ const emit = defineEmits<{
     }
   }
 
+  .room-container {
+    gap: 6px;
+    padding: 10px 5px 10px 5px;
+  }
+
   .rooms {
     height: 40px;
-    margin: 6px;
     padding: 0 15px;
     cursor: pointer;
     border-radius: 5px;
@@ -108,6 +114,7 @@ const emit = defineEmits<{
   .create-room {
     justify-content: space-between;
     padding: 20px 15px 3px 6px;
+
 
     .text-room {
       font-size: 0.8rem;

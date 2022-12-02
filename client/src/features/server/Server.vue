@@ -66,7 +66,7 @@ function changeRoom(room: RoomInterface) {
       />
     </div>
 
-    <router-view></router-view>
+    <router-view :params="route.params"></router-view>
     <UserList
       :user-list="
         userNsStore.getUsersNamespace(route.params.idChannel?.toString())

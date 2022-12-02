@@ -146,17 +146,27 @@ const namespaces = {
         //   await user.updateUser(ios, data);
         // });
 
-        nsSocket.on("message", async ({ text, roomId }) => {
+        nsSocket.on("message", async ({ text, roomId, avatar }) => {
           try {
             const { id, pseudo } = nsSocket.request.user;
 
-            const message = await Message.create({
+            const user = await User.findByPk(id, { attributes: ["avatar_url"], raw: true });
+
+            const buffer = fs.readFileSync(path.join(__dirname, `..${user.avatar_url}`), "base64");
+
+            let message = (await Message.create({
               data: text,
               data_type: "text",
               room_id: roomId,
               user_id: id,
               author_name: pseudo
-            });
+            })).get();
+
+
+            message = {
+              ...message,
+              avatar_url: buffer
+            };
 
             ns.to(`/${roomId}`).emit("message", message);
           } catch (e) {

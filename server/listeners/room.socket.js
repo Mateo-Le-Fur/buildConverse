@@ -1,6 +1,8 @@
 const { User, Namespace, Room, Message } = require("../models");
 const client = require("../config/sequelize");
 const { QueryTypes } = require("sequelize");
+const fs = require("fs");
+const path = require("path");
 
 
 const rooms = {
@@ -21,8 +23,13 @@ const rooms = {
 
   async getAllMessages(nsSocket, roomId) {
     try {
+      const { id } = nsSocket.request.user;
+
       nsSocket.join(`/${roomId}`);
 
+      const user = await User.findByPk(id, { attributes: ["avatar_url"], raw: true });
+
+      // const buffer = fs.readFileSync(path.join(__dirname, `..${user.avatar_url}`), "base64");
 
       const messages = await Message.findAll({
         where: {
@@ -30,6 +37,8 @@ const rooms = {
         },
         order: [["created_at", "asc"]]
       });
+
+      console.log(messages);
 
 
       nsSocket.emit("history", messages);

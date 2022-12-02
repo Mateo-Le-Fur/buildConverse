@@ -4,7 +4,6 @@ const path = require("path");
 const runService = require("../services/runService");
 const user = {
   async updateUser(socket, ios, data) {
-    console.log(data);
     try {
       const avatar_name = data.avatarName ? Date.now() : null;
 
@@ -12,14 +11,14 @@ const user = {
         const t0 = performance.now();
 
         const buffer = await runService("./services/compressWorker.js", {
-          data,
+          data
         });
 
         fs.writeFileSync(
           path.join(__dirname, "../images/" + avatar_name),
           buffer,
           {
-            encoding: "base64",
+            encoding: "base64"
           }
         );
 
@@ -29,7 +28,7 @@ const user = {
       }
 
       const { avatar_url: oldAvatar } = await User.findByPk(data.userId, {
-        raw: true,
+        raw: true
       });
 
       await User.update(
@@ -37,12 +36,12 @@ const user = {
           pseudo: data.pseudo,
           email: data.email,
           description: data.description,
-          avatar_url: data.avatar ? `/images/${avatar_name}` : oldAvatar,
+          avatar_url: data.avatar ? `/images/${avatar_name}` : oldAvatar
         },
         {
           where: {
-            id: data.userId,
-          },
+            id: data.userId
+          }
         }
       );
 
@@ -59,22 +58,22 @@ const user = {
                 "invite_code",
                 "img_url",
                 "created_at",
-                "updated_at",
-              ],
+                "updated_at"
+              ]
             },
             include: [
               {
                 model: User,
                 as: "namespaceHasUsers",
                 attributes: {
-                  exclude: ["password", "email", "created_at", "updated_at"],
+                  exclude: ["password", "email", "created_at", "updated_at"]
                 },
 
                 where: {
-                  id: data.userId,
-                },
-              },
-            ],
+                  id: data.userId
+                }
+              }
+            ]
           })
         ).toJSON();
 
@@ -82,14 +81,14 @@ const user = {
           const buffer = fs.readFileSync(
             path.join(__dirname, `..${element.avatar_url}`),
             {
-              encoding: "base64",
+              encoding: "base64"
             }
           );
 
           return {
             ...element,
             avatar_url: buffer,
-            status: "online",
+            status: "online"
           };
         });
 
@@ -166,6 +165,25 @@ const user = {
       ios.of(`/${nsId}`).emit("deleteUser", { id });
     }
   },
+
+  connectUser(socket, ios, data) {
+    const { namespaces } = data;
+    const { id } = socket.request.user;
+
+
+    namespaces.forEach((ns) => {
+      ios.of(`/${ns}`).emit("userConnect", { id });
+    });
+  },
+
+  disconnectUser(socket, ios, data) {
+    const { namespaces } = data;
+    const { id } = socket.request.user;
+
+    namespaces.forEach((ns) => {
+      ios.of(`/${ns}`).emit("userDisconnect", { id });
+    });
+  }
 };
 
 module.exports = user;

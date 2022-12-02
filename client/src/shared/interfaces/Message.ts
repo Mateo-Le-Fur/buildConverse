@@ -3,6 +3,7 @@ export interface Message {
   data: string;
   data_type: "text" | "file" | "image";
   author_name: string;
+  avatar_url: string;
   user_id: number;
   room_id: number;
   created_at: string;

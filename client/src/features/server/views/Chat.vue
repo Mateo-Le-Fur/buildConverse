@@ -1,33 +1,53 @@
 <script setup lang="ts">
 import { useSocket } from "@/shared/stores/socketStore";
 import SendMessage from "../components/SendMessage.vue";
-import { onUpdated, ref } from "vue";
+import { onMounted, onUpdated, ref, watchEffect } from "vue";
+import { useRoom } from "@/features/server/stores/roomStore";
+import type { RoomInterface } from "@/shared/interfaces/Room";
+import type { RouteParams } from "vue-router";
+
+function scrollToBottom() {
+  const element = ref<HTMLDivElement | null>(null);
+  element.value = document.querySelector(".message-container");
+
+  element.value?.scrollTo({
+    top: element.value?.scrollHeight,
+    left: 0,
+  });
+}
+
+onMounted(() => {
+  scrollToBottom();
+});
 
 onUpdated(() => {
-  const element = ref<HTMLDivElement | null>(
-    document.querySelector(".message-container")
-  );
-
-  if (element.value?.scrollHeight !== 0) {
-    element.value?.scrollTo({
-      top: element.value?.scrollHeight,
-      left: 0,
-    });
-  }
+  scrollToBottom();
 });
 
 const socketStore = useSocket();
+const roomStore = useRoom();
+
+const props = defineProps<{
+  params: RouteParams;
+}>();
+
+const currentRoom = ref<RoomInterface | undefined>();
+
+watchEffect(() => {
+  currentRoom.value = roomStore.currentRoom(props.params.idRoom as string);
+});
 </script>
 
 <template>
   <div class="chat-container d-flex flex-column flex-fill">
     <div class="message-container">
+      <h2 class="room-name">Bienvenue dans le salon {{ currentRoom?.name }}</h2>
       <template v-for="message of socketStore.messages" :key="message.id">
         <div class="d-flex message">
           <div>
             <img
               class="mr-10"
-              src="https://images.unsplash.com/photo-1666712867915-559da259e7ef?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxlZGl0b3JpYWwtZmVlZHw0fHx8ZW58MHx8fHw%3D&auto=format&fit=crop&w=500&q=60"
+              :src="'data:image/jpeg;base64,' + message.avatar_url"
             />
           </div>
           <div class="d-flex flex-column w-100">
@@ -51,9 +71,16 @@ const socketStore = useSocket();
 </template>
 
 <style scoped lang="scss">
+.scroller {
+  height: 100%;
+}
 .chat-container {
   justify-content: end;
   min-width: 0;
+
+  .room-name {
+    padding: 10px 20px 10px 20px;
+  }
 
   .message-container {
     display: flex;
@@ -67,12 +94,15 @@ const socketStore = useSocket();
 
   .message-container::-webkit-scrollbar-track {
     box-shadow: inset 0 0 10px 10px var(--primary-2);
-    border: solid 3px transparent;
+    border: solid 2px transparent;
+    border-radius: 10px;
+
   }
 
   .message-container::-webkit-scrollbar-thumb {
     box-shadow: inset 0 0 10px 10px var(--primary-3);
-    border: solid 3px transparent;
+    border: solid 2px transparent;
+    border-radius: 10px;
   }
 
   .author {

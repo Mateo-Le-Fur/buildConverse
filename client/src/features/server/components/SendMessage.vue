@@ -5,18 +5,20 @@ import { useField, useForm } from "vee-validate";
 import type { Message } from "@/shared/interfaces/Message";
 import { useSocket } from "@/shared/stores/socketStore";
 import { useRoom } from "@/features/server/stores/roomStore";
+import { useUser } from "@/shared/stores";
 
 const socketStore = useSocket();
 const roomStore = useRoom();
+const userStore = useUser();
 
 const validationSchema = toFormValidator(
   z.object({
-    data: z.string().max(500).optional(),
+    data: z.string().max(500).optional()
   })
 );
 
 const { handleSubmit, setErrors } = useForm<Message>({
-  validationSchema,
+  validationSchema
 });
 
 const { value: dataValue, errorMessage: dataError } = useField("data");
@@ -26,12 +28,13 @@ const submit = handleSubmit((formValue: Message) => {
     socketStore.activeNsSocket.emit("message", {
       text: formValue.data,
       roomId: roomStore.activeRoom?.id,
+      avatar: userStore.currentUser?.avatar_url,
     });
 
     dataValue.value = null;
   } catch (e: string | any) {
     setErrors({
-      data: e.data,
+      data: e.data
     });
   }
 });

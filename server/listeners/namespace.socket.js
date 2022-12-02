@@ -339,7 +339,6 @@ const namespaces = {
     getNewNamespace = getNewNamespace.userHasNamespaces[0];
 
 
-    console.log(getNewNamespace);
     fs.readFile(
       path.join(__dirname, `..${getNewNamespace.img_url}`),
       (err, buf) => {
@@ -481,33 +480,44 @@ const namespaces = {
 
     let namespace = (
       await Namespace.findOne({
-        include: ["rooms"],
         where: {
           invite_code: data.inviteCode
         }
       })
     ).toJSON();
 
+
     if (!namespace) throw new Error("Code non valide");
 
-    const user = await User.findByPk(socket.request.user.id);
 
     await UserHasNamespace.create({
-      user_id: user.id,
+      user_id: userId,
       namespace_id: namespace.id
     });
 
-    const buf = fs.readFileSync(
+    const buffer = fs.readFileSync(
       path.join(__dirname, `..${namespace.img_url}`),
       {
         encoding: "base64"
       }
     );
 
-    namespace = {
-      ...namespace,
-      img_url: buf
-    };
+
+    let getNewNamespace = (
+      await User.findByPk(userId, {
+        include: {
+          model: Namespace,
+          as: "userHasNamespaces",
+          include: ["rooms"],
+          where: {
+            invite_code: data.inviteCode
+          }
+        }
+      })
+    ).toJSON();
+
+    getNewNamespace = { ...getNewNamespace.userHasNamespaces[0], img_url: buffer };
+
 
     let newUser = (
       await Namespace.findByPk(namespace.id, {
@@ -537,7 +547,7 @@ const namespaces = {
       status: "online"
     };
 
-    socket.emit("createdNamespace", [namespace]);
+    socket.emit("createdNamespace", [getNewNamespace]);
     ios.of(namespace.id).emit("newUserOnServer", [newUser]);
 
     console.timeEnd("invite");

@@ -56,6 +56,7 @@ function deleteNamespace(namespaceId: number) {
           Code d'invitation: {{ currentNamespace?.invite_code }}
         </li>
         <li
+          v-show="currentNamespace?.UserHasNamespace.admin"
           @click="
             (popupUpdateServer = !popupUpdateServer), (popupOption = false)
           "
@@ -69,6 +70,7 @@ function deleteNamespace(namespaceId: number) {
           />
         </li>
         <li
+          v-show="currentNamespace?.UserHasNamespace.admin"
           @click="deleteNamespace(currentNamespace?.id)"
           class="p-10 delete-server justify-content-center"
         >

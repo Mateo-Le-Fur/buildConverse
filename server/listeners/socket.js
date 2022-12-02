@@ -56,12 +56,10 @@ const initSocketServer = async () => {
     });
 
     socket.on("join", async (data) => {
-      console.log(data);
       user.connectUser(socket, ios, data);
     });
 
     socket.on("leave", async (data) => {
-      console.log(data);
       user.disconnectUser(socket, ios, data);
       socket.disconnect();
     });

@@ -49,6 +49,7 @@ CREATE TABLE "message" (
     "data" TEXT NOT NULL,
     "data_type" data_type NOT NULL DEFAULT 'text',
     "author_name" TEXT NOT NULL,
+    "avatar_author" TEXT NOT NULL,
     "user_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE ,
     "room_id" INT NOT NULL REFERENCES "room"(id) ON DELETE CASCADE ,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),

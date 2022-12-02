@@ -22,6 +22,7 @@ watch(
   () => socketStore.isNamespacesLoaded,
   (newValue) => {
     if (newValue) {
+      console.log(newValue);
       joinNamespace();
     }
   }
@@ -66,7 +67,7 @@ function changeRoom(room: RoomInterface) {
       />
     </div>
 
-    <router-view></router-view>
+    <router-view :params="route.params"></router-view>
     <UserList
       :user-list="
         userNsStore.getUsersNamespace(route.params.idChannel?.toString())
@@ -80,14 +81,17 @@ function changeRoom(room: RoomInterface) {
 .channel-container {
   width: 100%;
 }
+
 .server-leave-to,
 .server-enter-from {
   opacity: 0;
 }
+
 .server-leave-from,
 .server-enter-to {
   opacity: 1;
 }
+
 .server-leave-active,
 .server-enter-active {
   transition: all 0.3s;

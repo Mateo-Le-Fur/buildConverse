@@ -5,6 +5,13 @@ class Message extends Model {}
 
 Message.init(
   {
+
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
+
     data: {
       type: DataTypes.TEXT,
       allowNull: false,

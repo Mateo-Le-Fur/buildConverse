@@ -8,6 +8,8 @@ import { toFormValidator } from "@vee-validate/zod";
 import { z } from "zod";
 import { useField, useForm } from "vee-validate";
 import { deleteUser, fetchCurrentUser } from "@/shared/services";
+import { getActivePinia } from "pinia";
+
 
 const userStore = useUser();
 const socketStore = useSocket();
@@ -18,19 +20,25 @@ const state = reactive<{
   user: Partial<User> | null;
 }>({
   isProfilOpen: false,
-  user: null,
+  user: null
 });
 let avatar = ref<File | null>();
 let src = ref<string | ArrayBuffer | null>();
 
 async function logout() {
+  const namespaces: number[] = [];
+  socketStore.namespaces.forEach((ns) => {
+    namespaces.push(ns.id);
+  });
+  socketStore.ioClient?.emit("leave", { namespaces });
   await userStore.logout();
   socketStore.ioClient?.disconnect();
   socketStore.namespaceSockets.forEach((nsSocket: any) => {
     nsSocket.disconnect();
   });
-  socketStore.$reset();
-  userStore.$reset();
+
+  // @ts-ignore
+  getActivePinia()._s.forEach(store => store.$reset());
   await router.push("/connexion");
 }
 
@@ -58,7 +66,7 @@ async function deleteAccount() {
 
   socketStore.ioClient?.emit("deleteUser", {
     namespacesId,
-    id: userStore.currentUser?.id,
+    id: userStore.currentUser?.id
   });
 
   socketStore.ioClient?.disconnect();
@@ -66,10 +74,12 @@ async function deleteAccount() {
     nsSocket.disconnect();
   });
 
+  // @ts-ignore
+  getActivePinia()._s.forEach(store => store.$reset());
+
+
   router.push("/connexion");
 
-  userStore.$reset();
-  socketStore.$reset();
 }
 
 watch(
@@ -91,12 +101,12 @@ const validationSchema = toFormValidator(
 
     email: z
       .string({ required_error: "Le champ doit être remplie : (" })
-      .email("Le format de l'email n'est pas valide : ("),
+      .email("Le format de l'email n'est pas valide : (")
   })
 );
 
 const { handleSubmit, setErrors } = useForm<User>({
-  validationSchema,
+  validationSchema
 });
 
 const submit = handleSubmit(async (formValue: User) => {
@@ -122,7 +132,7 @@ const submit = handleSubmit(async (formValue: User) => {
         namespaces,
         userId: userStore.currentUser?.id,
         avatar: avatar.value ? avatar.value : null,
-        avatarName: avatar.value ? avatar.value?.name : null,
+        avatarName: avatar.value ? avatar.value?.name : null
       });
 
       avatar.value = null;
@@ -356,12 +366,14 @@ const { value: emailValue, errorMessage: emailError } = useField("email");
           font-size: 1.1rem;
         }
       }
+
       .profil-content-email {
         width: 45%;
 
         label {
           color: #f4f4f4;
         }
+
         input {
           outline: none;
           background-color: #1f2023;

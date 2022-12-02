@@ -1,14 +1,16 @@
 const { User, Namespace, Room, Message } = require("../models");
+const client = require("../config/sequelize");
+const { QueryTypes } = require("sequelize");
+
 
 const rooms = {
   async getAllRooms(nsSocket, namespace_id) {
     try {
       const getRooms = await Room.findAll({
-        include: ["namespaces"],
         where: {
-          namespace_id,
+          namespace_id
         },
-        order: [["created_at", "asc"]],
+        order: [["created_at", "asc"]]
       });
 
       nsSocket.emit("rooms", getRooms);
@@ -21,12 +23,14 @@ const rooms = {
     try {
       nsSocket.join(`/${roomId}`);
 
+
       const messages = await Message.findAll({
         where: {
-          room_id: roomId,
+          room_id: roomId
         },
-        order: [["created_at", "asc"]],
+        order: [["created_at", "asc"]]
       });
+
 
       nsSocket.emit("history", messages);
     } catch (e) {
@@ -39,10 +43,10 @@ const rooms = {
       const room = await Room.create({
         name: data.name,
         index: data.index,
-        namespace_id: data.namespaceId,
+        namespace_id: data.namespaceId
       });
 
-      ios.of(data.namespaceId).emit("rooms", [room]);
+      ios.of(data.namespaceId).emit("createRoom", room);
     } catch (e) {
       console.error(e);
     }
@@ -54,15 +58,15 @@ const rooms = {
     try {
       await Room.destroy({
         where: {
-          id: data.id,
-        },
+          id: data.id
+        }
       });
 
       ios.of(data.namespaceId).emit("deleteRoom", data);
     } catch (e) {
       console.error(e);
     }
-  },
+  }
 };
 
 module.exports = rooms;

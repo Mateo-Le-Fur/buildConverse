@@ -16,7 +16,7 @@ const popupUpdateServer = ref<boolean>(false);
 const currentNamespace = ref<Namespace | undefined>();
 
 watchEffect(() => {
-  currentNamespace.value = socketStore.getCurrentNamespace(
+  currentNamespace.value = socketStore.currentNamespace(
     props.routeParams.idChannel as string
   );
 });

@@ -12,7 +12,7 @@ function unlinkImage(image) {
   });
 
   if (!isDefault) {
-    fs.unlinkSync(path.join(__dirname, `..${image}`))
+    fs.unlinkSync(path.join(__dirname, `..${image}.webp`))
   }
 
 }

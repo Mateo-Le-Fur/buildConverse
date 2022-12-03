@@ -9,6 +9,8 @@ const namespaceController = {
 
     const { id } = req.params;
 
+    console.log("namespace id: "  + id)
+
     const namespace = await Namespace.findByPk(id, { raw: true });
 
     res.sendFile(path.join(__dirname, `..${namespace.img_url}.webp`));

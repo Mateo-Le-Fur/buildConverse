@@ -248,7 +248,7 @@ const namespaces = {
           quality: 80,
           effort: 0
         })
-        .toFile(path.join(__dirname, `${img_name}.webp`));
+        .toFile(path.join(__dirname, `../images/${img_name}.webp`));
 
     }
 
@@ -289,10 +289,11 @@ const namespaces = {
 
     const namespace = {
       ...getNewNamespace,
-      img_url: `${process.env.DEV_AVATAR_URL}/namespace/${getRandomImage.id}/${Date.now()}/avatar`,
+      img_url: `${process.env.DEV_AVATAR_URL}/namespace/${getNewNamespace.id}/${Date.now()}/avatar`,
     };
 
     socket.emit("createdNamespace", [namespace]);
+
 
 
     console.timeEnd("create");

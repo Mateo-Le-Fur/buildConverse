@@ -2,103 +2,103 @@ const { User, Namespace } = require("../models");
 const fs = require("fs");
 const path = require("path");
 const runService = require("../services/runService");
+
 const user = {
   async updateUser(socket, ios, data) {
-    try {
-      const avatar_name = data.avatarName ? (`${socket.request.user.id}-${Date.now()}`) : null;
+    const avatar_name = data.avatarName
+      ? `${socket.request.user.id}-${Date.now()}`
+      : null;
 
-      console.log(avatar_name)
+    console.log(avatar_name);
 
-      if (data.avatar) {
-        const t0 = performance.now();
+    if (data.avatar) {
+      const t0 = performance.now();
 
-        const buffer = await runService("./services/compressWorker.js", {
-          data
-        });
+      const buffer = await runService("./services/compressWorker.js", {
+        data
+      });
 
-        fs.writeFileSync(
-          path.join(__dirname, "../images/" + avatar_name),
-          buffer,
+      fs.writeFileSync(
+        path.join(__dirname, "../images/" + avatar_name),
+        buffer,
+        {
+          encoding: "base64"
+        }
+      );
+
+      const t1 = performance.now();
+
+      console.log(`compression done : ${t1 - t0} ms`);
+    }
+
+    const { avatar_url: oldAvatar } = await User.findByPk(data.userId, {
+      raw: true
+    });
+
+    await User.update(
+      {
+        pseudo: data.pseudo,
+        email: data.email,
+        description: data.description,
+        avatar_url: data.avatar ? `/images/${avatar_name}` : oldAvatar
+      },
+      {
+        where: {
+          id: data.userId
+        }
+      }
+    );
+
+    if (!data.namespaces.length) {
+      socket.emit("updateUser", "update user");
+    }
+
+    for await (const ns of data.namespaces) {
+      let user = (
+        await Namespace.findByPk(ns, {
+          attributes: {
+            exclude: [
+              "name",
+              "invite_code",
+              "img_url",
+              "created_at",
+              "updated_at"
+            ]
+          },
+          include: [
+            {
+              model: User,
+              as: "namespaceHasUsers",
+              attributes: {
+                exclude: ["password", "email", "created_at", "updated_at"]
+              },
+
+              where: {
+                id: data.userId
+              }
+            }
+          ]
+        })
+      ).toJSON();
+
+      user = user.namespaceHasUsers.map((element) => {
+        const buffer = fs.readFileSync(
+          path.join(__dirname, `..${element.avatar_url}`),
           {
             encoding: "base64"
           }
         );
 
-        const t1 = performance.now();
-
-        console.log(`compression done : ${t1 - t0} ms`);
-      }
-
-      const { avatar_url: oldAvatar } = await User.findByPk(data.userId, {
-        raw: true
+        return {
+          ...element,
+          avatar_url: buffer,
+          status: "online"
+        };
       });
 
-      await User.update(
-        {
-          pseudo: data.pseudo,
-          email: data.email,
-          description: data.description,
-          avatar_url: data.avatar ? `/images/${avatar_name}` : oldAvatar
-        },
-        {
-          where: {
-            id: data.userId
-          }
-        }
-      );
-
-      if (!data.namespaces.length) {
-        socket.emit("updateUser", "update user");
-      }
-
-      for await (const ns of data.namespaces) {
-        let user = (
-          await Namespace.findByPk(ns, {
-            attributes: {
-              exclude: [
-                "name",
-                "invite_code",
-                "img_url",
-                "created_at",
-                "updated_at"
-              ]
-            },
-            include: [
-              {
-                model: User,
-                as: "namespaceHasUsers",
-                attributes: {
-                  exclude: ["password", "email", "created_at", "updated_at"]
-                },
-
-                where: {
-                  id: data.userId
-                }
-              }
-            ]
-          })
-        ).toJSON();
-
-        user = user.namespaceHasUsers.map((element) => {
-          const buffer = fs.readFileSync(
-            path.join(__dirname, `..${element.avatar_url}`),
-            {
-              encoding: "base64"
-            }
-          );
-
-          return {
-            ...element,
-            avatar_url: buffer,
-            status: "online"
-          };
-        });
-
-        ios.of(ns).emit("updateUser", ...user);
-      }
-    } catch (e) {
-      console.error(e);
+      ios.of(ns).emit("updateUser", ...user);
     }
+
 
     /* Je parcours tout les namespaces de l'utilisateur et j'emit l'utilisateur mise a jour * sur chaque namespace */
 
@@ -169,7 +169,6 @@ const user = {
   },
 
   connectUser(socket, ios, data) {
-    console.log(data);
     const { namespaces } = data;
     const { id } = socket.request.user;
 
@@ -178,7 +177,6 @@ const user = {
         ios.of(`/${ns}`).emit("userConnect", { id });
       });
     }
-
   },
 
   disconnectUser(socket, ios, data) {

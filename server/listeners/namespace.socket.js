@@ -1,79 +1,35 @@
 const room = require("./room.socket");
 const user = require("./user.socket");
-const { User, Namespace, Room, Message } = require("../models");
+const message = require("./message.socket");
+const { User, Namespace, Room, Message, UserHasNamespace } = require("../models");
 const fs = require("fs");
 const path = require("path");
-const UserHasNamespace = require("../models/UserHasNamespace");
-const client = require("../config/sequelize");
-const { QueryTypes } = require("sequelize");
 const sharp = require("sharp");
 const { promisify } = require("util");
+const { getNumberOfUser } = require("../query/namespace.query");
+const { getRandomImage } = require('../utils/getRandomImage')
+
+const { unlinkImage } = require('../utils/unlinckImage')
 
 const namespaces = {
-  async getUserNamespaces(ios, socket, clients) {
-    const userId = socket.request.user.id;
 
-    let currentUserNamespaces = (
-      await User.findByPk(userId, {
-        include: {
-          model: Namespace,
-          as: "userHasNamespaces",
-          include: ["rooms"]
-        }
-      })
-    ).toJSON();
-
-
-    const readFileAsync = promisify(fs.readFile);
-
-    let promises = [];
-    currentUserNamespaces.userHasNamespaces.forEach((namespace) => {
-      promises.push({
-        ...namespace,
-        img_url: readFileAsync(
-          path.join(__dirname, `..${namespace.img_url}`),
-          "base64"
-        )
-      });
-    });
-
-    const result = await Promise.all(
-      promises.map(async (el) => {
-        return {
-          ...el,
-          img_url: await el.img_url
-        };
-      })
-    );
-
-
-    namespaces.getNamespacesData(ios, socket, clients);
-
-    socket.emit("namespaces", result);
-  },
-
-  getNamespacesData(ios, socket, clients) {
+  initNamespace(ios, socket, clients) {
     try {
       const ns = ios.of(/^\/\w+$/);
 
-
-
-
-      // Je vérifie que l'utilisateur a les droits de se connecter au serveur
       ns.use(async (socket, next) => {
         const { id } = socket.request.user;
-
         const namespaceId = socket.nsp.name.substring(1);
 
-        const namespace = await Namespace.findByPk(namespaceId);
 
-        const isAuthorize = await namespace.getNamespaceHasUsers({
+        const isAuthorize = (await UserHasNamespace.findOne({
           where: {
-            id
+            user_id: id,
+            namespace_id: namespaceId
           }
-        });
+        }));
 
-        if (isAuthorize.length) {
+        if (isAuthorize) {
           next();
         } else {
           next(new Error("Tu n'as pas accès à ce serveur "));
@@ -81,7 +37,6 @@ const namespaces = {
       });
 
       ns.on("connect", async (nsSocket) => {
-        console.log(socket.request.user);
 
         console.log(
           `L'utilisateur : ${nsSocket.request.user.pseudo} est connecté sur le serveur ${nsSocket.nsp.name}`
@@ -89,7 +44,6 @@ const namespaces = {
 
         try {
           const namespaceId = nsSocket.nsp.name.slice(1);
-
           await room.getAllRooms(nsSocket, namespaceId);
         } catch (e) {
           console.error(e);
@@ -124,15 +78,28 @@ const namespaces = {
         });
 
         nsSocket.on("getNamespaceUsers", async (namespaceId) => {
-          await namespaces.getNamespaceUsers(nsSocket, namespaceId, clients);
+          try {
+            await namespaces.getNamespaceUsers(nsSocket, namespaceId, clients);
+          } catch (e) {
+            console.error(e);
+          }
         });
 
         nsSocket.on("loadMoreUser", async (data) => {
-          await namespaces.loadMoreUser(nsSocket, data, clients);
+          try {
+            await namespaces.loadMoreUser(nsSocket, data, clients);
+
+          } catch (e) {
+            console.error(e);
+          }
         });
 
         nsSocket.on("joinRoom", async (roomId) => {
-          await room.getAllMessages(nsSocket, roomId);
+          try {
+            await room.getAllMessages(nsSocket, roomId);
+          } catch (e) {
+            console.error(e);
+          }
         });
 
         nsSocket.on("leaveRoom", (roomId) => {
@@ -140,44 +107,23 @@ const namespaces = {
         });
 
         nsSocket.on("createRoom", async (data) => {
-          await room.createRoom(ios, data);
+          try {
+            await room.createRoom(ios, data);
+          } catch (e) {
+            console.error(e);
+          }
         });
 
         // TODO A finir après avoir fait le crud utilisateur
-        nsSocket.on("deleteRoom", async (data) => {
-          await room.deleteRoom(ios, data);
-        });
-
-        // nsSocket.on("updateUser", async (data) => {
-        //   await user.updateUser(ios, data);
+        // nsSocket.on("deleteRoom", async (data) => {
+        //   await room.deleteRoom(ios, data);
         // });
 
-        nsSocket.on("message", async ({ text, roomId, avatar }) => {
+        nsSocket.on("message", async (data) => {
           try {
-            const { id } = nsSocket.request.user;
-
-            const user = await User.findByPk(id, { attributes: ["avatar_url", "pseudo"], raw: true });
-
-            const buffer = fs.readFileSync(path.join(__dirname, `..${user.avatar_url}`), "base64");
-
-            let message = (await Message.create({
-              data: text,
-              data_type: "text",
-              room_id: roomId,
-              user_id: id,
-              author_name: user.pseudo,
-              avatar_author: user.avatar_url
-            })).get();
-
-
-            message = {
-              ...message,
-              avatar_author: buffer
-            };
-
-            ns.to(`/${roomId}`).emit("message", message);
+            await message.sendMessage(ns, nsSocket, data);
           } catch (e) {
-            throw e;
+            console.error(e);
           }
         });
 
@@ -191,62 +137,83 @@ const namespaces = {
     }
   },
 
+  async getUserNamespaces(ios, socket, clients) {
+    const userId = socket.request.user.id;
+
+    let currentUserNamespaces = (
+      await User.findByPk(userId, {
+        include: {
+          model: Namespace,
+          as: "userHasNamespaces",
+          include: ["rooms"]
+        }
+      })
+    ).toJSON();
+
+
+    const getNamespaces = currentUserNamespaces.userHasNamespaces.map((namespace) => {
+
+      const buffer = fs.readFileSync(path.join(__dirname, `..${namespace.img_url}`),
+        "base64");
+
+      return {
+        ...namespace,
+        img_url: buffer
+      };
+    });
+
+    namespaces.initNamespace(ios, socket, clients);
+
+    socket.emit("namespaces", getNamespaces);
+  },
+
   async getNamespaceUsers(nsSocket, namespaceId, clients) {
-    try {
-      const t0 = performance.now();
+    const t0 = performance.now();
 
-      let namespace = await Namespace.findByPk(namespaceId);
+    let namespace = await Namespace.findByPk(namespaceId);
 
-      const user = await client.query(
-        `SELECT COUNT("User"."id") AS "numberOfUsers" FROM "user" AS "User"
-          INNER JOIN "user_has_namespace" AS "UserHasNamespace"
-          ON "UserHasNamespace"."namespace_id" = ${namespaceId} GROUP BY "User"."id"
-          LIMIT 1`,
-        { type: QueryTypes.SELECT }
+    const user = await getNumberOfUser(namespaceId);
+
+
+    let users = await namespace.getNamespaceHasUsers({
+      limit: 50,
+      offset: 0,
+      raw: true,
+      nest: true
+    });
+
+    users = users.map((element) => {
+      const checkIfUserConnected = clients.get(element.id);
+
+      delete element.password;
+
+      const buffer = fs.readFileSync(
+        path.join(
+          __dirname,
+          `..${
+            element.avatar_url ? element.avatar_url : "/images/default-avatar"
+          }`
+        ),
+        {
+          encoding: "base64"
+        }
       );
 
-      let users = await namespace.getNamespaceHasUsers({
-        limit: 50,
-        offset: 0,
-        raw: true,
-        nest: true
-      });
+      return {
+        ...element,
+        avatar_url: buffer,
+        status: checkIfUserConnected ? "online" : "offline"
+      };
+    });
 
-      users = users.map((element) => {
-        const checkIfUserConnected = clients.get(element.id);
+    const t1 = performance.now();
 
-        delete element.password;
+    nsSocket.emit("userList", {
+      users,
+      numberOfUsers: user.count
+    });
 
-        const buffer = fs.readFileSync(
-          path.join(
-            __dirname,
-            `..${
-              element.avatar_url ? element.avatar_url : "/images/default-avatar"
-            }`
-          ),
-          {
-            encoding: "base64"
-          }
-        );
-
-        return {
-          ...element,
-          avatar_url: buffer,
-          status: checkIfUserConnected ? "online" : "offline"
-        };
-      });
-
-      const t1 = performance.now();
-
-      console.log(`get user list : ${t1 - t0} ms`);
-
-      nsSocket.emit("userList", {
-        users,
-        numberOfUsers: user[0].numberOfUsers
-      });
-    } catch (e) {
-      throw e;
-    }
+    console.log(`get user list : ${t1 - t0} ms`);
   },
 
   async loadMoreUser(nsSocket, data, clients) {
@@ -297,32 +264,35 @@ const namespaces = {
   async createNamespace(ios, socket, data) {
     console.time("create");
 
+
     const { id: userId } = socket.request.user;
 
-    data.img_name = Date.now();
+    const img_name = data.img_name ? Date.now() : null;
 
-    const buffer = await sharp(data.img_url)
-      .resize(150, 150)
-      .webp({
-        quality: 80,
-        effort: 0
-      })
-      .toBuffer();
+    if (data.img_url) {
+      const buffer = await sharp(data.img_url)
+        .resize(150, 150)
+        .webp({
+          quality: 80,
+          effort: 0
+        })
+        .toBuffer();
 
-    const writer = fs.createWriteStream(
-      path.join(__dirname, "../images/" + data.img_name),
-      {
-        encoding: "base64"
-      }
-    );
+      const writer = fs.createWriteStream(
+        path.join(__dirname, "../images/" + img_name),
+        {
+          encoding: "base64"
+        }
+      );
 
-    writer.write(buffer);
-    writer.end();
+      writer.write(buffer);
+      writer.end();
+    }
 
     const createNamespace = await Namespace.create({
       name: data.name,
       invite_code: data.invite_code,
-      img_url: `/images/${data.img_name}`
+      img_url: img_name ? `/images/${img_name}` : `/images/${getRandomImage()}`
     });
 
     const { id } = createNamespace.toJSON();
@@ -338,7 +308,6 @@ const namespaces = {
       namespace_id: id,
       admin: true
     });
-
 
     let getNewNamespace = (
       await User.findByPk(userId, {
@@ -356,18 +325,17 @@ const namespaces = {
     getNewNamespace = getNewNamespace.userHasNamespaces[0];
 
 
-    fs.readFile(
-      path.join(__dirname, `..${getNewNamespace.img_url}`),
-      (err, buf) => {
-        const namespace = {
-          ...getNewNamespace,
-          img_url: buf.toString("base64")
-        };
+    const img = fs.readFileSync(path.join(__dirname, `..${getNewNamespace.img_url}`), {
+      encoding: "base64"
+    });
 
+    const namespace = {
+      ...getNewNamespace,
+      img_url: img
+    };
 
-        socket.emit("createdNamespace", [namespace]);
-      }
-    );
+    socket.emit("createdNamespace", [namespace]);
+
 
     console.timeEnd("create");
   },
@@ -377,7 +345,6 @@ const namespaces = {
     let { avatarName } = data;
 
     const userId = socket.request.user.id;
-
 
     const checkIfUserIsAdmin = await UserHasNamespace.findOne({
       where: {
@@ -482,7 +449,8 @@ const namespaces = {
       raw: true
     });
 
-    fs.unlinkSync(path.join(__dirname, `..${namespace.img_url}`));
+
+    unlinkImage(namespace.img_url)
 
     await Namespace.destroy({
       where: {
@@ -490,7 +458,7 @@ const namespaces = {
       }
     });
 
-    ios._nsps.delete(`/${id}`)
+    ios._nsps.delete(`/${id}`);
   },
 
   async joinInvitation(ios, socket, data) {
@@ -506,9 +474,7 @@ const namespaces = {
       })
     ).toJSON();
 
-
     if (!namespace) throw new Error("Code non valide");
-
 
     await UserHasNamespace.create({
       user_id: userId,
@@ -521,7 +487,6 @@ const namespaces = {
         encoding: "base64"
       }
     );
-
 
     let getNewNamespace = (
       await User.findByPk(userId, {
@@ -536,8 +501,10 @@ const namespaces = {
       })
     ).toJSON();
 
-    getNewNamespace = { ...getNewNamespace.userHasNamespaces[0], img_url: buffer };
-
+    getNewNamespace = {
+      ...getNewNamespace.userHasNamespaces[0],
+      img_url: buffer
+    };
 
     let newUser = (
       await Namespace.findByPk(namespace.id, {

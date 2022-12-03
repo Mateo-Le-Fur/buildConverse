@@ -6,7 +6,7 @@ import { useSocket } from "@/shared/stores/socketStore";
 import type { RoomInterface } from "@/shared/interfaces/Room";
 import { watch } from "vue";
 import { useRoom } from "@/features/server/stores/roomStore";
-import { useNsUser } from "@/features/server/stores/userStore";
+import { useNsUser } from "@/features/server/stores/userNsStore";
 import ServerOptions from "@/features/server/components/ServerOptions.vue";
 
 const route = useRoute();

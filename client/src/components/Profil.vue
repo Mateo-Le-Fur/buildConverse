@@ -330,18 +330,11 @@ const { value: emailValue, errorMessage: emailError } = useField("email");
     box-shadow: 3px 0px 10px 4px rgba(0, 0, 0, 0.5);
 
     &::-webkit-scrollbar {
-      width: 10px;
+      width: 0;
+      background: transparent;
+      display: none;
     }
 
-    &::-webkit-scrollbar-track {
-      box-shadow: inset 0 0 10px 10px var(--primary-1);
-      border: solid 3px transparent;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      box-shadow: inset 0 0 10px 10px var(--primary-3);
-      border: solid 3px transparent;
-    }
 
     .profil-content {
       position: relative;
@@ -419,7 +412,7 @@ const { value: emailValue, errorMessage: emailError } = useField("email");
       outline: none;
       padding: 15px 10px;
       border-radius: 5px;
-      background-color: crimson;
+      background-color: #eb4144ff;
     }
 
     .danger-line {

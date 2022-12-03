@@ -221,7 +221,7 @@ button {
 }
 
 .active {
-  background-color: #3d4045;
+  background-color: var(--primary-1) !important;
 }
 
 h2 {

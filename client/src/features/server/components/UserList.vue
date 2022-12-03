@@ -4,7 +4,7 @@ import type { RouteParams } from "vue-router";
 import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
 import { useSocket } from "@/shared/stores/socketStore";
 import UserLoading from "./UserLoading.vue";
-import { useNsUser } from "@/features/server/stores/userStore";
+import { useNsUser } from "@/features/server/stores/userNsStore";
 
 const socketStore = useSocket();
 const userNsStore = useNsUser();

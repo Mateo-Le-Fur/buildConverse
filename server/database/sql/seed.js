@@ -12,6 +12,12 @@ const { faker } = require("@faker-js/faker");
 // }
 //
 
+function getRandomIntInclusive(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
 function pgQuoteEscape(row) {
   const newRow = {};
   Object.entries(row).forEach(([prop, value]) => {
@@ -29,14 +35,14 @@ const namespaceUsers = [];
 
 function generateUsers(userNb) {
   for (let i = 0; i < userNb; i++) {
-    const random = Math.floor(Math.random() * images.length);
+    // const random = Math.floor(Math.random() * images.length);
 
     const user = {
       pseudo: faker.name.firstName(),
       email: faker.random.alphaNumeric(20),
       password: faker.name.middleName(),
       status: faker.name.firstName(),
-      avatar_url: `/images/1670079832998`,
+      avatar_url: `/images/1-1670100468740`,
     };
 
     users.push(user);

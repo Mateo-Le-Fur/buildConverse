@@ -28,6 +28,8 @@ watch(() => socketStore.isNamespacesLoaded, () => {
   }
 
 });
+
+
 </script>
 
 <template>

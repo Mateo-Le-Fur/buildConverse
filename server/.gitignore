@@ -2,3 +2,6 @@ node_modules
 .env
 upload
 images
+newrelic.js
+newrelic_agent.log
+testSocket.js

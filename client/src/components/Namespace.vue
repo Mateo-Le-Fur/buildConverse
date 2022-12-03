@@ -319,6 +319,7 @@ function leaveNamespace(home: boolean = false) {
     height: 50px;
     border-radius: 50%;
     cursor: pointer;
+    background-color: var(--primary-1);
 
     &:hover {
       border-radius: 40%;

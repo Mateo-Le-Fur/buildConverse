@@ -1,15 +1,10 @@
 const { Server } = require("socket.io");
 const { server, app } = require("../app");
-const fs = require("fs");
-const path = require("path");
-const { promisify } = require("util");
 const {
   ensureAuthenticatedOnSocketHandshake
 } = require("../config/security.config");
 const namespaces = require("./namespace.socket");
-const { User, Namespace } = require("../models");
 const user = require("./user.socket");
-const { errorHandler } = require("../helpers/errorHandler");
 
 let ios;
 
@@ -26,10 +21,13 @@ const initSocketServer = async () => {
   ios.on("connect", async (socket) => {
     console.log("client connected");
 
-
     clients.set(socket.request.user.id, socket.id);
 
-    await namespaces.getUserNamespaces(ios, socket, clients);
+    try {
+      await namespaces.getUserNamespaces(ios, socket, clients);
+    } catch (e) {
+      console.error(e)
+    }
 
     socket.on("invitationToNamespace", async (data) => {
       try {
@@ -48,11 +46,19 @@ const initSocketServer = async () => {
     });
 
     socket.on("updateUser", async (data) => {
-      await user.updateUser(socket, ios, data);
+      try {
+        await user.updateUser(socket, ios, data);
+      } catch (e) {
+        console.error(e);
+      }
     });
 
     socket.on("deleteUser", async (data) => {
-      await user.deleteUser(socket, ios, data);
+      try {
+        await user.deleteUser(socket, ios, data);
+      } catch (e) {
+        console.error(e);
+      }
     });
 
     socket.on("join", async (data) => {
@@ -75,4 +81,3 @@ const initSocketServer = async () => {
 (async () => await initSocketServer())();
 
 app.set("socketio", ios);
-

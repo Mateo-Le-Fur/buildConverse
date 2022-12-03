@@ -9,7 +9,7 @@ const sharp = require("sharp");
 async function compress() {
   console.log("threadId: " + threadId);
   const buffer = await sharp(workerData.data.avatar)
-    .resize(80, 80)
+    .resize(100, 100)
     .webp({
       quality: 80,
       effort: 0,

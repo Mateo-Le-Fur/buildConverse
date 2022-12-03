@@ -12,22 +12,6 @@ const { faker } = require("@faker-js/faker");
 // }
 //
 
-const images = [
-  "12345",
-  "123456",
-  "1234567",
-  "12345678",
-  "123456789",
-  "1222",
-  "1333",
-];
-
-function getRandomIntInclusive(min, max) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min + 1) + min); // The maximum is inclusive and the minimum is inclusive
-}
-
 function pgQuoteEscape(row) {
   const newRow = {};
   Object.entries(row).forEach(([prop, value]) => {
@@ -52,7 +36,7 @@ function generateUsers(userNb) {
       email: faker.random.alphaNumeric(20),
       password: faker.name.middleName(),
       status: faker.name.firstName(),
-      avatar_url: `/images/default-avatar`,
+      avatar_url: `/images/1670079832998`,
     };
 
     users.push(user);
@@ -94,11 +78,12 @@ async function insertUsers(users) {
 }
 
 function generateUserHasNamespace(nb) {
-  for (let i = 0; i < nb; i++) {
+  for (let i = 1; i < nb; i++) {
     const user = {
       user_id: i + 1,
-      namespace_id: getRandomIntInclusive(244, 244),
+      namespace_id: getRandomIntInclusive(1, 1),
       admin: false,
+      ban: false,
     };
 
     namespaceUsers.push(user);
@@ -112,7 +97,8 @@ async function insertUserHasNamespace(namespaceUsers) {
     return `(
           '${newUser.user_id}',
           '${newUser.namespace_id}',
-          '${newUser.admin}'
+          '${newUser.admin}',
+          '${newUser.ban}'
       )`;
   });
 
@@ -121,7 +107,8 @@ async function insertUserHasNamespace(namespaceUsers) {
            (
             "user_id",
             "namespace_id",
-            "admin"
+            "admin",
+            "ban"
            )
            VALUES
            ${userValues}
@@ -132,9 +119,9 @@ async function insertUserHasNamespace(namespaceUsers) {
 }
 
 (async () => {
-  generateUsers(2000);
+  generateUsers(3500);
   const userData = await insertUsers(users);
-  //
-  generateUserHasNamespace(1000);
+
+  generateUserHasNamespace(2000);
   const userDataTwo = await insertUserHasNamespace(namespaceUsers);
 })();

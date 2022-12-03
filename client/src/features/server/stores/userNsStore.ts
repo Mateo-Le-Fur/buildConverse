@@ -7,13 +7,16 @@ interface userState {
   userList: User[];
   numberOfUsers: number;
   isUsersLoaded: boolean;
+  error: null | string;
+
 }
 
 export const useNsUser = defineStore("userSocket", {
   state: (): userState => ({
     userList: [],
     numberOfUsers: 0,
-    isUsersLoaded: false
+    isUsersLoaded: false,
+    error: null
   }),
 
   actions: {

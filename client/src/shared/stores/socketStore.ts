@@ -11,7 +11,7 @@ import type { RoomInterface } from "@/shared/interfaces/Room";
 import type { Message } from "@/shared/interfaces/Message";
 import type { User } from "@/shared/interfaces/User";
 import { useRoom } from "@/features/server/stores/roomStore";
-import { useNsUser } from "@/features/server/stores/userStore";
+import { useNsUser } from "@/features/server/stores/userNsStore";
 import { useUser } from "@/shared/stores/authStore";
 
 interface SocketState {
@@ -125,7 +125,7 @@ export const useSocket = defineStore("socket", {
       this.isNamespacesLoaded = false;
       nsSocket.on("rooms", (data: RoomInterface[]) => {
 
-        roomStore.getRoomsData(data)
+        roomStore.getRoomsData(data);
 
         this.countLoadedNamespace++;
 
@@ -190,13 +190,24 @@ export const useSocket = defineStore("socket", {
       });
 
       nsSocket.on("updateNamespace", async (data: Namespace) => {
+
         this.isNamespaceUpdated = true;
+
+        const { UserHasNamespace } = this.namespaces.find(
+          (ns) => ns.id === data.id
+        );
+
 
         const namespaceIndex = this.namespaces.findIndex(
           (ns) => ns.id === data.id
         );
 
+
         this.namespaces[namespaceIndex] = data;
+
+        this.namespaces[namespaceIndex].UserHasNamespace = UserHasNamespace
+
+        console.log(this.namespaces[namespaceIndex])
       });
 
       nsSocket.on("deleteNamespace", async (data: { id: number }) => {

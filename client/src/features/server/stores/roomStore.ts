@@ -6,12 +6,14 @@ import { useSocket } from "@/shared/stores/socketStore";
 interface RoomState {
   activeRoom: RoomInterface | null | undefined;
   rooms: RoomInterface[];
+  error: null | string;
 }
 
 export const useRoom = defineStore("room", {
   state: (): RoomState => ({
     activeRoom: null,
     rooms: [],
+    error: null,
   }),
 
   getters: {

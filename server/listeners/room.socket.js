@@ -7,84 +7,72 @@ const path = require("path");
 
 const rooms = {
   async getAllRooms(nsSocket, namespace_id) {
-    try {
-      const getRooms = await Room.findAll({
-        where: {
-          namespace_id
-        },
-        order: [["created_at", "asc"]]
-      });
 
-      nsSocket.emit("rooms", getRooms);
-    } catch (e) {
-      throw e;
-    }
+    const getRooms = await Room.findAll({
+      where: {
+        namespace_id
+      },
+      order: [["created_at", "asc"]]
+    });
+
+    nsSocket.emit("rooms", getRooms);
+
   },
 
   async getAllMessages(nsSocket, roomId) {
-    try {
 
-      const { id } = nsSocket.request.user;
-
-      nsSocket.join(`/${roomId}`);
+    nsSocket.join(`/${roomId}`);
 
 
-      let messages = await Message.findAll({
-        where: {
-          room_id: roomId
-        },
-        order: [["created_at", "asc"]],
-        raw: true,
-        nest: true
-      });
+    let messages = await Message.findAll({
+      where: {
+        room_id: roomId
+      },
+      order: [["created_at", "asc"]],
+      raw: true,
+      nest: true
+    });
 
 
-      messages = messages.map((message) => {
-        const buffer = fs.readFileSync(path.join(__dirname, `..${message.avatar_author}`), "base64");
+    messages = messages.map((message) => {
+      const buffer = fs.readFileSync(path.join(__dirname, `..${message.avatar_author}`), "base64");
 
-        return {
-          ...message,
-          avatar_author: buffer
-        };
-      });
-
-
-      nsSocket.emit("history", messages);
+      return {
+        ...message,
+        avatar_author: buffer
+      };
+    });
 
 
-    } catch (e) {
-      console.error(e);
-    }
+    nsSocket.emit("history", messages);
+
+
   },
 
   async createRoom(ios, data) {
-    try {
-      const room = await Room.create({
-        name: data.name,
-        index: data.index,
-        namespace_id: data.namespaceId
-      });
 
-      ios.of(data.namespaceId).emit("createRoom", room);
-    } catch (e) {
-      console.error(e);
-    }
+    const room = await Room.create({
+      name: data.name,
+      index: data.index,
+      namespace_id: data.namespaceId
+    });
+
+    ios.of(data.namespaceId).emit("createRoom", room);
+
   },
 
   // TODO A finir après avoir fait le crud utilisateur
   async deleteRoom(ios, data) {
     console.log(data);
-    try {
-      await Room.destroy({
-        where: {
-          id: data.id
-        }
-      });
 
-      ios.of(data.namespaceId).emit("deleteRoom", data);
-    } catch (e) {
-      console.error(e);
-    }
+    await Room.destroy({
+      where: {
+        id: data.id
+      }
+    });
+
+    ios.of(data.namespaceId).emit("deleteRoom", data);
+
   }
 };
 

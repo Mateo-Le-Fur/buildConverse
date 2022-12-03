@@ -151,6 +151,7 @@ function leaveNamespace(home: boolean = false) {
           class="private-message tooltip"
           :class="{ active: !socketStore.activeNsSocket }"
         >
+<!--          <img src="@/assets/images/chat.svg" alt="logo" />-->
           <img src="@/assets/images/chat.svg" alt="logo" />
 
           <div class="border-bottom"></div>
@@ -170,7 +171,7 @@ function leaveNamespace(home: boolean = false) {
               :class="{
                 active: socketStore.activeNsSocket?.nsp == `/${namespace.id}`,
               }"
-              :src="'data:image/jpeg;base64,' + namespace.img_url"
+              :src="namespace.img_url"
               :alt="namespace.name"
             />
           </div>

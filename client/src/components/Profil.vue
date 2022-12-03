@@ -150,7 +150,7 @@ const { value: emailValue, errorMessage: emailError } = useField("email");
 <template>
   <div class="profil-container d-flex align-items-center">
     <img
-      :src="'data:image/jpeg;base64,' + userStore.currentUser?.avatar_url"
+      :src="userStore.currentUser?.avatar_url"
       alt=""
     />
     <p>{{ userStore.currentUser?.pseudo }}</p>
@@ -178,8 +178,7 @@ const { value: emailValue, errorMessage: emailError } = useField("email");
                   :src="
                     src
                       ? src
-                      : 'data:image/jpeg;base64,' +
-                        userStore.currentUser?.avatar_url
+                      : userStore.currentUser?.avatar_url
                   "
                 />
               </label>

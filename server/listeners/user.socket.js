@@ -14,17 +14,10 @@ const user = {
     if (data.avatar) {
       const t0 = performance.now();
 
-      const buffer = await runService("./services/compressWorker.js", {
-        data
+      await runService("./services/compressWorker.js", {
+        data,
+        avatar_name
       });
-
-      fs.writeFileSync(
-        path.join(__dirname, "../images/" + avatar_name),
-        buffer,
-        {
-          encoding: "base64"
-        }
-      );
 
       const t1 = performance.now();
 
@@ -82,16 +75,9 @@ const user = {
       ).toJSON();
 
       user = user.namespaceHasUsers.map((element) => {
-        const buffer = fs.readFileSync(
-          path.join(__dirname, `..${element.avatar_url}`),
-          {
-            encoding: "base64"
-          }
-        );
-
         return {
           ...element,
-          avatar_url: buffer,
+          avatar_url: `${process.env.DEV_AVATAR_URL}/user/${element.id}/${Date.now()}/avatar`,
           status: "online"
         };
       });

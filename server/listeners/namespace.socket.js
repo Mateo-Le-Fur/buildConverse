@@ -7,9 +7,9 @@ const path = require("path");
 const sharp = require("sharp");
 const { promisify } = require("util");
 const { getNumberOfUser } = require("../query/namespace.query");
-const { getRandomImage } = require('../utils/getRandomImage')
+const { getRandomImage } = require("../utils/getRandomImage");
 
-const { unlinkImage } = require('../utils/unlinckImage')
+const { unlinkImage } = require("../utils/unlinckImage");
 
 const namespaces = {
 
@@ -152,13 +152,9 @@ const namespaces = {
 
 
     const getNamespaces = currentUserNamespaces.userHasNamespaces.map((namespace) => {
-
-      const buffer = fs.readFileSync(path.join(__dirname, `..${namespace.img_url}`),
-        "base64");
-
       return {
         ...namespace,
-        img_url: buffer
+        img_url:`${process.env.DEV_AVATAR_URL}/namespace/${namespace.id}/${Date.now()}/avatar`
       };
     });
 
@@ -187,21 +183,9 @@ const namespaces = {
 
       delete element.password;
 
-      const buffer = fs.readFileSync(
-        path.join(
-          __dirname,
-          `..${
-            element.avatar_url ? element.avatar_url : "/images/default-avatar"
-          }`
-        ),
-        {
-          encoding: "base64"
-        }
-      );
-
       return {
         ...element,
-        avatar_url: buffer,
+        avatar_url: `${process.env.DEV_AVATAR_URL}/user/${element.id}/${Date.now()}/avatar`,
         status: checkIfUserConnected ? "online" : "offline"
       };
     });
@@ -235,21 +219,9 @@ const namespaces = {
     user = user.map((element) => {
       const checkIfUserConnected = clients.get(element.id);
 
-      const buffer = fs.readFileSync(
-        path.join(
-          __dirname,
-          `..${
-            element.avatar_url ? element.avatar_url : "/images/default-avatar"
-          }`
-        ),
-        {
-          encoding: "base64"
-        }
-      );
-
       return {
         ...element,
-        avatar_url: buffer,
+        avatar_url: `${process.env.DEV_AVATAR_URL}/user/${element.id}/${Date.now()}/avatar`,
         status: checkIfUserConnected ? "online" : "offline"
       };
     });
@@ -276,17 +248,8 @@ const namespaces = {
           quality: 80,
           effort: 0
         })
-        .toBuffer();
+        .toFile(path.join(__dirname, `${img_name}.webp`));
 
-      const writer = fs.createWriteStream(
-        path.join(__dirname, "../images/" + img_name),
-        {
-          encoding: "base64"
-        }
-      );
-
-      writer.write(buffer);
-      writer.end();
     }
 
     const createNamespace = await Namespace.create({
@@ -324,14 +287,9 @@ const namespaces = {
 
     getNewNamespace = getNewNamespace.userHasNamespaces[0];
 
-
-    const img = fs.readFileSync(path.join(__dirname, `..${getNewNamespace.img_url}`), {
-      encoding: "base64"
-    });
-
     const namespace = {
       ...getNewNamespace,
-      img_url: img
+      img_url: `${process.env.DEV_AVATAR_URL}/namespace/${getRandomImage.id}/${Date.now()}/avatar`,
     };
 
     socket.emit("createdNamespace", [namespace]);
@@ -370,17 +328,7 @@ const namespaces = {
           quality: 80,
           effort: 0
         })
-        .toBuffer();
-
-      const writer = fs.createWriteStream(
-        path.join(__dirname, "../images/" + newAvatarName),
-        {
-          encoding: "base64"
-        }
-      );
-
-      writer.write(buffer);
-      writer.end();
+        .toFile(path.join(__dirname, `../images/${newAvatarName}.webp`));
     }
 
     const { img_url: oldAvatar } = await Namespace.findByPk(id, {
@@ -409,16 +357,9 @@ const namespaces = {
       })
     ).toJSON();
 
-    const buffer = fs.readFileSync(
-      path.join(__dirname, ".." + updateNamespace.img_url),
-      {
-        encoding: "base64"
-      }
-    );
-
     updateNamespace = {
       ...updateNamespace,
-      img_url: buffer
+      img_url: `${process.env.DEV_AVATAR_URL}/namespace/${id}/${Date.now()}/avatar`,
     };
 
     ios.of(`/${id}`).emit("updateNamespace", updateNamespace);
@@ -450,7 +391,7 @@ const namespaces = {
     });
 
 
-    unlinkImage(namespace.img_url)
+    unlinkImage(namespace.img_url);
 
     await Namespace.destroy({
       where: {
@@ -481,13 +422,6 @@ const namespaces = {
       namespace_id: namespace.id
     });
 
-    const buffer = fs.readFileSync(
-      path.join(__dirname, `..${namespace.img_url}`),
-      {
-        encoding: "base64"
-      }
-    );
-
     let getNewNamespace = (
       await User.findByPk(userId, {
         include: {
@@ -503,7 +437,7 @@ const namespaces = {
 
     getNewNamespace = {
       ...getNewNamespace.userHasNamespaces[0],
-      img_url: buffer
+      img_url: `${process.env.DEV_AVATAR_URL}/namespace/${namespace.id}/${Date.now()}/avatar`,
     };
 
     let newUser = (
@@ -521,16 +455,9 @@ const namespaces = {
       })
     ).toJSON();
 
-    const userAvatar = fs.readFileSync(
-      path.join(__dirname, `..${newUser.namespaceHasUsers[0].avatar_url}`),
-      {
-        encoding: "base64"
-      }
-    );
-
     newUser = {
       ...newUser.namespaceHasUsers[0],
-      avatar_url: userAvatar,
+      avatar_url: `${process.env.DEV_AVATAR_URL}/user/${userId}/${Date.now()}/avatar`,
       status: "online"
     };
 

@@ -21,6 +21,7 @@ export const useNsUser = defineStore("userSocket", {
 
   actions: {
     getUsersData(data: { users: User[]; numberOfUsers: number }) {
+      console.log("user data : " + data.users);
       this.userList = data.users;
       this.numberOfUsers = data.numberOfUsers;
 
@@ -44,6 +45,8 @@ export const useNsUser = defineStore("userSocket", {
     },
 
     async updateUser(data: User) {
+      console.log("update user : " + data);
+
       const userIndex = this.userList.findIndex(
         (user) =>
           user.id === data.id &&

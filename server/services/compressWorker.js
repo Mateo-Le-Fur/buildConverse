@@ -1,5 +1,6 @@
 const { parentPort, workerData, threadId } = require("worker_threads");
 const sharp = require("sharp");
+const path = require("path");
 
 (async () => {
   parentPort.postMessage(await compress());
@@ -12,9 +13,9 @@ async function compress() {
     .resize(100, 100)
     .webp({
       quality: 80,
-      effort: 0,
+      effort: 0
     })
-    .toBuffer();
+    .toFile(path.join(__dirname, `../images/${workerData.avatar_name}.webp`));
 
   return buffer;
 }

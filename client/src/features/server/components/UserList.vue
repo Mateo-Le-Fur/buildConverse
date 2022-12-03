@@ -19,7 +19,7 @@ function loadMoreUser(e: Event) {
   if (target.scrollTop + target.clientHeight >= target.scrollHeight) {
     socketStore.activeNsSocket.emit("loadMoreUser", {
       length: props.userList.length,
-      namespaceId: props.params.idChannel,
+      namespaceId: props.params.idChannel
     });
   }
 }
@@ -54,6 +54,9 @@ function loadMoreUser(e: Event) {
 <!--  </div>-->
 <!--</template>-->
 
+<!--<img :src="'data:image/jpeg;base64,' + item.avatar_url" />-->
+
+
 <template>
   <div class="user-container d-flex flex-column">
     <p>Membres: {{ userNsStore.numberOfUsers }}</p>
@@ -61,11 +64,12 @@ function loadMoreUser(e: Event) {
       @scroll="loadMoreUser($event)"
       :items="userList"
       :item-size="50"
+      :buffer="1000"
       v-slot="{ item }"
       class="scroller"
     >
       <div>
-        <img :src="'data:image/jpeg;base64,' + item.avatar_url" />
+        <img :src="item.avatar_url" />
         <p :class="{ admin: item.UserHasNamespace?.admin }">
           {{ item.pseudo }}
         </p>
@@ -98,6 +102,7 @@ function loadMoreUser(e: Event) {
 
   div {
     position: relative;
+
     img {
       width: 40px;
       height: 40px;

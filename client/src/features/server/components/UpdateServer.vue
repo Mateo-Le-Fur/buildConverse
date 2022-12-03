@@ -122,7 +122,7 @@ function previewAvatar(e: Event) {
             src
               ? src
               : currentNamespace.img_url
-              ? 'data:image/jpeg;base64,' + currentNamespace.img_url
+              ? currentNamespace.img_url
               : uploadImgUrl
           "
           style="color: white"

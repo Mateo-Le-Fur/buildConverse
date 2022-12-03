@@ -11,8 +11,8 @@ const authController = {
 
     const user = await User.findOne({
       where: {
-        email,
-      },
+        email
+      }
     });
 
     if (user) {
@@ -26,7 +26,7 @@ const authController = {
         pseudo,
         email,
         password: hashPassword,
-        avatar_url: "/images/default-avatar",
+        avatar_url: "/images/default-avatar"
       })
     ).get();
 
@@ -39,10 +39,10 @@ const authController = {
     const { email, password } = req.body;
     let user = await User.findOne({
       where: {
-        email,
+        email
       },
 
-      raw: true,
+      raw: true
     });
 
     if (!user) throw new ApiError("Utilisateur introuvable", 400);
@@ -54,23 +54,16 @@ const authController = {
     const userToken = {
       id: user.id,
       pseudo: user.pseudo,
-      admin: user.admin,
+      admin: user.admin
     };
 
     jwtToken.createJwtToken(req, res, userToken);
 
     delete user.password;
 
-    const buf = fs.readFileSync(
-      path.join(__dirname, `..${user.avatar_url ?? "/images/default-avatar"}`),
-      {
-        encoding: "base64",
-      }
-    );
-
     user = {
       ...user,
-      avatar_url: buf,
+      avatar_url: `${process.env.DEV_AVATAR_URL}/user/${user.id}/${Date.now()}/avatar`
     };
 
     res.json(user);
@@ -86,39 +79,26 @@ const authController = {
 
     let user = await User.findByPk(id, {
       attributes: { exclude: ["password"] },
-      raw: true,
+      raw: true
     });
 
     if (!user.avatar_url) {
-      const buf = fs.readFileSync(
-        path.join(__dirname, "../images/default-avatar"),
-        {
-          encoding: "base64",
-        }
-      );
-
       user = {
         ...user,
-        avatar_url: buf,
+        avatar_url: `${process.env.DEV_AVATAR_URL}/user/${id}/${Date.now()}/avatar`
       };
 
       res.json(user);
     } else {
-      const buf = fs.readFileSync(
-        path.join(__dirname, `..${user.avatar_url}`),
-        {
-          encoding: "base64",
-        }
-      );
-
+      
       user = {
         ...user,
-        avatar_url: buf,
+        avatar_url: `${process.env.DEV_AVATAR_URL}/user/${id}/${Date.now()}/avatar`
       };
 
       res.json(user);
     }
-  },
+  }
 };
 
 module.exports = authController;

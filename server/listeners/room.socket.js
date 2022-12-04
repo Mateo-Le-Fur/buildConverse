@@ -35,11 +35,9 @@ const rooms = {
 
 
     messages = messages.map((message) => {
-      const buffer = fs.readFileSync(path.join(__dirname, `..${message.avatar_author}`), "base64");
-
       return {
         ...message,
-        avatar_author: buffer
+        avatar_author: `${process.env.DEV_AVATAR_URL}/user/${message.user_id}/${Date.now()}/avatar`
       };
     });
 

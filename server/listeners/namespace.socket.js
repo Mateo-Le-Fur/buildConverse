@@ -21,6 +21,7 @@ const namespaces = {
         const { id } = socket.request.user;
         const namespaceId = socket.nsp.name.substring(1);
 
+        console.log(id)
 
         const isAuthorize = (await UserHasNamespace.findOne({
           where: {
@@ -74,6 +75,17 @@ const namespaces = {
               status: "error",
               message: e.message
             });
+          }
+        });
+
+        nsSocket.on("userLeaveNamespace", async (data, callback) => {
+          try {
+            await namespaces.leaveNamespace(ios, nsSocket, data);
+            callback({
+              status: "ok"
+            });
+          } catch (e) {
+            console.error(e);
           }
         });
 
@@ -150,17 +162,18 @@ const namespaces = {
       })
     ).toJSON();
 
-
     const getNamespaces = currentUserNamespaces.userHasNamespaces.map((namespace) => {
       return {
         ...namespace,
-        img_url:`${process.env.DEV_AVATAR_URL}/namespace/${namespace.id}/${Date.now()}/avatar`
+        img_url: `${process.env.DEV_AVATAR_URL}/namespace/${namespace.id}/${Date.now()}/avatar`
       };
     });
 
     namespaces.initNamespace(ios, socket, clients);
 
+
     socket.emit("namespaces", getNamespaces);
+
   },
 
   async getNamespaceUsers(nsSocket, namespaceId, clients) {
@@ -289,11 +302,10 @@ const namespaces = {
 
     const namespace = {
       ...getNewNamespace,
-      img_url: `${process.env.DEV_AVATAR_URL}/namespace/${getNewNamespace.id}/${Date.now()}/avatar`,
+      img_url: `${process.env.DEV_AVATAR_URL}/namespace/${getNewNamespace.id}/${Date.now()}/avatar`
     };
 
     socket.emit("createdNamespace", [namespace]);
-
 
 
     console.timeEnd("create");
@@ -360,7 +372,7 @@ const namespaces = {
 
     updateNamespace = {
       ...updateNamespace,
-      img_url: `${process.env.DEV_AVATAR_URL}/namespace/${id}/${Date.now()}/avatar`,
+      img_url: `${process.env.DEV_AVATAR_URL}/namespace/${id}/${Date.now()}/avatar`
     };
 
     ios.of(`/${id}`).emit("updateNamespace", updateNamespace);
@@ -438,7 +450,7 @@ const namespaces = {
 
     getNewNamespace = {
       ...getNewNamespace.userHasNamespaces[0],
-      img_url: `${process.env.DEV_AVATAR_URL}/namespace/${namespace.id}/${Date.now()}/avatar`,
+      img_url: `${process.env.DEV_AVATAR_URL}/namespace/${namespace.id}/${Date.now()}/avatar`
     };
 
     let newUser = (
@@ -463,9 +475,28 @@ const namespaces = {
     };
 
     socket.emit("createdNamespace", [getNewNamespace]);
-    ios.of(namespace.id).emit("newUserOnServer", [newUser]);
+    ios.of(`/${namespace.id}`).emit("userJoinNamespace", [newUser]);
 
     console.timeEnd("invite");
+  },
+
+  async leaveNamespace(ios, socket, data) {
+
+    console.log(data);
+
+    const { id: namespaceId } = data;
+
+    const { id: userId } = socket.request.user;
+
+    await UserHasNamespace.destroy({
+      where: {
+        user_id: userId,
+        namespace_id: namespaceId
+      }
+    });
+
+    ios.of(`/${namespaceId}`).emit("userLeaveNamespace", { id: userId });
+
   }
 };
 

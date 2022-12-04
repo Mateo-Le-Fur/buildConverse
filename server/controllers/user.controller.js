@@ -23,7 +23,7 @@ const userController = {
     const user = await User.findByPk(id, { raw: true });
 
     if (user.avatar_url !== "/images/default-avatar.webp") {
-      fs.unlinkSync(path.join(__dirname, `..${user.avatar_url}`));
+      fs.unlinkSync(path.join(__dirname, `..${user.avatar_url}.webp`));
     }
 
     await User.destroy({

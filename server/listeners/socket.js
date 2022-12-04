@@ -3,8 +3,10 @@ const { server, app } = require("../app");
 const {
   ensureAuthenticatedOnSocketHandshake
 } = require("../config/security.config");
+const cookieParser = require("cookie");
 const namespaces = require("./namespace.socket");
 const user = require("./user.socket");
+const { decodedToken } = require("../config/jwt.config");
 
 let ios;
 
@@ -21,15 +23,17 @@ const initSocketServer = async () => {
   ios.on("connect", async (socket) => {
     console.log("client connected");
 
+    app.set("socket", socket);
+
     clients.set(socket.request.user.id, socket.id);
 
     try {
       await namespaces.getUserNamespaces(ios, socket, clients);
     } catch (e) {
-      console.error(e)
+      console.error(e);
     }
 
-    socket.on("invitationToNamespace", async (data) => {
+    socket.on("userJoinNamespace", async (data) => {
       try {
         await namespaces.joinInvitation(ios, socket, data);
       } catch (e) {
@@ -70,6 +74,17 @@ const initSocketServer = async () => {
       socket.disconnect();
     });
 
+    socket.on("jwt_expire", (data) => {
+      if (data) {
+        try {
+          const cookies = cookieParser.parse(socket.handshake.headers.cookie || "");
+          const checkToken = decodedToken(cookies.jwt)
+        } catch (e) {
+          socket.emit("jwt_expire", true)
+        }
+      }
+    });
+
     socket.on("disconnect", () => {
       const { id } = socket.request.user;
       clients.delete(id);
@@ -80,4 +95,3 @@ const initSocketServer = async () => {
 
 (async () => await initSocketServer())();
 
-app.set("socketio", ios);

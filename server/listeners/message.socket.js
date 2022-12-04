@@ -12,10 +12,6 @@ const message = {
         raw: true
       });
 
-      const buffer = fs.readFileSync(
-        path.join(__dirname, `..${user.avatar_url}`),
-        "base64"
-      );
 
       let message = (
         await Message.create({
@@ -30,7 +26,7 @@ const message = {
 
       message = {
         ...message,
-        avatar_author: buffer
+        avatar_author: `${process.env.DEV_AVATAR_URL}/user/${id}/${Date.now()}/avatar`
       };
 
       ns.to(`/${data.roomId}`).emit("message", message);

@@ -90,7 +90,7 @@ const authController = {
 
       res.json(user);
     } else {
-      
+
       user = {
         ...user,
         avatar_url: `${process.env.DEV_AVATAR_URL}/user/${id}/${Date.now()}/avatar`
@@ -98,7 +98,7 @@ const authController = {
 
       res.json(user);
     }
-  }
+  },
 };
 
 module.exports = authController;

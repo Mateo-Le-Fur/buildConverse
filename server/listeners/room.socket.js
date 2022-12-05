@@ -42,10 +42,26 @@ const rooms = {
       namespace_id: data.namespaceId,
     });
 
-    ios.of(data.namespaceId).emit("createRoom", room);
+    ios.of(`/${data.namespaceId}`).emit("createRoom", room);
   },
 
-  // TODO A finir après avoir fait le crud utilisateur
+  async updateRoom(ios, data) {
+    const { id, namespaceId, name } = data;
+
+    await Room.update(
+      {
+        name,
+      },
+      {
+        where: {
+          id,
+        },
+      }
+    );
+
+    ios.of(`/${namespaceId}`).emit("updateRoom", data);
+  },
+
   async deleteRoom(ios, nsSocket, data) {
     const { id, namespaceId } = data;
 

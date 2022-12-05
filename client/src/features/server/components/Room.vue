@@ -2,10 +2,11 @@
 import Profil from "@/components/Profil.vue";
 import type { RouteParams } from "vue-router";
 import type { RoomInterface } from "@/shared/interfaces/Room";
-import { onMounted, ref } from "vue";
+import { nextTick, onMounted, onUpdated, ref, toRaw, watch } from "vue";
 import CreateRoomPopup from "./CreateRoomPopup.vue";
 import { useSocket } from "@/shared/stores/socketStore";
 import { useNsUser } from "@/features/server/stores/userNsStore";
+import { boolean } from "zod";
 
 const socketStore = useSocket();
 const userNsStore = useNsUser();
@@ -24,17 +25,21 @@ const emit = defineEmits<{
 const createRoomPopup = ref<boolean>(false);
 const roomHover = ref<boolean>(false);
 const roomId = ref<number | null>(null);
+const editMode = ref<boolean>(false);
+const inputElem = ref<HTMLInputElement | null>(null);
+
 function hiddenPopup(data: boolean): void {
   createRoomPopup.value = data;
 }
 
 function onHover(id: number) {
-  roomId.value = id;
-  roomHover.value = true;
+  if (!editMode.value) {
+    roomId.value = id;
+    roomHover.value = true;
+  }
 }
 
 function onLeave() {
-  roomId.value = null;
   roomHover.value = false;
 }
 
@@ -42,6 +47,28 @@ function deleteRoom(roomId: number) {
   socketStore.activeNsSocket.emit("deleteRoom", {
     namespaceId: Number(props.params.idChannel),
     id: roomId,
+  });
+}
+
+async function onEdit() {
+  await nextTick(() => {
+    const input = toRaw(inputElem.value);
+    // @ts-ignore
+    inputElem.value[0].focus();
+  });
+}
+
+async function updateRoom(roomId: number, namespaceId: number) {
+  console.log(roomId);
+  await nextTick(() => {
+    const input = toRaw(inputElem.value);
+
+    socketStore.activeNsSocket.emit("updateRoom", {
+      id: roomId,
+      namespaceId,
+      // @ts-ignore
+      name: input[0].value,
+    });
   });
 }
 </script>
@@ -87,21 +114,74 @@ function deleteRoom(roomId: number) {
               <div
                 class="d-flex align-items-center justify-content-space-between"
               >
-                <p>{{ room.name }}</p>
-                <svg
-                  v-if="userNsStore.checkIfTheUserIsAdmin()"
-                  @click.stop.prevent="deleteRoom(room.id)"
-                  :class="{
-                    deleteButton: roomHover && roomId === room.id,
-                  }"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 320 512"
+                <p
+                  class="ml-15"
+                  :class="{ hidden: editMode && roomId === room.id }"
                 >
-                  <!--! Font Awesome Pro 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
-                  <path
-                    d="M310.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L160 210.7 54.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L114.7 256 9.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L160 301.3 265.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L205.3 256 310.6 150.6z"
-                  />
-                </svg>
+                  {{ room.name }}
+                </p>
+                <div
+                  class="d-flex align-items-center g-10"
+                  v-if="userNsStore.checkIfTheUserIsAdmin()"
+                  :class="{ hidden: editMode && roomId === room.id }"
+                >
+                  <svg
+                    @click.stop.prevent="
+                      editMode = true;
+                      onEdit();
+                    "
+                    :class="{
+                      editButton: roomHover && roomId === room.id,
+                    }"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 512 512"
+                  >
+                    <!--! Font Awesome Pro 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
+                    <path
+                      d="M362.7 19.3L314.3 67.7 444.3 197.7l48.4-48.4c25-25 25-65.5 0-90.5L453.3 19.3c-25-25-65.5-25-90.5 0zm-71 71L58.6 323.5c-10.4 10.4-18 23.3-22.2 37.4L1 481.2C-1.5 489.7 .8 498.8 7 505s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L421.7 220.3 291.7 90.3z"
+                    />
+                  </svg>
+                  <svg
+                    @click.stop.prevent="deleteRoom(room.id)"
+                    :class="{
+                      deleteButton: roomHover && roomId === room.id,
+                    }"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 320 512"
+                  >
+                    <!--! Font Awesome Pro 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
+                    <path
+                      d="M310.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L160 210.7 54.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L114.7 256 9.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L160 301.3 265.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L205.3 256 310.6 150.6z"
+                    />
+                  </svg>
+                </div>
+                <div
+                  v-if="editMode && roomId === room.id"
+                  v-click-outside="() => (editMode = false)"
+                  class="edit-room d-flex align-items-center"
+                >
+                  <div class="input-container d-flex align-items-center">
+                    <input
+                      ref="inputElem"
+                      class="input-edit-room"
+                      type="text"
+                      :value="room.name"
+                    />
+                    <svg
+                      @click.stop.prevent="
+                        updateRoom(room.id, room.namespace_id);
+                        editMode = false;
+                      "
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 512 512"
+                    >
+                      <!--! Font Awesome Pro 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
+                      <path
+                        d="M470.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L192 338.7 425.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </div>
             </div>
           </router-link>
@@ -147,7 +227,6 @@ function deleteRoom(roomId: number) {
 
   .rooms {
     height: 40px;
-    padding: 0 15px;
     cursor: pointer;
     border-radius: 5px;
 
@@ -165,6 +244,13 @@ function deleteRoom(roomId: number) {
       height: 15px;
       fill: #eb4144ff;
     }
+
+    .editButton {
+      display: block;
+      width: 10px;
+      height: 10px;
+      fill: #236cab;
+    }
   }
 
   .create-room {
@@ -180,6 +266,42 @@ function deleteRoom(roomId: number) {
       height: 15px;
       fill: white;
     }
+  }
+
+  .edit-room {
+    height: 40px;
+    width: 230px;
+
+    .input-container {
+      height: inherit;
+      width: inherit;
+      border-radius: 5px;
+
+      background-color: var(--primary-1);
+
+      input {
+        padding: 0 0 0 15px;
+        height: inherit;
+        width: 200px;
+        border: 5px;
+        font-size: 1rem;
+        outline: none;
+        border: none;
+        color: #f4f4f4;
+        background-color: var(--primary-1);
+      }
+
+      svg {
+        display: block !important;
+        fill: green;
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
+
+  .hidden {
+    display: none;
   }
 }
 </style>

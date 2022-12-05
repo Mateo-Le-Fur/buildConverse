@@ -190,7 +190,11 @@ export const useSocket = defineStore("socket", {
       });
 
       nsSocket.on("createRoom", async (data: RoomInterface) => {
-        await roomStore.createRoom(data);
+        roomStore.createRoom(data);
+      });
+
+      nsSocket.on("updateRoom", async (data: RoomInterface) => {
+        roomStore.updateRoom(data);
       });
 
       nsSocket.on("deleteRoom", (data: Partial<RoomInterface>) => {

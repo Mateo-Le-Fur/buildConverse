@@ -136,6 +136,14 @@ const namespaces = {
           }
         });
 
+        nsSocket.on("updateRoom", async (data) => {
+          try {
+            await room.updateRoom(ios, data);
+          } catch (e) {
+            console.error(e);
+          }
+        });
+
         nsSocket.on("deleteRoom", async (data) => {
           console.log(data);
           await room.deleteRoom(ios, nsSocket, data);

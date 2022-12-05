@@ -28,8 +28,14 @@ export const useRoom = defineStore("room", {
       this.rooms.push(...data);
     },
 
-    async createRoom(data: RoomInterface) {
+    createRoom(data: RoomInterface) {
       this.rooms.push(data);
+    },
+
+    updateRoom(data: RoomInterface) {
+      const room = this.rooms.findIndex((room) => room.id === data.id);
+
+      this.rooms[room].name = data.name;
     },
 
     deleteRoom(data: Partial<RoomInterface>) {

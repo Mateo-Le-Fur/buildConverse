@@ -124,6 +124,10 @@ label {
   padding-right: 20px;
 }
 
+.py-15 {
+  padding: 0 15px;
+}
+
 .p-30 {
   padding: 30px;
 }
@@ -154,6 +158,10 @@ label {
 
 .mb-20 {
   margin-bottom: 20px;
+}
+
+.ml-15 {
+  margin-left: 15px;
 }
 
 .m-20 {
@@ -248,6 +256,7 @@ h2 {
   border: none;
   outline: none;
   background-color: var(--primary-3);
+  font-family: "Roboto", sans-serif;
   color: #f4f4f4;
 }
 .form-signup-container .form-signup p {

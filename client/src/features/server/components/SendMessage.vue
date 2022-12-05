@@ -32,7 +32,7 @@ const submit = handleSubmit((formValue: Message) => {
     });
 
     dataValue.value = null;
-  } catch (e: string | any) {
+  } catch (e: any) {
     setErrors({
       data: e.data
     });
@@ -52,7 +52,7 @@ function resetField(e: Event) {
         @keyup.enter="resetField($event)"
         v-model="dataValue"
         type="text"
-        placeholder="Envoyer un message"
+        :placeholder="`Envoyer un message dans ${roomStore.activeRoom?.name}`"
       />
     </div>
   </form>
@@ -66,7 +66,7 @@ function resetField(e: Event) {
   input {
     min-width: 0;
     width: 100%;
-    border-radius: 3px;
+    border-radius: 8px;
     font-size: 1rem;
     height: 40px;
     outline: none;

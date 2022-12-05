@@ -4,8 +4,10 @@ import type { RouteParams } from "vue-router";
 import { useSocket } from "@/shared/stores/socketStore";
 import { ref, watch, watchEffect } from "vue";
 import UpdateServer from "./UpdateServer.vue";
+import { useRouter } from "vue-router";
 
 const socketStore = useSocket();
+const router = useRouter();
 
 const props = defineProps<{
   routeParams: RouteParams;
@@ -28,6 +30,18 @@ function deleteNamespace(namespaceId: number) {
     (response: { status: string; message?: string }) => {
       if (response.status !== "ok") {
         socketStore.setError(response.message!);
+      }
+    }
+  );
+}
+
+function leaveNamespace(namespaceId: number) {
+  socketStore.activeNsSocket.emit(
+    "userLeaveNamespace",
+    { id: namespaceId },
+    (response: { status: string; message: string }) => {
+      if (response.status === "ok") {
+        socketStore.deleteNamespace({ id: namespaceId });
       }
     }
   );
@@ -56,7 +70,7 @@ function deleteNamespace(namespaceId: number) {
           Code d'invitation: {{ currentNamespace?.invite_code }}
         </li>
         <li
-          v-show="currentNamespace?.UserHasNamespace.admin"
+          v-if="currentNamespace?.UserHasNamespace.admin"
           @click="
             (popupUpdateServer = !popupUpdateServer), (popupOption = false)
           "
@@ -70,7 +84,13 @@ function deleteNamespace(namespaceId: number) {
           />
         </li>
         <li
-          v-show="currentNamespace?.UserHasNamespace.admin"
+          @click="leaveNamespace(currentNamespace?.id)"
+          class="mb-5 p-10 delete-server justify-content-center"
+        >
+          Quitter le serveur
+        </li>
+        <li
+          v-if="currentNamespace?.UserHasNamespace.admin"
           @click="deleteNamespace(currentNamespace?.id)"
           class="p-10 delete-server justify-content-center"
         >

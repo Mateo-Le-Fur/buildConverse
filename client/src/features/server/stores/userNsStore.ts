@@ -8,7 +8,6 @@ interface userState {
   numberOfUsers: number;
   isUsersLoaded: boolean;
   error: null | string;
-
 }
 
 export const useNsUser = defineStore("userSocket", {
@@ -16,7 +15,7 @@ export const useNsUser = defineStore("userSocket", {
     userList: [],
     numberOfUsers: 0,
     isUsersLoaded: false,
-    error: null
+    error: null,
   }),
 
   actions: {
@@ -26,6 +25,17 @@ export const useNsUser = defineStore("userSocket", {
       this.numberOfUsers = data.numberOfUsers;
 
       this.isUsersLoaded = true;
+    },
+
+    checkIfTheUserIsAdmin() {
+      const userStore = useUser();
+      const user = this.userList.find(
+        (user) => user.id === userStore.currentUser?.id
+      );
+
+      if (user?.UserHasNamespace.admin) {
+        return true;
+      }
     },
 
     getUsersNamespace(namespaceId: string) {
@@ -51,18 +61,15 @@ export const useNsUser = defineStore("userSocket", {
         (user) =>
           user.id === data.id &&
           user.UserHasNamespace.namespace_id ===
-          data.UserHasNamespace.namespace_id
+            data.UserHasNamespace.namespace_id
       );
 
       if (userIndex !== -1) {
         this.userList[userIndex] = data;
       }
-
-      const userStore = useUser();
-      await userStore.fetchCurrentUser();
     },
 
-    async deleteUser(data: { id: number }) {
+    deleteUser(data: { id: number }) {
       const userIndex = this.userList.findIndex((user) => user.id === data.id);
 
       if (userIndex !== -1) {
@@ -72,8 +79,7 @@ export const useNsUser = defineStore("userSocket", {
     },
 
     userConnect(data: { id: number }) {
-
-      let user = this.userList.find(user => user.id === data.id);
+      const user = this.userList.find((user) => user.id === data.id);
 
       if (user) {
         user!.status = "online";
@@ -81,13 +87,12 @@ export const useNsUser = defineStore("userSocket", {
     },
 
     userDisconnect(data: { id: number }) {
-
       console.log(data);
-      let user = this.userList.find(user => user.id === data.id);
+      const user = this.userList.find((user) => user.id === data.id);
 
       if (user) {
         user!.status = "offline";
       }
-    }
-  }
+    },
+  },
 });

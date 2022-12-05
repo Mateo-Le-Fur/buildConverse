@@ -8,7 +8,7 @@ const { errorHandler } = require("./helpers/errorHandler");
 const cookieParser = require("cookie-parser");
 const app = express();
 
-const server = app.listen(process.env.PORT, '0.0.0.0');
+const server = app.listen(process.env.PORT, "0.0.0.0");
 module.exports = { server, app };
 
 app.use(cookieParser());

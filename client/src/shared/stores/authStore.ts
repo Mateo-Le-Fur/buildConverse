@@ -1,7 +1,8 @@
-import { defineStore } from "pinia";
+import { defineStore, getActivePinia } from "pinia";
 import type { User } from "@/shared/interfaces/User";
 import type { LoginForm } from "@/shared/interfaces/LoginForm";
 import { fetchCurrentUser, login, logout } from "@/shared/services";
+import { useSocket } from "@/shared/stores/socketStore";
 
 interface AuthState {
   currentUser: User | null;
@@ -11,7 +12,7 @@ interface AuthState {
 export const useUser = defineStore("user", {
   state: (): AuthState => ({
     currentUser: null,
-    loaded: false,
+    loaded: false
   }),
 
   getters: {
@@ -26,7 +27,7 @@ export const useUser = defineStore("user", {
       } else {
         return null;
       }
-    },
+    }
   },
 
   actions: {
@@ -39,14 +40,28 @@ export const useUser = defineStore("user", {
     },
 
     async logout() {
+      const socketStore = useSocket();
+      const namespaces: number[] = [];
+      socketStore.namespaces.forEach((ns) => {
+        namespaces.push(ns.id);
+      });
+      socketStore.ioClient?.emit("leave", { namespaces });
       await logout();
-      this.currentUser = null;
+      socketStore.ioClient?.disconnect();
+      socketStore.namespaceSockets.forEach((nsSocket: any) => {
+        nsSocket.disconnect();
+      });
+
+      // @ts-ignore
+      getActivePinia()._s.forEach(store => store.$reset());
+      // @ts-ignore
+      await this.router.push("/connexion");
     },
 
     async fetchCurrentUser() {
       this.currentUser = await fetchCurrentUser();
 
       this.loaded = true;
-    },
-  },
+    }
+  }
 });

@@ -1,7 +1,7 @@
 const { Server } = require("socket.io");
 const { server, app } = require("../app");
 const {
-  ensureAuthenticatedOnSocketHandshake
+  ensureAuthenticatedOnSocketHandshake,
 } = require("../config/security.config");
 const cookieParser = require("cookie");
 const namespaces = require("./namespace.socket");
@@ -17,7 +17,7 @@ const initSocketServer = async () => {
     allowRequest: ensureAuthenticatedOnSocketHandshake,
     maxHttpBufferSize: 1e7,
     credentials: true,
-    cors: ["*"]
+    cors: ["*"],
   });
 
   ios.on("connect", async (socket) => {
@@ -33,11 +33,17 @@ const initSocketServer = async () => {
       console.error(e);
     }
 
-    socket.on("userJoinNamespace", async (data) => {
+    socket.on("userJoinNamespace", async (data, callback) => {
       try {
         await namespaces.joinInvitation(ios, socket, data);
+        callback({
+          status: "ok",
+        });
       } catch (e) {
-        console.error(e);
+        callback({
+          status: "error",
+          message: e.message,
+        });
       }
     });
 
@@ -49,10 +55,17 @@ const initSocketServer = async () => {
       }
     });
 
-    socket.on("updateUser", async (data) => {
+    socket.on("updateUser", async (data, callback) => {
       try {
         await user.updateUser(socket, ios, data);
+        callback({
+          status: "ok",
+        });
       } catch (e) {
+        callback({
+          status: "error",
+          message: e.message,
+        });
         console.error(e);
       }
     });
@@ -77,10 +90,12 @@ const initSocketServer = async () => {
     socket.on("jwt_expire", (data) => {
       if (data) {
         try {
-          const cookies = cookieParser.parse(socket.handshake.headers.cookie || "");
-          const checkToken = decodedToken(cookies.jwt)
+          const cookies = cookieParser.parse(
+            socket.handshake.headers.cookie || ""
+          );
+          const checkToken = decodedToken(cookies.jwt);
         } catch (e) {
-          socket.emit("jwt_expire", true)
+          socket.emit("jwt_expire", true);
         }
       }
     });
@@ -94,4 +109,3 @@ const initSocketServer = async () => {
 };
 
 (async () => await initSocketServer())();
-

@@ -10,7 +10,6 @@ import { useField, useForm } from "vee-validate";
 import { deleteUser, fetchCurrentUser } from "@/shared/services";
 import { getActivePinia } from "pinia";
 
-
 const userStore = useUser();
 const socketStore = useSocket();
 const router = useRouter();
@@ -20,27 +19,10 @@ const state = reactive<{
   user: Partial<User> | null;
 }>({
   isProfilOpen: false,
-  user: null
+  user: null,
 });
 let avatar = ref<File | null>();
 let src = ref<string | ArrayBuffer | null>();
-
-async function logout() {
-  const namespaces: number[] = [];
-  socketStore.namespaces.forEach((ns) => {
-    namespaces.push(ns.id);
-  });
-  socketStore.ioClient?.emit("leave", { namespaces });
-  await userStore.logout();
-  socketStore.ioClient?.disconnect();
-  socketStore.namespaceSockets.forEach((nsSocket: any) => {
-    nsSocket.disconnect();
-  });
-
-  // @ts-ignore
-  getActivePinia()._s.forEach(store => store.$reset());
-  await router.push("/connexion");
-}
 
 function previewAvatar(e: Event) {
   const target = e.target as HTMLInputElement;
@@ -66,7 +48,7 @@ async function deleteAccount() {
 
   socketStore.ioClient?.emit("deleteUser", {
     namespacesId,
-    id: userStore.currentUser?.id
+    id: userStore.currentUser?.id,
   });
 
   socketStore.ioClient?.disconnect();
@@ -75,11 +57,9 @@ async function deleteAccount() {
   });
 
   // @ts-ignore
-  getActivePinia()._s.forEach(store => store.$reset());
-
+  getActivePinia()._s.forEach((store) => store.$reset());
 
   router.push("/connexion");
-
 }
 
 watch(
@@ -101,12 +81,12 @@ const validationSchema = toFormValidator(
 
     email: z
       .string({ required_error: "Le champ doit être remplie : (" })
-      .email("Le format de l'email n'est pas valide : (")
+      .email("Le format de l'email n'est pas valide : ("),
   })
 );
 
 const { handleSubmit, setErrors } = useForm<User>({
-  validationSchema
+  validationSchema,
 });
 
 const submit = handleSubmit(async (formValue: User) => {
@@ -125,15 +105,23 @@ const submit = handleSubmit(async (formValue: User) => {
         return ns.id;
       });
 
-      socketStore.ioClient?.emit("updateUser", {
-        pseudo: formValue.pseudo,
-        email: formValue.email,
-        description: description.value,
-        namespaces,
-        userId: userStore.currentUser?.id,
-        avatar: avatar.value ? avatar.value : null,
-        avatarName: avatar.value ? avatar.value?.name : null
-      });
+      socketStore.ioClient?.emit(
+        "updateUser",
+        {
+          pseudo: formValue.pseudo,
+          email: formValue.email,
+          description: description.value,
+          namespaces,
+          userId: userStore.currentUser?.id,
+          avatar: avatar.value ? avatar.value : null,
+          avatarName: avatar.value ? avatar.value?.name : null,
+        },
+        async (response: { status: string; message: string }) => {
+          if (response.status === "ok") {
+            await userStore.fetchCurrentUser();
+          }
+        }
+      );
 
       avatar.value = null;
       state.isProfilOpen = false;
@@ -149,10 +137,7 @@ const { value: emailValue, errorMessage: emailError } = useField("email");
 
 <template>
   <div class="profil-container d-flex align-items-center">
-    <img
-      :src="userStore.currentUser?.avatar_url"
-      alt=""
-    />
+    <img :src="userStore.currentUser?.avatar_url" alt="" />
     <p>{{ userStore.currentUser?.pseudo }}</p>
     <div class="d-flex flex-fill justify-content-end">
       <div class="settings d-flex justify-content-end">
@@ -175,11 +160,7 @@ const { value: emailValue, errorMessage: emailError } = useField("email");
               <label for="file" class="label-file">
                 <img
                   class="avatar"
-                  :src="
-                    src
-                      ? src
-                      : userStore.currentUser?.avatar_url
-                  "
+                  :src="src ? src : userStore.currentUser?.avatar_url"
                 />
               </label>
               <input
@@ -248,7 +229,7 @@ const { value: emailValue, errorMessage: emailError } = useField("email");
               </form>
             </div>
             <div
-              @click="logout()"
+              @click="userStore.logout()"
               class="logout d-flex align-items-center justify-content-center"
             >
               <svg
@@ -326,14 +307,13 @@ const { value: emailValue, errorMessage: emailError } = useField("email");
     background-color: #282a2f;
     z-index: 2;
     border-radius: 4px;
-    box-shadow: 3px 0px 10px 4px rgba(0, 0, 0, 0.5);
+    box-shadow: rgba(0, 0, 0, 0.24) 0 3px 8px;
 
     &::-webkit-scrollbar {
       width: 0;
       background: transparent;
       display: none;
     }
-
 
     .profil-content {
       position: relative;

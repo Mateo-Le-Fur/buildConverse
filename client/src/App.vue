@@ -34,7 +34,7 @@ watch(() => socketStore.isNamespacesLoaded, () => {
 
 <template>
   <div class="app-container d-flex">
-    <Namespace v-if="userStore.isAuthenticated" />
+    <Namespace />
     <router-view v-slot="{ Component, route }">
       <Component :is="Component" :key="route.fullPath" />
     </router-view>

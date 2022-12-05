@@ -31,23 +31,18 @@ const props = defineProps<{
   params: RouteParams;
 }>();
 
-const currentRoom = ref<RoomInterface | undefined>();
-
-watchEffect(() => {
-  currentRoom.value = roomStore.currentRoom(props.params.idRoom as string);
-});
 </script>
 
 <template>
   <div class="chat-container d-flex flex-column flex-fill">
     <div class="message-container">
-      <h2 class="room-name">Bienvenue dans le salon {{ currentRoom?.name }}</h2>
+      <h2 class="room-name">Bienvenue dans le salon {{ roomStore.activeRoom?.name }}</h2>
       <template v-for="message of socketStore.messages" :key="message.id">
         <div class="d-flex message">
           <div>
             <img
               class="mr-10"
-              :src="'data:image/jpeg;base64,' + message.avatar_author"
+              :src="message.avatar_author"
             />
           </div>
           <div class="d-flex flex-column w-100">

@@ -1,7 +1,13 @@
 const room = require("./room.socket");
 const user = require("./user.socket");
 const message = require("./message.socket");
-const { User, Namespace, Room, Message, UserHasNamespace } = require("../models");
+const {
+  User,
+  Namespace,
+  Room,
+  Message,
+  UserHasNamespace,
+} = require("../models");
 const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
@@ -12,6 +18,7 @@ const { getRandomImage } = require("../utils/getRandomImage");
 const { unlinkImage } = require("../utils/unlinckImage");
 
 const namespaces = {
+  userLimit: 3000,
 
   initNamespace(ios, socket, clients) {
     try {
@@ -21,14 +28,14 @@ const namespaces = {
         const { id } = socket.request.user;
         const namespaceId = socket.nsp.name.substring(1);
 
-        console.log(id)
+        console.log(id);
 
-        const isAuthorize = (await UserHasNamespace.findOne({
+        const isAuthorize = await UserHasNamespace.findOne({
           where: {
             user_id: id,
-            namespace_id: namespaceId
-          }
-        }));
+            namespace_id: namespaceId,
+          },
+        });
 
         if (isAuthorize) {
           next();
@@ -38,7 +45,6 @@ const namespaces = {
       });
 
       ns.on("connect", async (nsSocket) => {
-
         console.log(
           `L'utilisateur : ${nsSocket.request.user.pseudo} est connecté sur le serveur ${nsSocket.nsp.name}`
         );
@@ -54,12 +60,12 @@ const namespaces = {
           try {
             await namespaces.updateNamespace(ios, nsSocket, data);
             callback({
-              status: "ok"
+              status: "ok",
             });
           } catch (e) {
             callback({
               status: "error",
-              message: e.message
+              message: e.message,
             });
           }
         });
@@ -68,12 +74,12 @@ const namespaces = {
           try {
             await namespaces.deleteNamespace(ios, nsSocket, data);
             callback({
-              status: "ok"
+              status: "ok",
             });
           } catch (e) {
             callback({
               status: "error",
-              message: e.message
+              message: e.message,
             });
           }
         });
@@ -82,9 +88,13 @@ const namespaces = {
           try {
             await namespaces.leaveNamespace(ios, nsSocket, data);
             callback({
-              status: "ok"
+              status: "ok",
             });
           } catch (e) {
+            callback({
+              status: "error",
+              message: e.message,
+            });
             console.error(e);
           }
         });
@@ -100,7 +110,6 @@ const namespaces = {
         nsSocket.on("loadMoreUser", async (data) => {
           try {
             await namespaces.loadMoreUser(nsSocket, data, clients);
-
           } catch (e) {
             console.error(e);
           }
@@ -108,6 +117,7 @@ const namespaces = {
 
         nsSocket.on("joinRoom", async (roomId) => {
           try {
+            nsSocket.join(`/${roomId}`);
             await room.getAllMessages(nsSocket, roomId);
           } catch (e) {
             console.error(e);
@@ -126,10 +136,10 @@ const namespaces = {
           }
         });
 
-        // TODO A finir après avoir fait le crud utilisateur
-        // nsSocket.on("deleteRoom", async (data) => {
-        //   await room.deleteRoom(ios, data);
-        // });
+        nsSocket.on("deleteRoom", async (data) => {
+          console.log(data);
+          await room.deleteRoom(ios, nsSocket, data);
+        });
 
         nsSocket.on("message", async (data) => {
           try {
@@ -156,24 +166,24 @@ const namespaces = {
       await User.findByPk(userId, {
         include: {
           model: Namespace,
-          as: "userHasNamespaces",
-          include: ["rooms"]
-        }
+          as: "namespaces",
+          include: ["rooms"],
+        },
       })
     ).toJSON();
 
-    const getNamespaces = currentUserNamespaces.userHasNamespaces.map((namespace) => {
+    const getNamespaces = currentUserNamespaces.namespaces.map((namespace) => {
       return {
         ...namespace,
-        img_url: `${process.env.DEV_AVATAR_URL}/namespace/${namespace.id}/${Date.now()}/avatar`
+        img_url: `${process.env.DEV_AVATAR_URL}/namespace/${
+          namespace.id
+        }/${Date.now()}/avatar`,
       };
     });
 
     namespaces.initNamespace(ios, socket, clients);
 
-
     socket.emit("namespaces", getNamespaces);
-
   },
 
   async getNamespaceUsers(nsSocket, namespaceId, clients) {
@@ -183,12 +193,11 @@ const namespaces = {
 
     const user = await getNumberOfUser(namespaceId);
 
-
-    let users = await namespace.getNamespaceHasUsers({
+    let users = await namespace.getUsers({
       limit: 50,
       offset: 0,
       raw: true,
-      nest: true
+      nest: true,
     });
 
     users = users.map((element) => {
@@ -198,8 +207,10 @@ const namespaces = {
 
       return {
         ...element,
-        avatar_url: `${process.env.DEV_AVATAR_URL}/user/${element.id}/${Date.now()}/avatar`,
-        status: checkIfUserConnected ? "online" : "offline"
+        avatar_url: `${process.env.DEV_AVATAR_URL}/user/${
+          element.id
+        }/${Date.now()}/avatar`,
+        status: checkIfUserConnected ? "online" : "offline",
       };
     });
 
@@ -207,7 +218,7 @@ const namespaces = {
 
     nsSocket.emit("userList", {
       users,
-      numberOfUsers: user.count
+      numberOfUsers: user.count,
     });
 
     console.log(`get user list : ${t1 - t0} ms`);
@@ -222,11 +233,11 @@ const namespaces = {
 
     console.log(length);
 
-    let user = await namespace.getNamespaceHasUsers({
+    let user = await namespace.getUsers({
       limit: 50,
       offset: length,
       raw: true,
-      nest: true
+      nest: true,
     });
 
     user = user.map((element) => {
@@ -234,8 +245,10 @@ const namespaces = {
 
       return {
         ...element,
-        avatar_url: `${process.env.DEV_AVATAR_URL}/user/${element.id}/${Date.now()}/avatar`,
-        status: checkIfUserConnected ? "online" : "offline"
+        avatar_url: `${process.env.DEV_AVATAR_URL}/user/${
+          element.id
+        }/${Date.now()}/avatar`,
+        status: checkIfUserConnected ? "online" : "offline",
       };
     });
 
@@ -249,7 +262,6 @@ const namespaces = {
   async createNamespace(ios, socket, data) {
     console.time("create");
 
-
     const { id: userId } = socket.request.user;
 
     const img_name = data.img_name ? Date.now() : null;
@@ -259,16 +271,15 @@ const namespaces = {
         .resize(150, 150)
         .webp({
           quality: 80,
-          effort: 0
+          effort: 0,
         })
         .toFile(path.join(__dirname, `../images/${img_name}.webp`));
-
     }
 
     const createNamespace = await Namespace.create({
       name: data.name,
       invite_code: data.invite_code,
-      img_url: img_name ? `/images/${img_name}` : `/images/${getRandomImage()}`
+      img_url: img_name ? `/images/${img_name}` : `/images/${getRandomImage()}`,
     });
 
     const { id } = createNamespace.toJSON();
@@ -276,37 +287,38 @@ const namespaces = {
     await Room.create({
       name: "# Général",
       index: 1,
-      namespace_id: id
+      namespace_id: id,
     });
 
     await UserHasNamespace.create({
       user_id: userId,
       namespace_id: id,
-      admin: true
+      admin: true,
     });
 
     let getNewNamespace = (
       await User.findByPk(userId, {
         include: {
           model: Namespace,
-          as: "userHasNamespaces",
+          as: "namespaces",
           include: ["rooms"],
           where: {
-            id
-          }
-        }
+            id,
+          },
+        },
       })
     ).toJSON();
 
-    getNewNamespace = getNewNamespace.userHasNamespaces[0];
+    getNewNamespace = getNewNamespace.namespaces[0];
 
     const namespace = {
       ...getNewNamespace,
-      img_url: `${process.env.DEV_AVATAR_URL}/namespace/${getNewNamespace.id}/${Date.now()}/avatar`
+      img_url: `${process.env.DEV_AVATAR_URL}/namespace/${
+        getNewNamespace.id
+      }/${Date.now()}/avatar`,
     };
 
     socket.emit("createdNamespace", [namespace]);
-
 
     console.timeEnd("create");
   },
@@ -321,9 +333,9 @@ const namespaces = {
       where: {
         user_id: userId,
         namespace_id: id,
-        admin: true
+        admin: true,
       },
-      raw: true
+      raw: true,
     });
 
     console.log(checkIfUserIsAdmin);
@@ -339,25 +351,25 @@ const namespaces = {
         .resize(150, 150)
         .webp({
           quality: 80,
-          effort: 0
+          effort: 0,
         })
         .toFile(path.join(__dirname, `../images/${newAvatarName}.webp`));
     }
 
     const { img_url: oldAvatar } = await Namespace.findByPk(id, {
-      raw: true
+      raw: true,
     });
 
     await Namespace.update(
       {
         name: values.name,
         invite_code: values.invite_code,
-        img_url: newAvatarName ? `/images/${newAvatarName}` : oldAvatar
+        img_url: newAvatarName ? `/images/${newAvatarName}` : oldAvatar,
       },
       {
         where: {
-          id
-        }
+          id,
+        },
       }
     );
 
@@ -365,14 +377,16 @@ const namespaces = {
       await Namespace.findByPk(id, {
         include: {
           model: Room,
-          as: "rooms"
-        }
+          as: "rooms",
+        },
       })
     ).toJSON();
 
     updateNamespace = {
       ...updateNamespace,
-      img_url: `${process.env.DEV_AVATAR_URL}/namespace/${id}/${Date.now()}/avatar`
+      img_url: `${
+        process.env.DEV_AVATAR_URL
+      }/namespace/${id}/${Date.now()}/avatar`,
     };
 
     ios.of(`/${id}`).emit("updateNamespace", updateNamespace);
@@ -388,9 +402,9 @@ const namespaces = {
       where: {
         user_id: userId,
         namespace_id: id,
-        admin: true
+        admin: true,
       },
-      raw: true
+      raw: true,
     });
 
     if (!checkIfUserIsAdmin) {
@@ -400,57 +414,71 @@ const namespaces = {
     ios.of(`/${id}`).emit("deleteNamespace", { id });
 
     const namespace = await Namespace.findByPk(id, {
-      raw: true
+      raw: true,
     });
-
 
     unlinkImage(namespace.img_url);
 
     await Namespace.destroy({
       where: {
-        id
-      }
+        id,
+      },
     });
 
     ios._nsps.delete(`/${id}`);
   },
 
   async joinInvitation(ios, socket, data) {
-    console.time("invite");
-
     const userId = socket.request.user.id;
 
     let namespace = (
       await Namespace.findOne({
         where: {
-          invite_code: data.inviteCode
-        }
+          invite_code: data.inviteCode,
+        },
       })
-    ).toJSON();
+    )?.toJSON();
 
     if (!namespace) throw new Error("Code non valide");
 
+    const checkIfUserAlreadyHasServer = await UserHasNamespace.findOne({
+      where: {
+        user_id: userId,
+        namespace_id: namespace.id,
+      },
+    });
+
+    let { count: checkIfServerIsFull } = await getNumberOfUser(namespace.id);
+    checkIfServerIsFull = checkIfServerIsFull >= this.userLimit;
+
+    if (checkIfUserAlreadyHasServer)
+      throw new Error("Tu as déjà rejoint ce serveur");
+
+    if (checkIfServerIsFull) throw new Error("Le serveur est plein");
+
     await UserHasNamespace.create({
       user_id: userId,
-      namespace_id: namespace.id
+      namespace_id: namespace.id,
     });
 
     let getNewNamespace = (
       await User.findByPk(userId, {
         include: {
           model: Namespace,
-          as: "userHasNamespaces",
+          as: "namespaces",
           include: ["rooms"],
           where: {
-            invite_code: data.inviteCode
-          }
-        }
+            invite_code: data.inviteCode,
+          },
+        },
       })
     ).toJSON();
 
     getNewNamespace = {
-      ...getNewNamespace.userHasNamespaces[0],
-      img_url: `${process.env.DEV_AVATAR_URL}/namespace/${namespace.id}/${Date.now()}/avatar`
+      ...getNewNamespace.namespaces[0],
+      img_url: `${process.env.DEV_AVATAR_URL}/namespace/${
+        namespace.id
+      }/${Date.now()}/avatar`,
     };
 
     let newUser = (
@@ -458,30 +486,29 @@ const namespaces = {
         include: [
           {
             model: User,
-            as: "namespaceHasUsers",
+            as: "users",
             attributes: { exclude: ["password"] },
             where: {
-              id: userId
-            }
-          }
-        ]
+              id: userId,
+            },
+          },
+        ],
       })
     ).toJSON();
 
     newUser = {
-      ...newUser.namespaceHasUsers[0],
-      avatar_url: `${process.env.DEV_AVATAR_URL}/user/${userId}/${Date.now()}/avatar`,
-      status: "online"
+      ...newUser.users[0],
+      avatar_url: `${
+        process.env.DEV_AVATAR_URL
+      }/user/${userId}/${Date.now()}/avatar`,
+      status: "online",
     };
 
     socket.emit("createdNamespace", [getNewNamespace]);
     ios.of(`/${namespace.id}`).emit("userJoinNamespace", [newUser]);
-
-    console.timeEnd("invite");
   },
 
   async leaveNamespace(ios, socket, data) {
-
     console.log(data);
 
     const { id: namespaceId } = data;
@@ -491,13 +518,12 @@ const namespaces = {
     await UserHasNamespace.destroy({
       where: {
         user_id: userId,
-        namespace_id: namespaceId
-      }
+        namespace_id: namespaceId,
+      },
     });
 
     ios.of(`/${namespaceId}`).emit("userLeaveNamespace", { id: userId });
-
-  }
+  },
 };
 
 module.exports = namespaces;

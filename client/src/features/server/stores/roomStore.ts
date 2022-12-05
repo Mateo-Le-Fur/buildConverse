@@ -21,11 +21,6 @@ export const useRoom = defineStore("room", {
       return (roomId: string) =>
         state.rooms.find((room: RoomInterface) => room.id === Number(roomId));
     },
-
-    currentRoom(state): (roomId: string) => RoomInterface | undefined {
-      return (roomId: string) =>
-        state.rooms.find((ns: RoomInterface) => ns.id === Number(roomId));
-    },
   },
 
   actions: {
@@ -33,14 +28,14 @@ export const useRoom = defineStore("room", {
       this.rooms.push(...data);
     },
 
-
     async createRoom(data: RoomInterface) {
       this.rooms.push(data);
+    },
 
-      this.activeRoom = data
-
-      // @ts-ignore
-        await this.router.push(`/channels/${data.namespace_id}/${data.id}`);
+    deleteRoom(data: Partial<RoomInterface>) {
+      if (this.rooms.length > 1) {
+        this.rooms = this.rooms.filter((room) => room.id !== data.id);
+      }
     },
 
     joinRoom(room: RoomInterface | undefined) {

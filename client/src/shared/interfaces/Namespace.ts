@@ -1,13 +1,14 @@
 import type { RoomInterface } from "@/shared/interfaces/Room";
 import type { User } from "@/shared/interfaces/User";
+import type { UserHasNamespace } from "@/shared/interfaces/UserHasNamespace";
 
 export interface Namespace {
   id: number;
   name: string;
-  invite_code: string;
+  inviteCode: string;
   img_url: string;
   rooms: RoomInterface[];
-  UserHasNamespace: { admin: boolean; namespace_id: number; user_id: number };
+  UserHasNamespace: UserHasNamespace;
   created_at: string;
   updated_at: string;
 }

@@ -4,7 +4,7 @@ const ApiError = require("../errors/apiError");
 const authProtect = {
   createJwtToken(req, res, user) {
     const jwtToken = jwt.sign(user, process.env.JWT_SECRET, {
-      expiresIn: 3600 + "s"
+      expiresIn: 3600 + "s",
     });
 
     res.cookie("jwt", jwtToken);
@@ -26,7 +26,7 @@ const authProtect = {
     } catch (e) {
       throw new ApiError(e, 403);
     }
-  }
+  },
 };
 
 module.exports = authProtect;

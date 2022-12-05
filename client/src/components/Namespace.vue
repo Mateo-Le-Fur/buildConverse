@@ -11,8 +11,10 @@ import { useField, useForm } from "vee-validate";
 import type { Namespace } from "@/shared/interfaces/Namespace";
 import { generateInviteCode } from "@/utils/generateInviteCode";
 import Spinner from "@/components/Spinner.vue";
+import { useRoom } from "@/features/server/stores/roomStore";
 
 const socketStore = useSocket();
+const roomStore = useRoom();
 
 const addServerPopup = ref<boolean>(false);
 let src = ref<string | ArrayBuffer | null>();
@@ -27,7 +29,7 @@ watch(
   () => {
     setTimeout(() => {
       const anchorElem = [
-        ...document.querySelectorAll(".tooltip"),
+        ...document.querySelectorAll(".tooltip")
       ] as HTMLAnchorElement[];
 
       for (let i = 0; i < anchorElem.length; i++) {
@@ -38,7 +40,7 @@ watch(
           placement: "right",
           offset: [0, 20],
           maxWidth: 250,
-          theme: "custom",
+          theme: "custom"
         });
       }
     });
@@ -74,20 +76,19 @@ const validationSchema = toFormValidator(
       name: z
         .string()
         .trim()
-        .min(1, "1 caractère minimum : (")
+        .min(2, "2 caractère minimum : (")
         .max(30, "30 caractères maximum : ("),
 
       inviteCode: z
         .string()
-        .min(8, "8 caractères requis")
-        .max(8, " 8 caractères requis"),
+        .length(8, "Le code est composé de 8 caractères")
     })
     .partial()
     .refine((data) => !!data.name || data.inviteCode)
 );
 
 const { handleSubmit, setErrors } = useForm<Namespace>({
-  validationSchema,
+  validationSchema
 });
 
 const submitNamespace = handleSubmit((formValue: Namespace) => {
@@ -95,39 +96,50 @@ const submitNamespace = handleSubmit((formValue: Namespace) => {
     if (namespaceImage.value?.size! > 1e7) {
       throw new Error("10Mo Maximum pour la taille des images");
     }
+    socketStore.isNamespaceCreated = false;
     socketStore.ioClient?.emit("createNamespace", {
       name: formValue.name,
       invite_code: generateInviteCode(),
       img_name: namespaceImage.value?.name,
-      img_url: namespaceImage.value,
+      img_url: namespaceImage.value
     });
-    socketStore.isNamespaceCreated = false;
   } catch (e: any) {
     setErrors({
-      name: e.message,
+      name: e.message
     });
   }
 });
 
-const submitInviteCode = handleSubmit((formValue: Partial<Namespace>) => {
+const submitInviteCode = handleSubmit((formValue: Partial<Namespace>, actions) => {
   try {
-    socketStore.ioClient?.emit("invitationToNamespace", {
-      inviteCode: formValue.inviteCode,
+    socketStore.isNamespaceCreated = false;
+    socketStore.ioClient?.emit("userJoinNamespace", {
+      inviteCode: formValue.inviteCode
+    }, (response: { message: string; status: string }) => {
+      if (response.status !== "ok") {
+        setErrors({
+          inviteCode: response.message
+        });
+      }
     });
+    actions.resetForm();
   } catch (e: any) {
+    console.log(e);
     setErrors({
-      inviteCode: e.message,
+      inviteCode: e.message
     });
   }
 });
 
-const { value: nameValue, errorMessage: nameError } = useField("name");
+const { value: nameValue, errorMessage: nameError } = useField("name", {}, {
+  validateOnValueUpdate: false
+});
 const { value: inviteCodeValue, errorMessage: inviteCodeError } =
-  useField("inviteCode");
+  useField("inviteCode", {}, { validateOnValueUpdate: false });
 
 function leaveNamespace(home: boolean = false) {
   if (socketStore.activeNsSocket) {
-    socketStore.activeNsSocket.emit("leaveRoom", socketStore.activeRoom?.id);
+    socketStore.activeNsSocket.emit("leaveRoom", roomStore.activeRoom?.id);
   }
 
   if (home) {
@@ -147,11 +159,11 @@ function leaveNamespace(home: boolean = false) {
         to="/home"
       >
         <div
-          data-tooltip="Message Privé"
+          data-tooltip="Messages Privés"
           class="private-message tooltip"
           :class="{ active: !socketStore.activeNsSocket }"
         >
-<!--          <img src="@/assets/images/chat.svg" alt="logo" />-->
+          <!--          <img src="@/assets/images/chat.svg" alt="logo" />-->
           <img src="@/assets/images/chat.svg" alt="logo" />
 
           <div class="border-bottom"></div>
@@ -218,17 +230,16 @@ function leaveNamespace(home: boolean = false) {
               <p class="form-error" v-if="nameError">{{ nameError }}</p>
 
               <button
-                v-if="socketStore.isNamespaceCreated !== false"
                 class="mb-20"
               >
                 C'est partie !
               </button>
-              <div
-                class="d-flex align-items-center justify-content-center"
-                v-else
-              >
-                <spinner />
-              </div>
+              <!--              <div-->
+              <!--                class="d-flex align-items-center justify-content-center"-->
+              <!--                v-else-->
+              <!--              >-->
+              <!--                <spinner />-->
+              <!--              </div>-->
             </div>
           </form>
 
@@ -236,13 +247,13 @@ function leaveNamespace(home: boolean = false) {
             <div class="d-flex flex-column">
               <p>Tu as un code d'invitation ?</p>
               <input
-                class="mb-10"
-                id="name"
+                class="mb-5"
+                id="inviteCode"
                 type="text"
                 placeholder="Entre le code"
                 v-model="inviteCodeValue"
               />
-              <p v-if="inviteCodeError">{{ inviteCodeError }}</p>
+              <p class="form-error" v-if="inviteCodeError">{{ inviteCodeError }}</p>
               <button>Rejoindre un serveur</button>
             </div>
           </form>

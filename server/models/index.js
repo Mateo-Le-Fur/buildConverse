@@ -43,7 +43,7 @@ User.belongsToMany(User, {
 });
 
 User.belongsToMany(Namespace, {
-  as: "userHasNamespaces",
+  as: "namespaces",
   through: UserHasNamespace,
   foreignKey: "user_id",
   otherKey: "namespace_id",
@@ -51,7 +51,7 @@ User.belongsToMany(Namespace, {
 });
 
 Namespace.belongsToMany(User, {
-  as: "namespaceHasUsers",
+  as: "users",
   through: UserHasNamespace,
   foreignKey: "namespace_id",
   otherKey: "user_id",

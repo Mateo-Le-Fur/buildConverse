@@ -3,7 +3,7 @@ import {
   io,
   Socket,
   type ManagerOptions,
-  type SocketOptions
+  type SocketOptions,
 } from "socket.io-client";
 
 import type { Namespace } from "@/shared/interfaces/Namespace";
@@ -13,6 +13,8 @@ import type { User } from "@/shared/interfaces/User";
 import { useRoom } from "@/features/server/stores/roomStore";
 import { useNsUser } from "@/features/server/stores/userNsStore";
 import { useUser } from "@/shared/stores/authStore";
+import { date } from "zod";
+import type { UserHasNamespace } from "@/shared/interfaces/UserHasNamespace";
 
 interface SocketState {
   ioClient: Socket | null;
@@ -40,44 +42,60 @@ export const useSocket = defineStore("socket", {
     isNamespaceUpdated: false,
     countLoadedNamespace: 0,
     error: null,
-    opts: { forceNew: true, reconnection: false, transports: ["websocket"] }
+    opts: { forceNew: true, reconnection: false, transports: ["websocket"] },
   }),
 
   getters: {
     currentNamespace(state): (namespaceId: string) => Namespace | undefined {
       return (namespaceId: string) =>
         state.namespaces.find((ns: Namespace) => ns.id === Number(namespaceId));
-    }
+    },
   },
-
 
   actions: {
     init() {
       this.ioClient = io(this.opts);
+      const userNsStore = useNsUser();
 
+      let checkInterval: number;
       this.ioClient.on("connect", () => {
         console.log("socket on");
+
+        checkInterval = setInterval(() => {
+          this.ioClient?.emit("jwt_expire", () => "check");
+        }, 1000 * 60 * 10);
       });
 
-      this.ioClient.on("connect_error", (err) => {
+      this.ioClient?.on("connect_error", (err) => {
         console.log(err.message);
+      });
+
+      this.ioClient?.on("updateUser", async (data: User) => {
+        await userNsStore.updateUser(data);
+      });
+
+      this.ioClient?.on("deleteUser", async (data: { id: number }) => {
+        userNsStore.deleteUser(data);
+      });
+
+      this.ioClient?.on("jwt_expire", async (data: boolean) => {
+        if (data) {
+          clearInterval(checkInterval);
+          const userStore = useUser();
+          await userStore.logout();
+        }
       });
     },
 
     initNamespaces() {
-      // TODO: Utiliser un fetch a la place pour récupérés les données
       this.ioClient?.on("namespaces", (data: Namespace[]) => {
-        if (!data.length) this.isNamespacesLoaded = true;
-
         console.log(data);
+        if (!data.length) this.isNamespacesLoaded = true;
 
         this.namespaces.push(...data);
 
         for (const ns of this.namespaces) {
           const nsSocket = io(`/${ns.id}`);
-
-          console.log(nsSocket);
-
 
           this.initNamespaceData(nsSocket, data.length);
 
@@ -92,9 +110,7 @@ export const useSocket = defineStore("socket", {
 
         const ns = data[0];
 
-
         const nsSocket = io(`/${ns.id}`);
-
 
         this.initNamespaceData(nsSocket, data.length);
 
@@ -109,22 +125,14 @@ export const useSocket = defineStore("socket", {
         // @ts-ignore
         await this.router.push(`/channels/${ns.id}/${ns.rooms[0].id}`);
       });
-
-      this.ioClient?.on("updateUser", async () => {
-        const userStore = useUser();
-        await userStore.fetchCurrentUser();
-      });
-
     },
 
     initNamespaceData(nsSocket: any, numberOfnamespace: number) {
       const roomStore = useRoom();
       const userNsStore = useNsUser();
 
-
       this.isNamespacesLoaded = false;
       nsSocket.on("rooms", (data: RoomInterface[]) => {
-
         roomStore.getRoomsData(data);
 
         this.countLoadedNamespace++;
@@ -151,25 +159,26 @@ export const useSocket = defineStore("socket", {
       });
 
       nsSocket.on("deleteUser", async (data: { id: number }) => {
-        await userNsStore.deleteUser(data);
+        userNsStore.deleteUser(data);
       });
 
       nsSocket.on("userConnect", async (data: { id: number }) => {
         const userNsStore = useNsUser();
-
         userNsStore.userConnect(data);
-
       });
 
       nsSocket.on("userDisconnect", async (data: { id: number }) => {
         const userNsStore = useNsUser();
 
         userNsStore.userDisconnect(data);
-
       });
 
-      nsSocket.on("newUserOnServer", (data: User[]) => {
+      nsSocket.on("userJoinNamespace", (data: User[]) => {
         userNsStore.addNewUser(data);
+      });
+
+      nsSocket.on("userLeaveNamespace", async (data: { id: number }) => {
+        await this.userLeaveNamespace(data);
       });
 
       nsSocket.on("history", (data: Message[]) => {
@@ -184,60 +193,16 @@ export const useSocket = defineStore("socket", {
         await roomStore.createRoom(data);
       });
 
-      nsSocket.on("deleteRoom", (data: number) => {
-        // TODO A finir après avoir fait le crud utilisateur
-        console.log(data);
+      nsSocket.on("deleteRoom", (data: Partial<RoomInterface>) => {
+        roomStore.deleteRoom(data);
       });
 
       nsSocket.on("updateNamespace", async (data: Namespace) => {
-
-        this.isNamespaceUpdated = true;
-
-        const { UserHasNamespace } = this.namespaces.find(
-          (ns) => ns.id === data.id
-        );
-
-
-        const namespaceIndex = this.namespaces.findIndex(
-          (ns) => ns.id === data.id
-        );
-
-
-        this.namespaces[namespaceIndex] = data;
-
-        this.namespaces[namespaceIndex].UserHasNamespace = UserHasNamespace
-
-        console.log(this.namespaces[namespaceIndex])
+        await this.updateNamespace(data);
       });
 
       nsSocket.on("deleteNamespace", async (data: { id: number }) => {
-        const namespaceIndex = this.namespaces.findIndex(
-          (ns) => ns.id === data.id
-        );
-
-        const namespaceSocketIndex = this.namespaceSockets.findIndex((ns => ns.nsp === `/${data.id}`));
-
-
-        const namespaceSocket = this.namespaceSockets.find(
-          (nsSocket: any) => nsSocket.nsp === `/${data.id}`
-        );
-
-        namespaceSocket.disconnect();
-
-        if (namespaceIndex !== -1) {
-          this.namespaces.splice(namespaceIndex, 1);
-
-          // @ts-ignore
-          await this.router.push("/home");
-        }
-
-        if (namespaceSocketIndex !== -1) {
-          this.namespaceSockets.splice(namespaceSocketIndex, 1);
-
-          // @ts-ignore
-          await this.router.push("/home");
-        }
-        console.log("deleted namespace");
+        await this.deleteNamespace(data);
       });
 
       nsSocket.on("connect_error", (err: Error) => {
@@ -269,11 +234,71 @@ export const useSocket = defineStore("socket", {
       }
     },
 
+    async userLeaveNamespace(data: { id: number }) {
+      const userNsStore = useNsUser();
+      userNsStore.userList = userNsStore.userList.filter(
+        (user) => user.id !== data.id
+      );
+    },
+
+    async deleteNamespace(data: { id: number }) {
+      const roomStore = useRoom();
+      const userNsStore = useNsUser();
+
+      roomStore.rooms = roomStore.rooms.filter(
+        (room) => room.namespace_id !== data.id
+      );
+
+      userNsStore.userList = userNsStore.userList.filter(
+        (user) => user.UserHasNamespace.namespace_id !== data.id
+      );
+
+      const namespaceIndex = this.namespaces.findIndex(
+        (ns) => ns.id === data.id
+      );
+
+      const namespaceSocketIndex = this.namespaceSockets.findIndex(
+        (ns: any) => ns.nsp === `/${data.id}`
+      );
+
+      const namespaceSocket = this.namespaceSockets.find(
+        (nsSocket: any) => nsSocket.nsp === `/${data.id}`
+      );
+
+      namespaceSocket.disconnect();
+
+      if (namespaceIndex !== -1) {
+        this.namespaces.splice(namespaceIndex, 1);
+      }
+
+      if (namespaceSocketIndex !== -1) {
+        this.namespaceSockets.splice(namespaceSocketIndex, 1);
+      }
+      // @ts-ignore
+      await this.router.push("/home");
+    },
+
+    async updateNamespace(data: Namespace) {
+      this.isNamespaceUpdated = true;
+
+      const { UserHasNamespace } = this.namespaces.find(
+        (ns) => ns.id === data.id
+      )!;
+
+      const namespaceIndex = this.namespaces.findIndex(
+        (ns) => ns.id === data.id
+      );
+
+      this.namespaces[namespaceIndex] = data;
+
+      this.namespaces[namespaceIndex].UserHasNamespace = UserHasNamespace;
+    },
+
     setError(message: string) {
       this.error = message;
       setTimeout(() => {
         this.error = null;
       }, 2000);
-    }
-  }
+    },
+  },
 });

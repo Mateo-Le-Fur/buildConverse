@@ -9,7 +9,6 @@ const errorHandler = (err, req, res, next) => {
   }
 
   if (statusCode) {
-    console.log(err);
     // logger.log("error", `${err.message}`);
   }
 

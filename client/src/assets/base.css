@@ -70,7 +70,7 @@ label {
 }
 
 .form-error {
-  color: var(--danger-1);
+  color: #eb4144;
   font-size: 14px;
   font-weight: 500;
 }
@@ -93,6 +93,10 @@ label {
 
 .justify-content-end {
   justify-content: flex-end;
+}
+
+.justify-content-space-between {
+  justify-content: space-between;
 }
 
 .align-items-center {

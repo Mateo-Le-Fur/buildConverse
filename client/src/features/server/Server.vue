@@ -8,13 +8,13 @@ import { watch } from "vue";
 import { useRoom } from "@/features/server/stores/roomStore";
 import { useNsUser } from "@/features/server/stores/userNsStore";
 import ServerOptions from "@/features/server/components/ServerOptions.vue";
+import SearchBar from "@/features/server/components/SearchBar.vue";
 
 const route = useRoute();
 
 const socketStore = useSocket();
 const roomStore = useRoom();
 const userNsStore = useNsUser();
-
 
 //  création ou récupération de namespaces
 watch(
@@ -25,6 +25,7 @@ watch(
     }
   }
 );
+
 
 // Permet de naviguer entre les namespaces lorsque la route change
 if (`/${route.params.idChannel}` !== socketStore.activeNsSocket?.nsp) {
@@ -46,7 +47,7 @@ function joinNamespace() {
 }
 
 function changeRoom(room: RoomInterface) {
-  if (roomStore.activeRoom?.id !== room.id) {
+  if (roomStore.activeRoom?.id !== Number(room.id)) {
     socketStore.activeNsSocket.emit("leaveRoom", roomStore.activeRoom?.id);
     roomStore.joinRoom(room);
   }
@@ -64,20 +65,31 @@ function changeRoom(room: RoomInterface) {
         :params="route.params"
       />
     </div>
-
-    <router-view :params="route.params"></router-view>
-    <UserList
-      :user-list="
-        userNsStore.getUsersNamespace(route.params.idChannel?.toString())
-      "
-      :params="route.params"
-    />
+    <div class="right-container d-flex flex-column flex-fill">
+      <SearchBar />
+      <div
+        class="d-flex flex-fill overflow-auto overflow-x-hidden"
+        style="min-width: 0"
+      >
+        <router-view :params="route.params"></router-view>
+        <UserList
+          :user-list="
+            userNsStore.getUsersNamespace(route.params.idChannel?.toString())
+          "
+          :params="route.params"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .channel-container {
   width: 100%;
+
+  .right-container {
+    min-width: 0;
+  }
 }
 
 .server-leave-to,

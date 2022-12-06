@@ -38,9 +38,26 @@ export const useRoom = defineStore("room", {
       this.rooms[room].name = data.name;
     },
 
-    deleteRoom(data: Partial<RoomInterface>) {
+    async deleteRoom(data: Partial<RoomInterface>) {
       if (this.rooms.length > 1) {
+        const socketStore = useSocket();
+
         this.rooms = this.rooms.filter((room) => room.id !== data.id);
+
+        const room = this.rooms.find(
+          (room) => room.namespace_id === data.namespaceId
+        );
+
+        if (this.activeRoom?.id === data.id) {
+          socketStore.activeNsSocket.emit("leaveRoom", data.id);
+        }
+
+        //@ts-ignore
+        await this.router.push(
+          `/channels/${this.activeRoom?.namespace_id}/${room?.id}`
+        );
+
+        this.joinRoom(room);
       }
     },
 

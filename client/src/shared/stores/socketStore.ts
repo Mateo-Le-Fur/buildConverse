@@ -197,8 +197,8 @@ export const useSocket = defineStore("socket", {
         roomStore.updateRoom(data);
       });
 
-      nsSocket.on("deleteRoom", (data: Partial<RoomInterface>) => {
-        roomStore.deleteRoom(data);
+      nsSocket.on("deleteRoom", async (data: Partial<RoomInterface>) => {
+        await roomStore.deleteRoom(data);
       });
 
       nsSocket.on("updateNamespace", async (data: Namespace) => {

@@ -30,20 +30,18 @@ const roomStore = useRoom();
 const props = defineProps<{
   params: RouteParams;
 }>();
-
 </script>
 
 <template>
   <div class="chat-container d-flex flex-column flex-fill">
     <div class="message-container">
-      <h2 class="room-name">Bienvenue dans le salon {{ roomStore.activeRoom?.name }}</h2>
+      <h2 class="room-name">
+        Bienvenue dans le salon {{ roomStore.activeRoom?.name }}
+      </h2>
       <template v-for="message of socketStore.messages" :key="message.id">
         <div class="d-flex message">
           <div>
-            <img
-              class="mr-10"
-              :src="message.avatar_author"
-            />
+            <img class="mr-10" :src="message.avatar_author" />
           </div>
           <div class="d-flex flex-column w-100">
             <div class="d-flex align-items-center mb-5">
@@ -91,7 +89,6 @@ const props = defineProps<{
     box-shadow: inset 0 0 10px 10px var(--primary-2);
     border: solid 2px transparent;
     border-radius: 10px;
-
   }
 
   .message-container::-webkit-scrollbar-thumb {

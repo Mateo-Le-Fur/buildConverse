@@ -115,6 +115,10 @@ label {
   padding: 10px;
 }
 
+.p-15 {
+  padding: 15px;
+}
+
 .p-20 {
   padding: 20px;
 }
@@ -174,6 +178,14 @@ label {
 
 .m-30 {
   margin: 30px;
+}
+
+.overflow-auto {
+  overflow: auto;
+}
+
+.overflow-x-hidden {
+  overflow-x: hidden;
 }
 
 .g-5 {

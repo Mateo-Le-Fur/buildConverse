@@ -23,16 +23,15 @@ const roomStore = useRoom();
 
 <style scoped lang="scss">
 .container {
+  justify-content: space-between;
   max-height: 50px;
   border-bottom: 1px solid var(--primary-3);
-  gap: 30px;
 
   .name {
     font-size: 1.2rem;
   }
 
   .search-bar {
-    width: 20%;
     background-color: var(--primary-3);
     border-radius: 5px;
 

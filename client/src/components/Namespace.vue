@@ -29,7 +29,7 @@ watch(
   () => {
     setTimeout(() => {
       const anchorElem = [
-        ...document.querySelectorAll(".tooltip")
+        ...document.querySelectorAll(".tooltip"),
       ] as HTMLAnchorElement[];
 
       for (let i = 0; i < anchorElem.length; i++) {
@@ -40,7 +40,7 @@ watch(
           placement: "right",
           offset: [0, 20],
           maxWidth: 250,
-          theme: "custom"
+          theme: "custom",
         });
       }
     });
@@ -79,16 +79,14 @@ const validationSchema = toFormValidator(
         .min(2, "2 caractère minimum : (")
         .max(30, "30 caractères maximum : ("),
 
-      inviteCode: z
-        .string()
-        .length(8, "Le code est composé de 8 caractères")
+      inviteCode: z.string().length(8, "Le code est composé de 8 caractères"),
     })
     .partial()
     .refine((data) => !!data.name || data.inviteCode)
 );
 
 const { handleSubmit, setErrors } = useForm<Namespace>({
-  validationSchema
+  validationSchema,
 });
 
 const submitNamespace = handleSubmit((formValue: Namespace) => {
@@ -101,41 +99,54 @@ const submitNamespace = handleSubmit((formValue: Namespace) => {
       name: formValue.name,
       invite_code: generateInviteCode(),
       img_name: namespaceImage.value?.name,
-      img_url: namespaceImage.value
+      img_url: namespaceImage.value,
     });
   } catch (e: any) {
     setErrors({
-      name: e.message
+      name: e.message,
     });
   }
 });
 
-const submitInviteCode = handleSubmit((formValue: Partial<Namespace>, actions) => {
-  try {
-    socketStore.isNamespaceCreated = false;
-    socketStore.ioClient?.emit("userJoinNamespace", {
-      inviteCode: formValue.inviteCode
-    }, (response: { message: string; status: string }) => {
-      if (response.status !== "ok") {
-        setErrors({
-          inviteCode: response.message
-        });
-      }
-    });
-    actions.resetForm();
-  } catch (e: any) {
-    console.log(e);
-    setErrors({
-      inviteCode: e.message
-    });
+const submitInviteCode = handleSubmit(
+  (formValue: Partial<Namespace>, actions) => {
+    try {
+      socketStore.isNamespaceCreated = false;
+      socketStore.ioClient?.emit(
+        "userJoinNamespace",
+        {
+          inviteCode: formValue.inviteCode,
+        },
+        (response: { message: string; status: string }) => {
+          if (response.status !== "ok") {
+            setErrors({
+              inviteCode: response.message,
+            });
+          }
+        }
+      );
+      actions.resetForm();
+    } catch (e: any) {
+      console.log(e);
+      setErrors({
+        inviteCode: e.message,
+      });
+    }
   }
-});
+);
 
-const { value: nameValue, errorMessage: nameError } = useField("name", {}, {
-  validateOnValueUpdate: false
-});
-const { value: inviteCodeValue, errorMessage: inviteCodeError } =
-  useField("inviteCode", {}, { validateOnValueUpdate: false });
+const { value: nameValue, errorMessage: nameError } = useField(
+  "name",
+  {},
+  {
+    validateOnValueUpdate: false,
+  }
+);
+const { value: inviteCodeValue, errorMessage: inviteCodeError } = useField(
+  "inviteCode",
+  {},
+  { validateOnValueUpdate: false }
+);
 
 function leaveNamespace(home: boolean = false) {
   if (socketStore.activeNsSocket) {
@@ -229,11 +240,7 @@ function leaveNamespace(home: boolean = false) {
               />
               <p class="form-error" v-if="nameError">{{ nameError }}</p>
 
-              <button
-                class="mb-20"
-              >
-                C'est partie !
-              </button>
+              <button class="mb-20">C'est partie !</button>
               <!--              <div-->
               <!--                class="d-flex align-items-center justify-content-center"-->
               <!--                v-else-->
@@ -253,7 +260,9 @@ function leaveNamespace(home: boolean = false) {
                 placeholder="Entre le code"
                 v-model="inviteCodeValue"
               />
-              <p class="form-error" v-if="inviteCodeError">{{ inviteCodeError }}</p>
+              <p class="form-error" v-if="inviteCodeError">
+                {{ inviteCodeError }}
+              </p>
               <button>Rejoindre un serveur</button>
             </div>
           </form>

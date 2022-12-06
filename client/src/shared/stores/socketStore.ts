@@ -42,7 +42,7 @@ export const useSocket = defineStore("socket", {
     isNamespaceUpdated: false,
     countLoadedNamespace: 0,
     error: null,
-    opts: { forceNew: true, reconnection: false, transports: ["websocket"] },
+    opts: { reconnection: true, forceNew: false, transports: ["websocket"] },
   }),
 
   getters: {
@@ -89,7 +89,6 @@ export const useSocket = defineStore("socket", {
 
     initNamespaces() {
       this.ioClient?.on("namespaces", (data: Namespace[]) => {
-        console.log(data);
         if (!data.length) this.isNamespacesLoaded = true;
 
         this.namespaces.push(...data);
@@ -104,6 +103,7 @@ export const useSocket = defineStore("socket", {
       });
 
       this.ioClient?.on("createdNamespace", async (data: Namespace[]) => {
+        console.log(data);
         const roomStore = useRoom();
 
         this.namespaces.push(...data);
@@ -210,7 +210,7 @@ export const useSocket = defineStore("socket", {
       });
 
       nsSocket.on("connect_error", (err: Error) => {
-        console.log(err.message);
+        console.error(err);
       });
     },
 
@@ -278,6 +278,8 @@ export const useSocket = defineStore("socket", {
       if (namespaceSocketIndex !== -1) {
         this.namespaceSockets.splice(namespaceSocketIndex, 1);
       }
+
+      this.activeNsSocket = null;
       // @ts-ignore
       await this.router.push("/home");
     },

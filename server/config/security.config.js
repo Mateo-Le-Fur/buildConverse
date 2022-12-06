@@ -9,9 +9,11 @@ exports.ensureAuthenticatedOnSocketHandshake = async (request, success) => {
       request.user = decodedToken(cookies.jwt);
       success(null, true);
     } else {
-      success(403, false);
+
+      success(null, false);
     }
   } catch (e) {
-    success(400, false);
+    console.error(e)
+    success(null, false);
   }
 };

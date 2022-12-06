@@ -119,8 +119,8 @@ function leaveNamespace(namespaceId: number) {
     }
 
     svg {
-      width: 20px;
-      height: 20px;
+      width: 19px;
+      height: 19px;
       fill: white;
 
       path {

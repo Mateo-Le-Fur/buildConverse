@@ -6,10 +6,12 @@ import { nextTick, onMounted, onUpdated, ref, toRaw, watch } from "vue";
 import CreateRoomPopup from "./CreateRoomPopup.vue";
 import { useSocket } from "@/shared/stores/socketStore";
 import { useNsUser } from "@/features/server/stores/userNsStore";
-import { boolean } from "zod";
+import { useRoom } from "@/features/server/stores/roomStore";
 
 const socketStore = useSocket();
 const userNsStore = useNsUser();
+const roomStore = useRoom();
+
 
 // Je récupère l'id de mon serveur dans le paramètre de ma route
 const props = defineProps<{
@@ -46,7 +48,7 @@ function onLeave() {
 function deleteRoom(roomId: number) {
   socketStore.activeNsSocket.emit("deleteRoom", {
     namespaceId: Number(props.params.idChannel),
-    id: roomId,
+    id: roomId
   });
 }
 
@@ -67,7 +69,7 @@ async function updateRoom(roomId: number, namespaceId: number) {
       id: roomId,
       namespaceId,
       // @ts-ignore
-      name: input[0].value,
+      name: input[0].value
     });
   });
 }
@@ -100,7 +102,7 @@ async function updateRoom(roomId: number, namespaceId: number) {
       />
 
       <div class="room-container d-flex flex-column">
-        <template v-for="room of rooms" :key="room.id">
+        <template v-for="room of roomStore.getRooms(params.idChannel)" :key="room.id">
           <router-link
             @mouseover="onHover(room.id)"
             @mouseout="onLeave()"

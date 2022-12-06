@@ -149,10 +149,16 @@ function previewAvatar(e: Event) {
             <div class="d-flex align-items-center g-5">
               <input
                 v-model="codeValue"
-                disabled
+                readonly
                 id="invite_code"
+                class="mb-5"
                 type="text"
               />
+            </div>
+            <div class="d-flex g-5">
+              <div>
+                <p class="mr-5">Générer un nouveau code</p>
+              </div>
               <div
                 @click="newInviteCode = generateInviteCode()"
                 class="generate-code"
@@ -204,17 +210,13 @@ function previewAvatar(e: Event) {
 
   .server-invite-code {
     width: 100%;
-    position: relative;
 
-    input {
-      opacity: 0.5;
-    }
-
-    .generate-code {
-      position: absolute;
-      right: -35px;
+    p {
+      margin-left: 5px;
+      font-size: 0.7rem;
     }
   }
+
 
   input {
     outline: none;
@@ -224,8 +226,8 @@ function previewAvatar(e: Event) {
 
   .generate-code {
     cursor: pointer;
-    width: 25px;
-    height: 25px;
+    width: 15px;
+    height: 15px;
 
     svg {
       fill: #f4f4f4;

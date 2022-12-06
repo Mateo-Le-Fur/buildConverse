@@ -4,32 +4,29 @@ import { useUser } from "@/shared/stores";
 import { onMounted, watch } from "vue";
 import { useSocket } from "@/shared/stores/socketStore";
 
-const userStore = useUser();
 const socketStore = useSocket();
 
 onMounted(() => {
   window.addEventListener("beforeunload", () => {
-    const namespaces: number[] = [];
-    socketStore.namespaces.forEach((ns) => {
-      namespaces.push(ns.id);
+    const namespaces = socketStore.namespaces.map((ns) => {
+      return ns.id;
     });
     socketStore.ioClient?.emit("leave", { namespaces });
   });
-
 });
 
-watch(() => socketStore.isNamespacesLoaded, () => {
-  if (socketStore.isNamespacesLoaded) {
-    const namespaces: number[] = [];
-    socketStore.namespaces.forEach((ns) => {
-      namespaces.push(ns.id);
-    });
-    socketStore.ioClient?.emit("join", { namespaces });
+watch(
+  () => socketStore.isNamespacesLoaded,
+  () => {
+    if (socketStore.isNamespacesLoaded) {
+      const namespaces: number[] = [];
+      socketStore.namespaces.forEach((ns) => {
+        namespaces.push(ns.id);
+      });
+      socketStore.ioClient?.emit("join", { namespaces });
+    }
   }
-
-});
-
-
+);
 </script>
 
 <template>

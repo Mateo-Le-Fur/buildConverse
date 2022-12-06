@@ -3,7 +3,6 @@ import { useUser } from "@/shared/stores";
 import {
   isAuthenticatedGaurd,
   isNotAuthenticatedGaurd,
-  initNamespace,
 } from "@/shared/guards";
 // import NotFound from "@/views/NotFound.vue";
 // import { ADMIN_ROUTES } from "@/features/admin/admin.routes";
@@ -30,13 +29,13 @@ export const router = createRouter({
 
     {
       path: "/home",
-      beforeEnter: [isAuthenticatedGaurd, initNamespace],
+      beforeEnter: [isAuthenticatedGaurd],
       component: () => import("@/features/home/Home.vue"),
     },
 
     {
       path: "/channels/:idChannel",
-      beforeEnter: [isAuthenticatedGaurd, initNamespace],
+      beforeEnter: [isAuthenticatedGaurd],
       component: () => import("@/features/server/Server.vue"),
       children: [
         {

@@ -10,6 +10,6 @@ export function isAuthenticatedGaurd() {
 export function isNotAuthenticatedGaurd() {
   const userStore = useUser();
   if (userStore.isAuthenticated) {
-    return "/home";
+    return "/channels/me";
   }
 }

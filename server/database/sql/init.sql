@@ -11,7 +11,6 @@ BEGIN;
 
 DROP TYPE data_type;
 
-
 CREATE TYPE data_type AS ENUM ('text', 'image', 'file');
 
 CREATE TABLE "user" (
@@ -56,16 +55,42 @@ CREATE TABLE "message" (
     "updated_at" TIMESTAMPTZ
 );
 
-CREATE TABLE "friend" (
+CREATE TABLE private_chats (
     "id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    "user1_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    "user2_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+);
+
+CREATE TABLE private_messages (
+    "id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    "data" TEXT NOT NULL,
+    "data_type" data_type NOT NULL DEFAULT 'text',
+    "chat_id" INT NOT NULL REFERENCES "private_chats"(id) ON DELETE CASCADE,
     "user_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-    "friend_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "updated_at" TIMESTAMPTZ
+);
+
+CREATE TABLE "bans" (
+    "id" INT GENERATED ALWAYS AS  IDENTITY PRIMARY KEY,
+    "user_id" INT NOT NULL ON DELETE CASCADE,
+    "namespace_id" INT NOT NULL ON DELETE CASCADE,
+    "reason" TEXT,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+);
+
+CREATE TABLE "friends" (
+    "id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    "user1_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    "user2_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (user1_id, user2_id)
 );
 
 CREATE TABLE "friend_request" (
     "id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    "applicant_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    "sender_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     "recipient_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -76,7 +101,6 @@ CREATE TABLE "user_has_namespace" (
     "user_id" int NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     "namespace_id" int NOT NULL REFERENCES "namespace"(id) ON DELETE CASCADE,
     "admin" boolean NOT NULL DEFAULT false,
-    "ban" boolean NOT NULL DEFAULT false,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

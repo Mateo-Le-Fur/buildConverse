@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import FriendsList from "@/features/home/components/FriendsList.vue";
 import { useSocket } from "@/shared/stores/socketStore";
+import PrivateMessage from "@/features/home/components/PrivateMessage.vue";
 
 const socketStore = useSocket();
 </script>
 
 <template>
   <div v-if="socketStore.isNamespacesLoaded" class="home-container d-flex">
-    <FriendsList />
-    <!--    <router-view v-slot="{ Component, route }">-->
-    <!--      <Component :is="Component" :key="route.fullPath" />-->
-    <!--    </router-view>-->
+    <PrivateMessage />
+    <div class="d-flex flex-column flex-fill">
+      <router-view v-slot="{ Component, route }">
+        <Component :is="Component" :key="route.fullPath" />
+      </router-view>
+    </div>
   </div>
 </template>
 

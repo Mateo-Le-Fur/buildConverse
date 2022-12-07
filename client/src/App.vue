@@ -3,6 +3,7 @@ import Namespace from "@/components/Namespace.vue";
 import { useUser } from "@/shared/stores";
 import { onMounted, watch } from "vue";
 import { useSocket } from "@/shared/stores/socketStore";
+import Profil from "@/components/Profil.vue";
 
 const socketStore = useSocket();
 

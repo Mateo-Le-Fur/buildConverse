@@ -167,7 +167,7 @@ function leaveNamespace(home: boolean = false) {
     <div class="scroll d-flex flex-column align-items-center">
       <router-link
         @click="socketStore.activeNsSocket ? leaveNamespace(true) : ''"
-        to="/home"
+        to="/channels/me"
       >
         <div
           data-tooltip="Messages Privés"
@@ -275,7 +275,7 @@ function leaveNamespace(home: boolean = false) {
 <style scoped lang="scss">
 .namespace-container {
   padding: 10px;
-  max-width: 80px;
+  max-width: 70px;
   background-color: var(--primary-3);
 
   .scroll {

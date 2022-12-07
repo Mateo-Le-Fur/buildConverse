@@ -1,9 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useUser } from "@/shared/stores";
-import {
-  isAuthenticatedGaurd,
-  isNotAuthenticatedGaurd,
-} from "@/shared/guards";
+import { isAuthenticatedGaurd, isNotAuthenticatedGaurd } from "@/shared/guards";
 // import NotFound from "@/views/NotFound.vue";
 // import { ADMIN_ROUTES } from "@/features/admin/admin.routes";
 
@@ -28,9 +25,23 @@ export const router = createRouter({
     },
 
     {
-      path: "/home",
+      path: "/channels",
       beforeEnter: [isAuthenticatedGaurd],
       component: () => import("@/features/home/Home.vue"),
+      children: [
+        {
+          path: "me",
+          name: "me",
+          component: () => import("@/features/home/views/FriendList.vue"),
+          props: true,
+        },
+        {
+          path: ":idPrivateMessage",
+          name: "privateMessage",
+          component: () => import("@/features/home/views/Chat.vue"),
+          props: true,
+        },
+      ],
     },
 
     {

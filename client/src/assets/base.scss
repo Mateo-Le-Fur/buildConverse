@@ -2,7 +2,7 @@
 
   --primary-1: #36393FFF;
   --primary-2: #2F3136;
-  --primary-3: #202225FF;
+  --primary-3: #202225;
   --danger-1: #e74c3c;
   --danger-2: #c0392b;
   --success-1: #2ecc71;
@@ -125,6 +125,14 @@ label {
 
 // padding
 
+.p-5 {
+  padding: 5px;
+}
+
+.p-8 {
+  padding: 8px;
+}
+
 .p-10 {
 padding: 10px;
 }
@@ -223,6 +231,10 @@ padding: 10px;
 .g-15 {
   gap: 15px;
 }
+.g-25 {
+  gap: 25px;
+}
+
 
 // button
 

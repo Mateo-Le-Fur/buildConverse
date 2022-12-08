@@ -41,12 +41,12 @@ const props = defineProps<{
       <template v-for="message of socketStore.messages" :key="message.id">
         <div class="d-flex message">
           <div>
-            <img class="mr-10" :src="message.avatar_author" />
+            <img class="mr-10" :src="message.avatarAuthor" />
           </div>
           <div class="d-flex flex-column w-100">
             <div class="d-flex align-items-center mb-5">
               <p class="author">
-                {{ message.author_name
+                {{ message.authorName
                 }}<span>{{
                   new Date(message.created_at).toLocaleString("fr-FR")
                 }}</span>
@@ -67,6 +67,7 @@ const props = defineProps<{
 .scroller {
   height: 100%;
 }
+
 .chat-container {
   justify-content: end;
   min-width: 0;

@@ -25,7 +25,7 @@ const { handleSubmit, setErrors } = useForm<LoginForm>({
 const submit = handleSubmit(async (formValue: LoginForm) => {
   try {
     await userStore.login(formValue);
-    await router.push("/home");
+    await router.push("/channels/me");
   } catch (e: string | any) {
     setErrors({
       password: e.message,

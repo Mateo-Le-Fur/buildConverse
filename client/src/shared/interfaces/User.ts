@@ -1,3 +1,5 @@
+import type { UserHasNamespace } from "@/shared/interfaces/UserHasNamespace";
+
 export interface User {
   id: number;
   pseudo: string;
@@ -6,8 +8,8 @@ export interface User {
   description: string;
   admin: boolean;
   status: string | null;
-  avatar_url: string;
+  avatarUrl: string;
   statusCode?: number;
   loadMore: boolean;
-  UserHasNamespace: { namespace_id: number; user_id: number; admin: boolean };
+  UserHasNamespace: UserHasNamespace;
 }

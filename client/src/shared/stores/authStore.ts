@@ -12,7 +12,7 @@ interface AuthState {
 export const useUser = defineStore("user", {
   state: (): AuthState => ({
     currentUser: null,
-    loaded: false
+    loaded: false,
   }),
 
   getters: {
@@ -27,7 +27,7 @@ export const useUser = defineStore("user", {
       } else {
         return null;
       }
-    }
+    },
   },
 
   actions: {
@@ -53,7 +53,7 @@ export const useUser = defineStore("user", {
       });
 
       // @ts-ignore
-      getActivePinia()._s.forEach(store => store.$reset());
+      getActivePinia()._s.forEach((store) => store.$reset());
       // @ts-ignore
       await this.router.push("/connexion");
     },
@@ -62,6 +62,6 @@ export const useUser = defineStore("user", {
       this.currentUser = await fetchCurrentUser();
 
       this.loaded = true;
-    }
-  }
+    },
+  },
 });

@@ -1,8 +1,11 @@
 import type { App, DirectiveBinding } from "vue";
 
+interface CustomElement extends Element {
+  clickOutsideEvent: any;
+}
 export default function directive(app: App) {
   app.directive("click-outside", {
-    beforeMount(el: Element, binding: DirectiveBinding) {
+    beforeMount(el: CustomElement, binding: DirectiveBinding) {
       el.clickOutsideEvent = (evt: Event) => {
         evt.stopPropagation();
         const target = evt.target as EventTarget;

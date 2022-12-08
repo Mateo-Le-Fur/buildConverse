@@ -9,6 +9,7 @@ import { useRoom } from "@/features/server/stores/roomStore";
 import { useNsUser } from "@/features/server/stores/userNsStore";
 import ServerOptions from "@/features/server/components/ServerOptions.vue";
 import SearchBar from "@/features/server/components/SearchBar.vue";
+import { Socket } from "socket.io-client";
 
 const route = useRoute();
 
@@ -25,7 +26,6 @@ watch(
     }
   }
 );
-
 
 // Permet de naviguer entre les namespaces lorsque la route change
 if (`/${route.params.idChannel}` !== socketStore.activeNsSocket?.nsp) {

@@ -2,9 +2,11 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "app.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc -p tsconfig.json",
+    "copy": "cp -r ./images ./interfaces .env ./dist/"
   },
   "keywords": [],
   "author": "",
@@ -12,6 +14,7 @@
   "dependencies": {
     "@faker-js/faker": "^7.6.0",
     "@socket.io/admin-ui": "^0.5.1",
+    "@types/jsonwebtoken": "^8.5.9",
     "bcrypt": "^5.1.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
@@ -26,6 +29,13 @@
     "prettier": "^2.7.1",
     "sequelize": "^6.25.3",
     "sharp": "^0.31.2",
-    "socket.io": "^4.5.4"
+    "socket.io": "^4.5.4",
+    "typescript": "^4.9.3"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
+    "@types/cookie-parser": "^1.4.3",
+    "@types/express": "^4.17.14",
+    "@types/sharp": "^0.31.0"
   }
 }

@@ -18,6 +18,7 @@ pinia.use(({ store }) => (store.router = markRaw(router)));
 app.use(clickOutside);
 app.use(pinia);
 app.use(router);
+
 app.use(VueVirtualScroller);
 
 const socketStore = useSocket();

@@ -45,7 +45,7 @@ export const useRoom = defineStore("room", {
         this.rooms = this.rooms.filter((room) => room.id !== data.id);
 
         const room = this.rooms.find(
-          (room) => room.namespace_id === data.namespaceId
+          (room) => room.namespaceId === data.namespaceId
         );
 
         if (this.activeRoom?.id === data.id) {
@@ -54,7 +54,7 @@ export const useRoom = defineStore("room", {
 
         //@ts-ignore
         await this.router.push(
-          `/channels/${this.activeRoom?.namespace_id}/${room?.id}`
+          `/channels/${this.activeRoom?.namespaceId}/${room?.id}`
         );
 
         this.joinRoom(room);
@@ -71,7 +71,7 @@ export const useRoom = defineStore("room", {
 
     getRooms(namespaceId: string): RoomInterface[] {
       return this.rooms.filter(
-        (room: RoomInterface) => room.namespace_id.toString() === namespaceId
+        (room: RoomInterface) => room.namespaceId.toString() === namespaceId
       );
     },
   },

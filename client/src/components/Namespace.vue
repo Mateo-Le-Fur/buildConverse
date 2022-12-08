@@ -97,9 +97,9 @@ const submitNamespace = handleSubmit((formValue: Namespace) => {
     socketStore.isNamespaceCreated = false;
     socketStore.ioClient?.emit("createNamespace", {
       name: formValue.name,
-      invite_code: generateInviteCode(),
-      img_name: namespaceImage.value?.name,
-      img_url: namespaceImage.value,
+      inviteCode: generateInviteCode(),
+      imgName: namespaceImage.value?.name,
+      imgUrl: namespaceImage.value,
     });
   } catch (e: any) {
     setErrors({
@@ -194,7 +194,7 @@ function leaveNamespace(home: boolean = false) {
               :class="{
                 active: socketStore.activeNsSocket?.nsp == `/${namespace.id}`,
               }"
-              :src="namespace.img_url"
+              :src="namespace.imgUrl"
               :alt="namespace.name"
             />
           </div>

@@ -3,7 +3,6 @@ import type { User } from "@/shared/interfaces/User";
 import type { RouteParams } from "vue-router";
 import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
 import { useSocket } from "@/shared/stores/socketStore";
-import UserLoading from "./UserLoading.vue";
 import { useNsUser } from "@/features/server/stores/userNsStore";
 
 const socketStore = useSocket();
@@ -19,7 +18,7 @@ function loadMoreUser(e: Event) {
   if (target.scrollTop + target.clientHeight >= target.scrollHeight) {
     socketStore.activeNsSocket.emit("loadMoreUser", {
       length: props.userList.length,
-      namespaceId: props.params.idChannel
+      namespaceId: props.params.idChannel,
     });
   }
 }
@@ -56,7 +55,6 @@ function loadMoreUser(e: Event) {
 
 <!--<img :src="'data:image/jpeg;base64,' + item.avatar_url" />-->
 
-
 <template>
   <div class="user-container d-flex flex-column">
     <p>Membres: {{ userNsStore.numberOfUsers }}</p>
@@ -69,7 +67,7 @@ function loadMoreUser(e: Event) {
       class="scroller"
     >
       <div>
-        <img :src="item.avatar_url" />
+        <img :src="item.avatarUrl" />
         <p :class="{ admin: item.UserHasNamespace?.admin }">
           {{ item.pseudo }}
         </p>

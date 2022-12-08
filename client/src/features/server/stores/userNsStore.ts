@@ -41,7 +41,7 @@ export const useNsUser = defineStore("userSocket", {
     getUsersNamespace(namespaceId: string) {
       return this.userList.filter(
         (user: User) =>
-          user.UserHasNamespace.namespace_id.toString() === namespaceId
+          user.UserHasNamespace.namespaceId.toString() === namespaceId
       );
     },
 
@@ -60,8 +60,8 @@ export const useNsUser = defineStore("userSocket", {
       const userIndex = this.userList.findIndex(
         (user) =>
           user.id === data.id &&
-          user.UserHasNamespace.namespace_id ===
-            data.UserHasNamespace.namespace_id
+          user.UserHasNamespace.namespaceId ===
+            data.UserHasNamespace.namespaceId
       );
 
       if (userIndex !== -1) {

@@ -13,12 +13,12 @@ const userStore = useUser();
 
 const validationSchema = toFormValidator(
   z.object({
-    data: z.string().max(500).optional()
+    data: z.string().max(500).optional(),
   })
 );
 
 const { handleSubmit, setErrors } = useForm<Message>({
-  validationSchema
+  validationSchema,
 });
 
 const { value: dataValue, errorMessage: dataError } = useField("data");
@@ -26,15 +26,15 @@ const { value: dataValue, errorMessage: dataError } = useField("data");
 const submit = handleSubmit((formValue: Message) => {
   try {
     socketStore.activeNsSocket.emit("message", {
-      text: formValue.data,
+      data: formValue.data,
       roomId: roomStore.activeRoom?.id,
-      avatar: userStore.currentUser?.avatar_url,
+      avatar: userStore.currentUser?.avatarUrl,
     });
 
     dataValue.value = null;
   } catch (e: any) {
     setErrors({
-      data: e.data
+      data: e.data,
     });
   }
 });

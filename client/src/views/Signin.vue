@@ -29,7 +29,7 @@ const { handleSubmit, setErrors } = useForm<UserForm>({
 const submit = handleSubmit(async (formValue: UserForm) => {
   try {
     await createUser(formValue);
-    await router.push("/home");
+    await router.push("/channels/me");
   } catch (e: string | any) {
     setErrors({
       email: e.message,

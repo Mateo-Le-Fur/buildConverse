@@ -2,12 +2,10 @@
 import type { Namespace } from "@/shared/interfaces/Namespace";
 import type { RouteParams } from "vue-router";
 import { useSocket } from "@/shared/stores/socketStore";
-import { ref, watch, watchEffect } from "vue";
+import { ref, watchEffect } from "vue";
 import UpdateServer from "./UpdateServer.vue";
-import { useRouter } from "vue-router";
 
 const socketStore = useSocket();
-const router = useRouter();
 
 const props = defineProps<{
   routeParams: RouteParams;
@@ -67,7 +65,7 @@ function leaveNamespace(namespaceId: number) {
     >
       <ul>
         <li class="mb-5 p-10 justify-content-center">
-          Code d'invitation: {{ currentNamespace?.invite_code }}
+          Code d'invitation: {{ currentNamespace?.inviteCode }}
         </li>
         <li
           v-if="currentNamespace?.UserHasNamespace.admin"

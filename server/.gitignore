@@ -5,3 +5,4 @@ images
 newrelic.js
 newrelic_agent.log
 testSocket.js
+dist

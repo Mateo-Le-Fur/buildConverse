@@ -15,7 +15,6 @@ const userStore = useUser();
 const newInviteCode = ref<string | null>(null);
 let avatar = ref<File | null>();
 let src = ref<string | ArrayBuffer | null>();
-let serverError = ref<string | null>(null);
 
 const props = defineProps<{
   currentNamespace: Namespace | undefined;
@@ -31,7 +30,7 @@ const validationSchema = toFormValidator(
       .string({ required_error: "Le champ doit être remplie : (" })
       .min(1, "Minimum 1 caractères requis"),
 
-    invite_code: z
+    inviteCode: z
       .string({ required_error: "Le champ doit être remplie : (" })
       .length(8, "Le code est composé de 8 caractères"),
   })
@@ -45,8 +44,8 @@ const submit = handleSubmit(async (formValue: Partial<Namespace>) => {
   try {
     if (
       !(
-        formValue.invite_code === newInviteCode.value ||
-        formValue.invite_code === props.currentNamespace?.invite_code
+        formValue.inviteCode === newInviteCode.value ||
+        formValue.inviteCode === props.currentNamespace?.inviteCode
       )
     ) {
       throw new Error("Tu ne peux pas modifier le code");
@@ -54,7 +53,7 @@ const submit = handleSubmit(async (formValue: Partial<Namespace>) => {
 
     if (
       formValue.name !== props.currentNamespace?.name ||
-      formValue.invite_code !== props.currentNamespace?.invite_code ||
+      formValue.inviteCode !== props.currentNamespace?.inviteCode ||
       avatar.value
     ) {
       socketStore.activeNsSocket.emit(
@@ -78,17 +77,17 @@ const submit = handleSubmit(async (formValue: Partial<Namespace>) => {
     }
   } catch (e: string | any) {
     setErrors({
-      invite_code: e.message,
+      inviteCode: e.message,
     });
   }
 });
 
 const { value: nameValue, errorMessage: nameError } = useField("name");
-const { value: codeValue, errorMessage: codeError } = useField("invite_code");
+const { value: codeValue, errorMessage: codeError } = useField("inviteCode");
 
 onMounted(() => {
   nameValue.value = props.currentNamespace?.name;
-  codeValue.value = props.currentNamespace?.invite_code;
+  codeValue.value = props.currentNamespace?.inviteCode;
 });
 
 watch(newInviteCode, (newValue) => {
@@ -121,8 +120,8 @@ function previewAvatar(e: Event) {
           :src="
             src
               ? src
-              : currentNamespace.img_url
-              ? currentNamespace.img_url
+              : currentNamespace.imgUrl
+              ? currentNamespace.imgUrl
               : uploadImgUrl
           "
           style="color: white"
@@ -216,7 +215,6 @@ function previewAvatar(e: Event) {
       font-size: 0.7rem;
     }
   }
-
 
   input {
     outline: none;

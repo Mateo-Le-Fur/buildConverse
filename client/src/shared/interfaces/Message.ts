@@ -1,11 +1,11 @@
 export interface Message {
   id: number;
   data: string;
-  data_type: "text" | "file" | "image";
-  author_name: string;
-  avatar_author: string;
-  user_id: number;
-  room_id: number;
-  created_at: string;
-  updated_at: string;
+  dataType: "text" | "file" | "image";
+  authorName: string;
+  avatarAuthor: string;
+  userId: number;
+  roomId: number;
+  createdAt: string;
+  updatedAt: string;
 }

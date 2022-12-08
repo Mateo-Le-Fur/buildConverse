@@ -4,8 +4,8 @@ export interface RoomInterface {
   id: number;
   name: string;
   index: string;
-  namespace_id: number;
+  namespaceId: number;
   namespaces: Namespace;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }

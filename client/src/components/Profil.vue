@@ -16,7 +16,7 @@ const router = useRouter();
 
 const state = reactive<{
   isProfilOpen: boolean;
-  user: Partial<User> | null;
+  user: Partial<User | null>;
 }>({
   isProfilOpen: false,
   user: null,
@@ -112,7 +112,7 @@ const submit = handleSubmit(async (formValue: User) => {
           email: formValue.email,
           description: description.value,
           namespaces,
-          userId: userStore.currentUser?.id,
+          id: userStore.currentUser?.id,
           avatar: avatar.value ? avatar.value : null,
           avatarName: avatar.value ? avatar.value?.name : null,
         },
@@ -137,7 +137,7 @@ const { value: emailValue, errorMessage: emailError } = useField("email");
 
 <template>
   <div class="profil-container d-flex align-items-center">
-    <img :src="userStore.currentUser?.avatar_url" alt="" />
+    <img :src="userStore.currentUser?.avatarUrl" alt="" />
     <p>{{ userStore.currentUser?.pseudo }}</p>
     <div class="d-flex flex-fill justify-content-end">
       <div class="settings d-flex justify-content-end">
@@ -160,7 +160,7 @@ const { value: emailValue, errorMessage: emailError } = useField("email");
               <label for="file" class="label-file">
                 <img
                   class="avatar"
-                  :src="src ? src : userStore.currentUser?.avatar_url"
+                  :src="src ? src : userStore.currentUser?.avatarUrl"
                 />
               </label>
               <input

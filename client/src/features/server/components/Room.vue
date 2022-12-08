@@ -12,7 +12,6 @@ const socketStore = useSocket();
 const userNsStore = useNsUser();
 const roomStore = useRoom();
 
-
 // Je récupère l'id de mon serveur dans le paramètre de ma route
 const props = defineProps<{
   rooms: RoomInterface[];
@@ -48,7 +47,7 @@ function onLeave() {
 function deleteRoom(roomId: number) {
   socketStore.activeNsSocket.emit("deleteRoom", {
     namespaceId: Number(props.params.idChannel),
-    id: roomId
+    id: roomId,
   });
 }
 
@@ -56,7 +55,7 @@ async function onEdit() {
   await nextTick(() => {
     const input = toRaw(inputElem.value);
     // @ts-ignore
-    inputElem.value[0].focus();
+    input.value[0].focus();
   });
 }
 
@@ -69,7 +68,7 @@ async function updateRoom(roomId: number, namespaceId: number) {
       id: roomId,
       namespaceId,
       // @ts-ignore
-      name: input[0].value
+      name: input[0].value,
     });
   });
 }
@@ -102,7 +101,10 @@ async function updateRoom(roomId: number, namespaceId: number) {
       />
 
       <div class="room-container d-flex flex-column">
-        <template v-for="room of roomStore.getRooms(params.idChannel)" :key="room.id">
+        <template
+          v-for="room of roomStore.getRooms(params.idChannel)"
+          :key="room.id"
+        >
           <router-link
             @mouseover="onHover(room.id)"
             @mouseout="onLeave()"

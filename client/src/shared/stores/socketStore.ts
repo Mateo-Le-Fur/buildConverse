@@ -1,10 +1,5 @@
 import { defineStore } from "pinia";
-import {
-  io,
-  Socket,
-  type ManagerOptions,
-  type SocketOptions,
-} from "socket.io-client";
+import { io, Socket, type ManagerOptions } from "socket.io-client";
 
 import type { Namespace } from "@/shared/interfaces/Namespace";
 import type { RoomInterface } from "@/shared/interfaces/Room";
@@ -13,8 +8,6 @@ import type { User } from "@/shared/interfaces/User";
 import { useRoom } from "@/features/server/stores/roomStore";
 import { useNsUser } from "@/features/server/stores/userNsStore";
 import { useUser } from "@/shared/stores/authStore";
-import { date } from "zod";
-import type { UserHasNamespace } from "@/shared/interfaces/UserHasNamespace";
 
 interface SocketState {
   ioClient: Socket | null;
@@ -89,6 +82,7 @@ export const useSocket = defineStore("socket", {
 
     initNamespaces() {
       this.ioClient?.on("namespaces", (data: Namespace[]) => {
+        console.log(data)
         if (!data.length) this.isNamespacesLoaded = true;
 
         this.namespaces.push(...data);
@@ -103,7 +97,6 @@ export const useSocket = defineStore("socket", {
       });
 
       this.ioClient?.on("createdNamespace", async (data: Namespace[]) => {
-        console.log(data);
         const roomStore = useRoom();
 
         this.namespaces.push(...data);
@@ -229,7 +222,7 @@ export const useSocket = defineStore("socket", {
       requête au serveur.
        */
       if (
-        userNsStore.userList[0]?.UserHasNamespace.namespace_id !==
+        userNsStore.userList[0]?.UserHasNamespace.namespaceId !==
         Number(channelId)
       ) {
         userNsStore.isUsersLoaded = false;
@@ -250,11 +243,11 @@ export const useSocket = defineStore("socket", {
       const userNsStore = useNsUser();
 
       roomStore.rooms = roomStore.rooms.filter(
-        (room) => room.namespace_id !== data.id
+        (room) => room.namespaceId !== data.id
       );
 
       userNsStore.userList = userNsStore.userList.filter(
-        (user) => user.UserHasNamespace.namespace_id !== data.id
+        (user) => user.UserHasNamespace.namespaceId !== data.id
       );
 
       const namespaceIndex = this.namespaces.findIndex(
@@ -281,7 +274,7 @@ export const useSocket = defineStore("socket", {
 
       this.activeNsSocket = null;
       // @ts-ignore
-      await this.router.push("/home");
+      await this.router.push("/channels/me");
     },
 
     async updateNamespace(data: Namespace) {

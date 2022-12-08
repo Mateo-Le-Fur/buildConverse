@@ -6,9 +6,9 @@ export interface Namespace {
   id: number;
   name: string;
   inviteCode: string;
-  img_url: string;
+  imgUrl: string;
   rooms: RoomInterface[];
   UserHasNamespace: UserHasNamespace;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }

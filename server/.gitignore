@@ -6,3 +6,4 @@ newrelic.js
 newrelic_agent.log
 testSocket.js
 dist
+database/sql/seed.js

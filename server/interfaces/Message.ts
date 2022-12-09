@@ -1,4 +1,5 @@
 export interface MessageInterface {
+  user_id: any;
   id: number;
   data: string;
   dataType: "text" | "file" | "image";

@@ -1,15 +1,15 @@
 import User from "./User";
 import Room from "./Room";
-import Namespace from "./Namespace";
+import UserNamespace from "./Namespace";
 import Message from "./Message";
 import UserHasNamespace from "./UserHasNamespace";
 
-Namespace.hasMany(Room, {
+UserNamespace.hasMany(Room, {
   foreignKey: "namespace_id",
   as: "rooms",
 });
 
-Room.belongsTo(Namespace, {
+Room.belongsTo(UserNamespace, {
   foreignKey: "namespace_id",
   as: "namespaces",
 });
@@ -42,7 +42,7 @@ User.belongsToMany(User, {
   otherKey: "user_id",
 });
 
-User.belongsToMany(Namespace, {
+User.belongsToMany(UserNamespace, {
   as: "namespaces",
   through: UserHasNamespace,
   foreignKey: "user_id",
@@ -50,7 +50,7 @@ User.belongsToMany(Namespace, {
   timestamps: false,
 });
 
-Namespace.belongsToMany(User, {
+UserNamespace.belongsToMany(User, {
   as: "users",
   through: UserHasNamespace,
   foreignKey: "namespace_id",
@@ -58,4 +58,4 @@ Namespace.belongsToMany(User, {
   timestamps: false,
 });
 
-export { User, Room, Namespace, Message, UserHasNamespace };
+export { User, Room, UserNamespace, Message, UserHasNamespace };

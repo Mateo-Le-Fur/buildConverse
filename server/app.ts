@@ -9,7 +9,7 @@ import cookieParser from "cookie-parser";
 const app: Express = express();
 
 const server = app.listen(process.env.PORT);
-module.exports = { server, app };
+export { server, app };
 
 app.use(cookieParser());
 

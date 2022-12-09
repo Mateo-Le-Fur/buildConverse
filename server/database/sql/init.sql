@@ -1,13 +1,13 @@
 BEGIN;
 
-    DROP TABLE
-        "user",
-        "namespace",
-        "room",
-        "message",
-        "friend",
-        "friend_request",
-        "user_has_namespace";
+DROP TABLE
+    "user",
+    "namespace",
+    "room",
+    "message",
+    "friend",
+    "friend_request",
+    "user_has_namespace";
 
 DROP TYPE data_type;
 
@@ -59,7 +59,7 @@ CREATE TABLE private_chats (
     "id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     "user1_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     "user2_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE private_messages (
@@ -74,10 +74,10 @@ CREATE TABLE private_messages (
 
 CREATE TABLE "bans" (
     "id" INT GENERATED ALWAYS AS  IDENTITY PRIMARY KEY,
-    "user_id" INT NOT NULL ON DELETE CASCADE,
-    "namespace_id" INT NOT NULL ON DELETE CASCADE,
+    "user_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    "namespace_id" INT NOT NULL REFERENCES "namespace"(id) ON DELETE CASCADE,
     "reason" TEXT,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "friends" (

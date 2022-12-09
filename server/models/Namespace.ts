@@ -12,7 +12,7 @@ import { RoomInterface } from "../interfaces/Room";
 import { UserHasNamespaceInterface } from "../interfaces/UserHasNamespace";
 import user from "./User";
 
-class Namespace extends Model<Optional<NamespaceInterface, any>> {
+class UserNamespace extends Model<Optional<NamespaceInterface, any>> {
   declare id: number;
   declare name: string;
   declare inviteCode: string;
@@ -28,7 +28,7 @@ class Namespace extends Model<Optional<NamespaceInterface, any>> {
   ) => user[];
 }
 
-Namespace.init(
+UserNamespace.init(
   {
     name: {
       type: DataTypes.TEXT,
@@ -51,4 +51,4 @@ Namespace.init(
     tableName: "namespace",
   }
 );
-export default Namespace;
+export default UserNamespace;

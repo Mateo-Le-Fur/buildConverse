@@ -1,18 +1,28 @@
 import { User, Message } from "../models";
-import { Socket } from "socket.io";
+import { Server, Socket } from "socket.io";
 import { MessageInterface } from "../interfaces/Message";
 import { SocketCustom } from "../interfaces/SocketCustom";
-const message = {
-  async sendMessage(
-    ns: Socket,
+import { Namespace } from "socket.io/dist/namespace";
+
+class MessageManager {
+  private ios: Server;
+
+  constructor(ios: Server) {
+
+    this.ios = ios;
+  }
+
+  public async sendMessage(
+    ns: Namespace,
     nsSocket: SocketCustom,
     data: MessageInterface
   ) {
-    const { id } = nsSocket.request.user;
+    const { id } = nsSocket.request.user!;
+
 
     const user = await User.findByPk(id, {
       attributes: ["pseudo", ["avatar_url", "avatarUrl"]],
-      raw: true,
+      raw: true
     });
 
 
@@ -23,7 +33,7 @@ const message = {
         room_id: data.roomId,
         user_id: id,
         authorName: user?.pseudo,
-        avatarAuthor: user?.avatarUrl,
+        avatarAuthor: user?.avatarUrl
       })
     ).get();
 
@@ -31,11 +41,11 @@ const message = {
       ...message,
       avatarAuthor: `${
         process.env.DEV_AVATAR_URL
-      }/user/${id}/${Date.now()}/avatar`,
+      }/user/${id}/${Date.now()}/avatar`
     };
 
-    ns.to(`/${data.roomId}`).emit("message", message);
-  },
+    ns.in(`/${data.roomId}`).emit("message", message);
+  }
 };
 
-export default message;
+export { MessageManager };

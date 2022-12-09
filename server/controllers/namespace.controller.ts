@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { RequestCustom } from "../interfaces/ReqUserInterface";
 
-import { Namespace, UserHasNamespace } from "../models";
+import { UserNamespace, UserHasNamespace } from "../models";
 import path from "path";
 
 class namespaceController {
@@ -12,7 +12,7 @@ class namespaceController {
   async getNamespaceAvatar(req: Request, res: Response) {
     const { id } = req.params;
 
-    const namespace = await Namespace.findByPk(id, { raw: true });
+    const namespace = await UserNamespace.findByPk(id, { raw: true });
 
     res.sendFile(path.join(__dirname, `..${namespace?.imgUrl}.webp`));
   }

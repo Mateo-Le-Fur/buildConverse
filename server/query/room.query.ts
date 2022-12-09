@@ -1,8 +1,8 @@
-const client = require("../config/sequelize");
-const { QueryTypes } = require("sequelize");
+import client from "../config/sequelize";
+import { QueryTypes } from "sequelize";
 
-async function getNumberOfRooms(namespaceId) {
-  const room = await client.query(
+async function getNumberOfRooms(namespaceId: number): Promise<{ count: number }> {
+  const room: {count: number}[] = await client.query(
     `SELECT COUNT(id) FROM "room" WHERE namespace_id = ${namespaceId}`,
     { type: QueryTypes.SELECT }
   );
@@ -10,6 +10,6 @@ async function getNumberOfRooms(namespaceId) {
   return room[0];
 }
 
-module.exports = {
+export  {
   getNumberOfRooms,
 };

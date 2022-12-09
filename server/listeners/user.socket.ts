@@ -1,21 +1,23 @@
-import { User, Namespace } from "../models";
+import { User, UserNamespace } from "../models";
 import runService from "../services/runService";
-import { Socket } from "socket.io";
+import { Server, Socket } from "socket.io";
 import { UpdateUserInterface } from "../interfaces/UpdateUserInterface";
 import { SocketCustom } from "../interfaces/SocketCustom";
 import { UserInterface } from "../interfaces/User";
-import { NamespaceInterface } from "../interfaces/Namespace";
-import { UserHasNamespaceInterface } from "../interfaces/UserHasNamespace";
 
-const user = {
-  async updateUser(socket: SocketCustom, ios: Socket, data: UpdateUserInterface) {
+class UserManager {
+
+  private ios: Server;
+
+  constructor(ios: Server) {
+    this.ios = ios;
+
+  }
+
+  public async updateUser(socket: SocketCustom, data: UpdateUserInterface) {
     const avatar_name = data.avatar
-      ? `${socket.request.user.id}-${Date.now()}`
+      ? `${socket.request.user?.id}-${Date.now()}`
       : null;
-
-    console.log(data);
-
-    console.log(avatar_name);
 
     if (data.avatar) {
       const t0 = performance.now();
@@ -32,7 +34,7 @@ const user = {
 
     const { avatarUrl: oldAvatar } = await User.findByPk(data.id, {
       raw: true
-    });
+    }) as User;
 
     await User.update(
       {
@@ -55,7 +57,7 @@ const user = {
 
     for await (const ns of data.namespaces) {
       let namespace = (
-        await Namespace.findByPk(ns, {
+        await UserNamespace.findByPk(ns, {
           attributes: {
             exclude: [
               "name",
@@ -81,9 +83,7 @@ const user = {
         })
       )?.toJSON();
 
-      console.log(namespace);
-
-      namespace = namespace?.users.map((element: UserInterface) => {
+      const user = namespace?.users.map((element: UserInterface) => {
         return {
           ...element,
           avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
@@ -93,37 +93,41 @@ const user = {
         };
       });
 
-      ios.of(`/${ns}`).emit("updateUser", { ...user });
-    }
-  },
+      console.log(ns)
 
-  async deleteUser(socket: Socket, ios: Socket, data: { id: number, namespacesId: number[] }) {
+      console.log(user)
+
+      this.ios.of(`/${ns}`).emit("updateUser", ...user);
+    }
+  }
+
+  public async deleteUser(socket: Socket, data: { id: number, namespacesId: number[] }) {
     const { id, namespacesId } = data;
 
     for (let nsId of namespacesId) {
-      ios.of(`/${nsId}`).emit("deleteUser", { id });
+      this.ios.of(`/${nsId}`).emit("deleteUser", { id });
     }
-  },
+  }
 
-  connectUser(socket: SocketCustom, ios: Socket, data: { namespaces: number[] }) {
+  public connectUser(socket: SocketCustom, data: { namespaces: number[] }) {
     const { namespaces } = data;
-    const { id } = socket.request.user;
+    const { id } = socket.request.user!;
 
     if (namespaces.length) {
       namespaces.forEach((ns) => {
-        ios.of(`/${ns}`).emit("userConnect", { id });
+        this.ios.of(`/${ns}`).emit("userConnect", { id });
       });
     }
-  },
+  }
 
-  disconnectUser(socket: SocketCustom, ios: Socket, data: {namespaces: number[]}) {
+  public disconnectUser(socket: SocketCustom, data: { namespaces: number[] }) {
     const { namespaces } = data;
-    const { id } = socket.request.user;
+    const { id } = socket.request.user!;
 
     namespaces.forEach((ns) => {
-      ios.of(`/${ns}`).emit("userDisconnect", { id });
+      this.ios.of(`/${ns}`).emit("userDisconnect", { id });
     });
   }
 };
 
-export default user;
+export { UserManager };

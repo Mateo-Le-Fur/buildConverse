@@ -14,7 +14,7 @@ async function compress() {
       quality: 80,
       effort: 0
     })
-    .toFile(path.join(__dirname, `../images/${workerData.avatar_name}.webp`));
+    .toFile(path.join(__dirname, `../images/${workerData.avatarName}.webp`));
 
   return buffer;
 }

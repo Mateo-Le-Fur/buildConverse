@@ -38,27 +38,25 @@ export const useRoom = defineStore("room", {
       this.rooms[room].name = data.name;
     },
 
-    async deleteRoom(data: Partial<RoomInterface>) {
-      if (this.rooms.length > 1) {
-        const socketStore = useSocket();
+    async deleteRoom(data: RoomInterface) {
+      const socketStore = useSocket();
 
-        this.rooms = this.rooms.filter((room) => room.id !== data.id);
+      this.rooms = this.rooms.filter((room) => room.id !== data.id);
 
-        const room = this.rooms.find(
-          (room) => room.namespaceId === data.namespaceId
-        );
+      const room = this.rooms.find(
+        (room) => room.namespaceId === data.namespaceId
+      );
 
-        if (this.activeRoom?.id === data.id) {
-          socketStore.activeNsSocket.emit("leaveRoom", data.id);
-        }
-
-        //@ts-ignore
-        await this.router.push(
-          `/channels/${this.activeRoom?.namespaceId}/${room?.id}`
-        );
-
-        this.joinRoom(room);
+      if (this.activeRoom?.id === data.id) {
+        socketStore.activeNsSocket.emit("leaveRoom", data.id);
       }
+
+      //@ts-ignore
+      await this.router.push(
+        `/channels/${this.activeRoom?.namespaceId}/${room?.id}`
+      );
+
+      this.joinRoom(room);
     },
 
     joinRoom(room: RoomInterface | undefined) {
@@ -73,6 +71,15 @@ export const useRoom = defineStore("room", {
       return this.rooms.filter(
         (room: RoomInterface) => room.namespaceId.toString() === namespaceId
       );
+    },
+
+    getFirstRoom(namespaceId: number): number {
+      const room = this.rooms.find(
+        (room: RoomInterface) => room.namespaceId === namespaceId
+      );
+
+      console.log(room)
+      return room!.id;
     },
   },
 });

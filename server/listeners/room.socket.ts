@@ -8,10 +8,10 @@ import { Room, Message } from "../models";
 import { getNumberOfRooms } from "../query/room.query";
 
 class RoomsManager {
-  protected ios: Server;
+  private _ios: Server;
 
   constructor(ios: Server) {
-    this.ios = ios;
+    this._ios = ios;
   }
 
   public async getAllRooms(nsSocket: Socket, namespaceId: string) {
@@ -54,7 +54,7 @@ class RoomsManager {
       namespace_id: data.namespaceId
     });
 
-    this.ios.of(`/${data.namespaceId}`).emit("createRoom", room);
+    this._ios.of(`/${data.namespaceId}`).emit("createRoom", room);
   }
 
   public async updateRoom(data: { id: number, namespaceId: number, name: string }) {
@@ -72,13 +72,15 @@ class RoomsManager {
       }
     );
 
-    this.ios.of(`/${namespaceId}`).emit("updateRoom", data);
+    this._ios.of(`/${namespaceId}`).emit("updateRoom", data);
   }
 
   public async deleteRoom(nsSocket: Socket, data: { id: number, namespaceId: number }) {
     const { id, namespaceId } = data;
 
     const { count } = await getNumberOfRooms(namespaceId);
+
+    console.log(count);
 
     if (count > 1) {
       await Room.destroy({
@@ -90,7 +92,7 @@ class RoomsManager {
 
     nsSocket.leave(`/${id}`);
 
-    this.ios.of(`${namespaceId}`).emit("deleteRoom", data);
+    this._ios.of(`${namespaceId}`).emit("deleteRoom", data);
   }
 };
 

@@ -21,18 +21,23 @@ const userNsStore = useNsUser();
 watch(
   () => socketStore.isNamespacesLoaded,
   (newValue) => {
-    if (newValue) {
+    if (newValue && socketStore.namespaces.length) {
       joinNamespace();
     }
   }
 );
 
-// Permet de naviguer entre les namespaces lorsque la route change
-if (`/${route.params.idChannel}` !== socketStore.activeNsSocket?.nsp) {
-  if (socketStore.isNamespacesLoaded) {
-    joinNamespace();
+watch(
+  () => route.params.idChannel,
+  () => {
+    if (socketStore.isNamespacesLoaded && socketStore.namespaces.length) {
+      joinNamespace();
+    }
+  },
+  {
+    immediate: true,
   }
-}
+);
 
 function joinNamespace() {
   const nsSocket = socketStore.namespaceSockets.find(

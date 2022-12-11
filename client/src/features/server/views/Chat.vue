@@ -3,8 +3,9 @@ import { useSocket } from "@/shared/stores/socketStore";
 import SendMessage from "../components/SendMessage.vue";
 import { onMounted, onUpdated, ref, watchEffect } from "vue";
 import { useRoom } from "@/features/server/stores/roomStore";
-import type { RoomInterface } from "@/shared/interfaces/Room";
 import type { RouteParams } from "vue-router";
+import botAvatar from "@/assets/images/bot.png";
+
 
 function scrollToBottom() {
   const element = ref<HTMLDivElement | null>(null);
@@ -12,7 +13,7 @@ function scrollToBottom() {
 
   element.value?.scrollTo({
     top: element.value?.scrollHeight,
-    left: 0,
+    left: 0
   });
 }
 
@@ -41,19 +42,21 @@ const props = defineProps<{
       <template v-for="message of socketStore.messages" :key="message.id">
         <div class="d-flex message">
           <div>
-            <img class="mr-10" :src="message.avatarAuthor" />
+            <img class="mr-10" :src="message.avatarAuthor ?? botAvatar" />
           </div>
           <div class="d-flex flex-column w-100">
             <div class="d-flex align-items-center mb-5">
               <p class="author">
                 {{ message.authorName
-                }}<span>{{
+                }}<span v-if="message.id !== -1">{{
                   new Date(message.created_at).toLocaleString("fr-FR")
                 }}</span>
               </p>
             </div>
             <div class="d-flex w-100">
-              <p class="message-color">{{ message.data }}</p>
+              <p class="message-color" :class="{ red: message.id === -1 }">
+                {{ message.data }}
+              </p>
             </div>
           </div>
         </div>
@@ -133,6 +136,10 @@ const props = defineProps<{
       margin-left: 10px;
       color: #bbb;
     }
+  }
+
+  .red {
+    color: #eb4144 !important;
   }
 }
 </style>

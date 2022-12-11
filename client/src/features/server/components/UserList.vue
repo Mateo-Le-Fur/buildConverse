@@ -4,6 +4,7 @@ import type { RouteParams } from "vue-router";
 import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
 import { useSocket } from "@/shared/stores/socketStore";
 import { useNsUser } from "@/features/server/stores/userNsStore";
+import { watch } from "vue";
 
 const socketStore = useSocket();
 const userNsStore = useNsUser();
@@ -17,7 +18,7 @@ function loadMoreUser(e: Event) {
   const target = e.target as HTMLDivElement;
   if (target.scrollTop + target.clientHeight >= target.scrollHeight) {
     socketStore.activeNsSocket.emit("loadMoreUser", {
-      length: props.userList.length,
+      currentArrayLength: props.userList.length,
       namespaceId: props.params.idChannel,
     });
   }

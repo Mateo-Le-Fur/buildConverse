@@ -2,48 +2,40 @@
 import tippy from "tippy.js";
 import "tippy.js/dist/tippy.css";
 import "tippy.js/dist/svg-arrow.css";
-import uploadImgUrl from "@/assets/images/upload.svg";
 import { useSocket } from "@/shared/stores/socketStore";
 import { ref, watch } from "vue";
-import { toFormValidator } from "@vee-validate/zod";
-import { z } from "zod";
-import { useField, useForm } from "vee-validate";
-import type { Namespace } from "@/shared/interfaces/Namespace";
-import { generateInviteCode } from "@/utils/generateInviteCode";
-import Spinner from "@/components/Spinner.vue";
 import { useRoom } from "@/features/server/stores/roomStore";
+import AddServerPopup from "@/components/AddServerPopup.vue";
+import { useRoute } from "vue-router";
 
 const socketStore = useSocket();
 const roomStore = useRoom();
+const route = useRoute()
 
 const addServerPopup = ref<boolean>(false);
-let src = ref<string | ArrayBuffer | null>();
-let namespaceImage = ref<File>();
-
-watch(namespaceImage, (NewValue) => {
-  namespaceImage.value = NewValue;
-});
 
 watch(
   () => socketStore.isNamespacesLoaded,
-  () => {
-    setTimeout(() => {
-      const anchorElem = [
-        ...document.querySelectorAll(".tooltip"),
-      ] as HTMLAnchorElement[];
+  (value) => {
+    if (value) {
+      setTimeout(() => {
+        const anchorElem = [
+          ...document.querySelectorAll(".tooltip")
+        ] as HTMLAnchorElement[];
 
-      for (let i = 0; i < anchorElem.length; i++) {
-        tippy(anchorElem[i], {
-          content: anchorElem[i].dataset.tooltip as string,
-          allowHTML: true,
-          arrow: true,
-          placement: "right",
-          offset: [0, 20],
-          maxWidth: 250,
-          theme: "custom",
-        });
-      }
-    });
+        for (let i = 0; i < anchorElem.length; i++) {
+          tippy(anchorElem[i], {
+            content: anchorElem[i].dataset.tooltip as string,
+            allowHTML: true,
+            arrow: true,
+            placement: "right",
+            offset: [0, 20],
+            maxWidth: 250,
+            theme: "custom"
+          });
+        }
+      });
+    }
   }
 );
 
@@ -56,103 +48,13 @@ watch(
   }
 );
 
-function previewAvatar(e: Event) {
-  const target = e.target as HTMLInputElement;
-  const file = target.files![0];
-
-  const reader = new FileReader();
-  reader.readAsDataURL(file);
-
-  reader.onloadend = () => {
-    src.value = reader.result;
-  };
-
-  namespaceImage.value = file;
-}
-
-const validationSchema = toFormValidator(
-  z
-    .object({
-      name: z
-        .string()
-        .trim()
-        .min(2, "2 caractère minimum : (")
-        .max(30, "30 caractères maximum : ("),
-
-      inviteCode: z.string().length(8, "Le code est composé de 8 caractères"),
-    })
-    .partial()
-    .refine((data) => !!data.name || data.inviteCode)
-);
-
-const { handleSubmit, setErrors } = useForm<Namespace>({
-  validationSchema,
-});
-
-const submitNamespace = handleSubmit((formValue: Namespace) => {
-  try {
-    if (namespaceImage.value?.size! > 1e7) {
-      throw new Error("10Mo Maximum pour la taille des images");
-    }
-    socketStore.isNamespaceCreated = false;
-    socketStore.ioClient?.emit("createNamespace", {
-      name: formValue.name,
-      inviteCode: generateInviteCode(),
-      imgName: namespaceImage.value?.name,
-      imgUrl: namespaceImage.value,
-    });
-  } catch (e: any) {
-    setErrors({
-      name: e.message,
-    });
-  }
-});
-
-const submitInviteCode = handleSubmit(
-  (formValue: Partial<Namespace>, actions) => {
-    try {
-      socketStore.isNamespaceCreated = false;
-      socketStore.ioClient?.emit(
-        "userJoinNamespace",
-        {
-          inviteCode: formValue.inviteCode,
-        },
-        (response: { message: string; status: string }) => {
-          if (response.status !== "ok") {
-            setErrors({
-              inviteCode: response.message,
-            });
-          }
-        }
-      );
-      actions.resetForm();
-    } catch (e: any) {
-      console.log(e);
-      setErrors({
-        inviteCode: e.message,
-      });
-    }
-  }
-);
-
-const { value: nameValue, errorMessage: nameError } = useField(
-  "name",
-  {},
-  {
-    validateOnValueUpdate: false,
-  }
-);
-const { value: inviteCodeValue, errorMessage: inviteCodeError } = useField(
-  "inviteCode",
-  {},
-  { validateOnValueUpdate: false }
-);
-
-function leaveNamespace(home: boolean = false) {
-  if (socketStore.activeNsSocket) {
+function changeNamespace(namespaceId: number, home: boolean = false) {
+  if (
+    socketStore.activeNsSocket &&
+    namespaceId !== Number(route.params.idChannel)
+  ) {
     socketStore.activeNsSocket.emit("leaveRoom", roomStore.activeRoom?.id);
   }
-
   if (home) {
     socketStore.activeNsSocket = null;
   }
@@ -166,7 +68,7 @@ function leaveNamespace(home: boolean = false) {
   >
     <div class="scroll d-flex flex-column align-items-center">
       <router-link
-        @click="socketStore.activeNsSocket ? leaveNamespace(true) : ''"
+        @click="socketStore.activeNsSocket ? changeNamespace(null, true) : ''"
         to="/channels/me"
       >
         <div
@@ -185,8 +87,10 @@ function leaveNamespace(home: boolean = false) {
         <router-link
           :data-tooltip="namespace.name"
           class="tooltip"
-          @click="leaveNamespace()"
-          :to="`/channels/${namespace.id}/${namespace.rooms[0].id}`"
+          @click="changeNamespace(namespace.id)"
+          :to="`/channels/${namespace.id}/${roomStore.getFirstRoom(
+            namespace.id
+          )}`"
         >
           <div class="namespace">
             <img
@@ -204,7 +108,7 @@ function leaveNamespace(home: boolean = false) {
       <div
         data-tooltip="Ajouter un serveur"
         class="create-namespace align-items-center justify-content-center tooltip"
-        @click="addServerPopup = true"
+        @click.stop="addServerPopup = true"
       >
         <div
           class="d-flex align-items-center justify-content-center"
@@ -212,61 +116,10 @@ function leaveNamespace(home: boolean = false) {
         >
           <span class="plus">+</span>
         </div>
-      </div>
-      <div v-if="addServerPopup">
-        <Teleport to="body">
-          <div @click="addServerPopup = false" class="calc"></div>
-        </Teleport>
-        <div class="d-flex align-items-center flex-column add-server">
-          <h2>Créer un serveur</h2>
-          <label for="file" class="label-file">
-            <img style="color: white" :src="src ? src : uploadImgUrl" />
-          </label>
-
-          <input
-            @change="previewAvatar($event)"
-            id="file"
-            class="input-file"
-            type="file"
-          />
-          <form @submit.prevent="submitNamespace">
-            <div class="d-flex flex-column">
-              <input
-                class="mb-10"
-                v-model="nameValue"
-                id="name"
-                type="text"
-                placeholder="Nom du serveur"
-              />
-              <p class="form-error" v-if="nameError">{{ nameError }}</p>
-
-              <button class="mb-20">C'est partie !</button>
-              <!--              <div-->
-              <!--                class="d-flex align-items-center justify-content-center"-->
-              <!--                v-else-->
-              <!--              >-->
-              <!--                <spinner />-->
-              <!--              </div>-->
-            </div>
-          </form>
-
-          <form @submit.prevent="submitInviteCode">
-            <div class="d-flex flex-column">
-              <p>Tu as un code d'invitation ?</p>
-              <input
-                class="mb-5"
-                id="inviteCode"
-                type="text"
-                placeholder="Entre le code"
-                v-model="inviteCodeValue"
-              />
-              <p class="form-error" v-if="inviteCodeError">
-                {{ inviteCodeError }}
-              </p>
-              <button>Rejoindre un serveur</button>
-            </div>
-          </form>
-        </div>
+        <AddServerPopup
+          @close-popup="addServerPopup = false"
+          v-if="addServerPopup"
+        />
       </div>
     </div>
   </nav>
@@ -344,53 +197,6 @@ function leaveNamespace(home: boolean = false) {
 
     &:hover {
       border-radius: 40%;
-    }
-  }
-
-  .add-server {
-    gap: 15px;
-    background-color: var(--primary-3);
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 350px;
-    padding: 25px;
-    border-radius: 10px;
-    z-index: 10;
-
-    img {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-    }
-
-    input {
-      font-size: 1rem;
-      width: 250px;
-      height: 40px;
-      outline: none;
-      border: none;
-      background-color: var(--primary-2);
-
-      &::placeholder {
-        font-size: 1rem;
-      }
-    }
-
-    p {
-      margin-bottom: 5px;
-    }
-
-    button {
-      cursor: pointer;
-      width: inherit;
-      background-color: #236cab;
-      outline: none;
-      border: none;
-      border-radius: 3px;
-      padding: 10px;
-      font-size: 1rem;
     }
   }
 

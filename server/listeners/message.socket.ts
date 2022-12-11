@@ -5,11 +5,11 @@ import { SocketCustom } from "../interfaces/SocketCustom";
 import { Namespace } from "socket.io/dist/namespace";
 
 class MessageManager {
-  private ios: Server;
+  private _ios: Server;
 
   constructor(ios: Server) {
 
-    this.ios = ios;
+    this._ios = ios;
   }
 
   public async sendMessage(
@@ -36,6 +36,7 @@ class MessageManager {
         avatarAuthor: user?.avatarUrl
       })
     ).get();
+
 
     message = {
       ...message,

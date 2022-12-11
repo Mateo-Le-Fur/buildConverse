@@ -269,14 +269,17 @@ h2 {
   margin-top: 4rem;
   width: 100%;
 }
+.form-signup-container .form-signup {
+  width: 25%;
+  min-width: 320px;
+  max-width: 420px;
+}
 .form-signup-container .form-signup label {
   color: #f4f4f4;
   font-size: 1rem;
 }
 .form-signup-container .form-signup input {
   height: 55px;
-  width: 400px;
-  min-width: 150px;
   border: none;
   outline: none;
   background-color: var(--primary-3);

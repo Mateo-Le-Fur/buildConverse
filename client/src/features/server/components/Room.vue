@@ -12,6 +12,7 @@ const socketStore = useSocket();
 const userNsStore = useNsUser();
 const roomStore = useRoom();
 
+
 // Je récupère l'id de mon serveur dans le paramètre de ma route
 const props = defineProps<{
   rooms: RoomInterface[];
@@ -44,18 +45,35 @@ function onLeave() {
   roomHover.value = false;
 }
 
-function deleteRoom(roomId: number) {
-  socketStore.activeNsSocket.emit("deleteRoom", {
-    namespaceId: Number(props.params.idChannel),
-    id: roomId,
-  });
+function deleteRoom(room: RoomInterface) {
+  const rooms = roomStore.getRooms(room.namespaceId.toString());
+
+  if (rooms.length > 1) {
+    socketStore.activeNsSocket.emit("deleteRoom", {
+      namespaceId: Number(props.params.idChannel),
+      id: room.id,
+    });
+  } else {
+    socketStore.messages = socketStore.messages.filter(
+      (message) => message.id !== -1
+    );
+    socketStore.messages.push({
+      data: "Tu ne peux pas supprimer ce salon",
+      dataType: "text",
+      authorName: "Chat Bot",
+      avatarAuthor: null,
+      roomId: room.id,
+      id: -1,
+      userId: -1,
+      updatedAt: "",
+    });
+  }
 }
 
 async function onEdit() {
   await nextTick(() => {
-    const input = toRaw(inputElem.value);
     // @ts-ignore
-    input.value[0].focus();
+    inputElem.value[0].focus();
   });
 }
 
@@ -146,7 +164,7 @@ async function updateRoom(roomId: number, namespaceId: number) {
                     />
                   </svg>
                   <svg
-                    @click.stop.prevent="deleteRoom(room.id)"
+                    @click.stop.prevent="deleteRoom(room)"
                     :class="{
                       deleteButton: roomHover && roomId === room.id,
                     }"

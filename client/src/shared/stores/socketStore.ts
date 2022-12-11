@@ -1,6 +1,5 @@
 import { defineStore } from "pinia";
-import { io, Socket, type ManagerOptions } from "socket.io-client";
-
+import { io, type ManagerOptions, Socket } from "socket.io-client";
 import type { Namespace } from "@/shared/interfaces/Namespace";
 import type { RoomInterface } from "@/shared/interfaces/Room";
 import type { Message } from "@/shared/interfaces/Message";
@@ -35,7 +34,7 @@ export const useSocket = defineStore("socket", {
     isNamespaceUpdated: false,
     countLoadedNamespace: 0,
     error: null,
-    opts: { reconnection: true, forceNew: false, transports: ["websocket"] },
+    opts: { reconnection: false, forceNew: false, transports: ["websocket"] },
   }),
 
   getters: {
@@ -56,7 +55,7 @@ export const useSocket = defineStore("socket", {
 
         checkInterval = setInterval(() => {
           this.ioClient?.emit("jwt_expire", () => "check");
-        }, 1000 * 60 * 10);
+        }, 1000 * 60);
       });
 
       this.ioClient?.on("connect_error", (err) => {
@@ -82,7 +81,6 @@ export const useSocket = defineStore("socket", {
 
     initNamespaces() {
       this.ioClient?.on("namespaces", (data: Namespace[]) => {
-        console.log(data)
         if (!data.length) this.isNamespacesLoaded = true;
 
         this.namespaces.push(...data);
@@ -190,7 +188,7 @@ export const useSocket = defineStore("socket", {
         roomStore.updateRoom(data);
       });
 
-      nsSocket.on("deleteRoom", async (data: Partial<RoomInterface>) => {
+      nsSocket.on("deleteRoom", async (data: RoomInterface) => {
         await roomStore.deleteRoom(data);
       });
 
@@ -221,14 +219,10 @@ export const useSocket = defineStore("socket", {
       si c'est le cas cela veut dire que j'accède au serveur sur lequel j'étais déjà et donc cela m'évite de renvoyer une
       requête au serveur.
        */
-      if (
-        userNsStore.userList[0]?.UserHasNamespace.namespaceId !==
-        Number(channelId)
-      ) {
-        userNsStore.isUsersLoaded = false;
 
-        this.activeNsSocket.emit("getNamespaceUsers", channelId);
-      }
+      userNsStore.isUsersLoaded = false;
+
+      this.activeNsSocket.emit("getNamespaceUsers", channelId);
     },
 
     async userLeaveNamespace(data: { id: number }) {
@@ -236,6 +230,8 @@ export const useSocket = defineStore("socket", {
       userNsStore.userList = userNsStore.userList.filter(
         (user) => user.id !== data.id
       );
+
+      userNsStore.numberOfUsers--;
     },
 
     async deleteNamespace(data: { id: number }) {

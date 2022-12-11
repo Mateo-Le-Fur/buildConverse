@@ -1,7 +1,7 @@
 import type { NamespaceInterface } from "../interfaces/Namespace";
 import type { SocketCustom } from "../interfaces/SocketCustom";
 import { Server } from "socket.io";
-import { server, app } from "../app";
+import { server } from "../app";
 import { ensureAuthenticatedOnSocketHandshake } from "../config/security.config";
 import cookieParser from "cookie";
 import { NamespacesManager } from "./namespace.socket";
@@ -14,49 +14,48 @@ import { RoomsManager } from "./room.socket";
 import { RoomInterface } from "../interfaces/Room";
 import { MessageInterface } from "../interfaces/Message";
 import { MessageManager } from "./message.socket";
+import { UpdateNamespaceInterface } from "../interfaces/UpdateNamespaceInterface";
+import { DeleteUserInterface } from "../interfaces/DeleteUserInterface";
 
 
 class SocketManager {
 
-  public clients: Map<number, string>;
-  public ios: Server;
-  private namespacesManager: NamespacesManager;
-  private roomsManager: RoomsManager;
-  private usersManager: UserManager;
-  private messagesManager: MessageManager;
+  private _ios: Server;
+  private _clients: Map<number, string>;
+  private _namespacesManager: NamespacesManager;
+  private _roomsManager: RoomsManager;
+  private _usersManager: UserManager;
+  private _messagesManager: MessageManager;
 
   constructor() {
-    this.ios = new Server(server, {
+    this._ios = new Server(server, {
       allowRequest: ensureAuthenticatedOnSocketHandshake,
       maxHttpBufferSize: 1e7,
       cors: { origin: "*", credentials: true }
     });
-    this.clients = new Map();
-    this.namespacesManager = new NamespacesManager(this.ios, this.clients);
-    this.roomsManager = new RoomsManager(this.ios);
-    this.usersManager = new UserManager(this.ios);
-    this.messagesManager = new MessageManager(this.ios)
+    this._clients = new Map();
+    this._namespacesManager = new NamespacesManager(this._ios, this._clients);
+    this._roomsManager = new RoomsManager(this._ios);
+    this._usersManager = new UserManager(this._ios);
+    this._messagesManager = new MessageManager(this._ios);
   }
 
   public init() {
-
-    this.ios.on("connect", async (socket: SocketCustom) => {
+    this._ios.on("connect", async (socket: SocketCustom) => {
       const { id } = socket.request.user!;
       console.log("client connected");
 
-      app.set("socket", socket);
-
-      if (id) this.clients.set(id, socket.id);
+      if (id) this._clients.set(id, socket.id);
 
       try {
-        await this.namespacesManager.getUserNamespaces(socket);
+        await this._namespacesManager.getUserNamespaces(socket);
       } catch (e) {
         console.error(e);
       }
 
       socket.on("createNamespace", async (data: NamespaceInterface) => {
         try {
-          await this.namespacesManager.createNamespace(socket, data);
+          await this._namespacesManager.createNamespace(socket, data);
         } catch (e) {
           console.error(e);
         }
@@ -66,7 +65,7 @@ class SocketManager {
         "userJoinNamespace",
         async (data: NamespaceInterface, callback) => {
           try {
-            await this.namespacesManager.joinInvitation(socket, data);
+            await this._namespacesManager.joinInvitation(socket, data);
             callback({
               status: "ok"
             });
@@ -84,7 +83,7 @@ class SocketManager {
 
       socket.on("updateUser", async (data: UpdateUserInterface, callback) => {
         try {
-          await this.usersManager.updateUser(socket, data);
+          await this._usersManager.updateUser(socket, data);
           callback({
             status: "ok"
           });
@@ -99,20 +98,20 @@ class SocketManager {
         }
       });
 
-      socket.on("deleteUser", async (data: { id: number, namespacesId: number[] }) => {
+      socket.on("deleteUser", async (data: DeleteUserInterface) => {
         try {
-          await this.usersManager.deleteUser(socket, data);
+          await this._usersManager.deleteUser(socket, data);
         } catch (e) {
           console.error(e);
         }
       });
 
       socket.on("join", async (data: { namespaces: number[] }) => {
-        this.usersManager.connectUser(socket, data);
+        this._usersManager.connectUser(socket, data);
       });
 
       socket.on("leave", async (data: { namespaces: number[] }) => {
-        this.usersManager.disconnectUser(socket, data);
+        this._usersManager.disconnectUser(socket, data);
         socket.disconnect(true);
       });
 
@@ -123,6 +122,7 @@ class SocketManager {
               socket.handshake.headers.cookie || ""
             );
             authProtect.decodedToken(cookies.jwt);
+            socket.emit("jwt_expire", false);
           } catch (e) {
             console.error(e);
             socket.emit("jwt_expire", true);
@@ -133,7 +133,7 @@ class SocketManager {
       socket.on("disconnect", () => {
         const { id } = socket.request.user!;
 
-        if (id) this.clients.delete(id);
+        if (id) this._clients.delete(id);
 
         console.log("disconnect home");
       });
@@ -144,7 +144,7 @@ class SocketManager {
 
   private initNamespace() {
     try {
-      const ns = this.ios.of(/^\/\w+$/);
+      const ns = this._ios.of(/^\/\w+$/);
 
       ns.use(async (socket: SocketCustom, next: (err?: ExtendedError | undefined) => void) => {
         const { id } = socket.request.user!;
@@ -171,16 +171,16 @@ class SocketManager {
 
         try {
           const namespaceId = nsSocket.nsp.name.slice(1);
-          await this.roomsManager.getAllRooms(nsSocket, namespaceId);
+          await this._roomsManager.getAllRooms(nsSocket, namespaceId);
         } catch (e) {
           console.error(e);
         }
 
         nsSocket.on(
           "updateNamespace",
-          async (data: { id: number; values: NamespaceInterface, avatar: Buffer }, callback) => {
+          async (data: UpdateNamespaceInterface, callback) => {
             try {
-              await this.namespacesManager.updateNamespace(nsSocket, data);
+              await this._namespacesManager.updateNamespace(nsSocket, data);
               callback({
                 status: "ok"
               });
@@ -199,7 +199,7 @@ class SocketManager {
           "deleteNamespace",
           async (data: NamespaceInterface, callback) => {
             try {
-              await this.namespacesManager.deleteNamespace(nsSocket, data);
+              await this._namespacesManager.deleteNamespace(nsSocket, data);
               callback({
                 status: "ok"
               });
@@ -218,7 +218,7 @@ class SocketManager {
           "userLeaveNamespace",
           async (data: NamespaceInterface, callback) => {
             try {
-              await this.namespacesManager.leaveNamespace(nsSocket, data);
+              await this._namespacesManager.leaveNamespace(nsSocket, data);
               callback({
                 status: "ok"
               });
@@ -236,16 +236,15 @@ class SocketManager {
 
         nsSocket.on("getNamespaceUsers", async (data: number) => {
           try {
-            console.log(data);
-            await this.namespacesManager.getNamespaceUsers(nsSocket, data, this.clients);
+            await this._namespacesManager.getNamespaceUsers(nsSocket, data);
           } catch (e) {
             console.error(e);
           }
         });
 
-        nsSocket.on("loadMoreUser", async (data: { length: number; namespaceId: number }) => {
+        nsSocket.on("loadMoreUser", async (data: { currentArrayLength: number; namespaceId: number }) => {
           try {
-            await this.namespacesManager.loadMoreUser(nsSocket, data, this.clients);
+            await this._namespacesManager.loadMoreUser(nsSocket, data);
           } catch (e) {
             console.error(e);
           }
@@ -254,19 +253,20 @@ class SocketManager {
         nsSocket.on("joinRoom", async (roomId: number) => {
           try {
             nsSocket.join(`/${roomId}`);
-            await this.roomsManager.getAllMessages(nsSocket, roomId);
+            await this._roomsManager.getAllMessages(nsSocket, roomId);
           } catch (e) {
             console.error(e);
           }
         });
 
         nsSocket.on("leaveRoom", (roomId: RoomInterface) => {
+          console.log(roomId)
           nsSocket.leave(`/${roomId}`);
         });
 
         nsSocket.on("createRoom", async (data: RoomInterface) => {
           try {
-            await this.roomsManager.createRoom(data);
+            await this._roomsManager.createRoom(data);
           } catch (e) {
             console.error(e);
           }
@@ -274,19 +274,19 @@ class SocketManager {
 
         nsSocket.on("updateRoom", async (data: RoomInterface) => {
           try {
-            await this.roomsManager.updateRoom(data);
+            await this._roomsManager.updateRoom(data);
           } catch (e) {
             console.error(e);
           }
         });
 
         nsSocket.on("deleteRoom", async (data: RoomInterface) => {
-          await this.roomsManager.deleteRoom(nsSocket, data);
+          await this._roomsManager.deleteRoom(nsSocket, data);
         });
 
         nsSocket.on("message", async (data: MessageInterface) => {
           try {
-            await this.messagesManager.sendMessage(ns, nsSocket, data);
+            await this._messagesManager.sendMessage(ns, nsSocket, data);
           } catch (e) {
             console.error(e);
           }

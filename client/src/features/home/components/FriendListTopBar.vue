@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-const items: string[] = ["En ligne", "Tous", "En attente"];
+const items = ref<string[]>(["En ligne", "Tous", "En attente"]);
 
-const selectedItem = ref<string>(items[0]);
+const selectedItem = ref<string>(items.value[0]);
 </script>
 
 <template>
@@ -19,9 +19,10 @@ const selectedItem = ref<string>(items[0]);
     <div class="sepatator"></div>
     <ul class="d-flex g-25">
       <li
-        v-for="item of items"
+        v-for="(item, index) of items"
         @click="selectedItem = item"
         :class="{ selected: item === selectedItem }"
+        :key="index"
       >
         {{ item }}
       </li>

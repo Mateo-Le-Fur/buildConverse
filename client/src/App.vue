@@ -28,14 +28,13 @@ watch(
     }
   }
 );
+
 </script>
 
 <template>
   <div class="app-container d-flex">
     <Namespace />
-    <router-view v-slot="{ Component, route }">
-      <Component :is="Component" :key="route.fullPath" />
-    </router-view>
+    <router-view></router-view>
   </div>
 </template>
 

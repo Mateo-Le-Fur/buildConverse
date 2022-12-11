@@ -5,7 +5,10 @@ DROP TABLE
     "namespace",
     "room",
     "message",
-    "friend",
+    "private_chats",
+    "private_messages",
+    "bans",
+    "friends",
     "friend_request",
     "user_has_namespace";
 

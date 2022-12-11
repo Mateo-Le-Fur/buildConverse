@@ -59,11 +59,9 @@ const submit = handleSubmit(async (formValue: Partial<Namespace>) => {
       socketStore.activeNsSocket.emit(
         "updateNamespace",
         {
-          id: props.currentNamespace?.id,
+          namespaceId: props.currentNamespace?.id,
           values: formValue,
           avatar: avatar.value ?? null,
-          avatarName: avatar.value?.name,
-          userId: userStore.currentUser?.id,
         },
         (response: { status: string; message?: string }) => {
           if (response.status === "ok") {

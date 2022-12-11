@@ -25,7 +25,7 @@ export const router = createRouter({
     },
 
     {
-      path: "/channels",
+      path: "/channels/me",
       beforeEnter: [isAuthenticatedGaurd],
       component: () => import("@/features/home/Home.vue"),
       children: [

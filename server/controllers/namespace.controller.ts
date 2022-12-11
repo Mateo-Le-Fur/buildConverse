@@ -14,7 +14,9 @@ class namespaceController {
 
     const namespace = await UserNamespace.findByPk(id, { raw: true });
 
-    res.sendFile(path.join(__dirname, `..${namespace?.imgUrl}.webp`));
+
+
+      res.sendFile(path.join(__dirname, `..${namespace?.imgUrl}.webp`));
   }
 
   async leaveNamespace(req: RequestCustom, res: Response) {

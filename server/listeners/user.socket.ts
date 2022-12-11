@@ -2,34 +2,40 @@ import { User, UserNamespace } from "../models";
 import runService from "../services/runService";
 import { Server, Socket } from "socket.io";
 import { UpdateUserInterface } from "../interfaces/UpdateUserInterface";
+import { DeleteUserInterface } from "../interfaces/DeleteUserInterface";
 import { SocketCustom } from "../interfaces/SocketCustom";
 import { UserInterface } from "../interfaces/User";
+import sharp from "sharp";
+import path from "path";
 
 class UserManager {
 
-  private ios: Server;
+  private _ios: Server;
 
   constructor(ios: Server) {
-    this.ios = ios;
+    this._ios = ios;
 
   }
 
   public async updateUser(socket: SocketCustom, data: UpdateUserInterface) {
-    const avatar_name = data.avatar
+    const avatarName = data.avatar
       ? `${socket.request.user?.id}-${Date.now()}`
       : null;
 
     if (data.avatar) {
-      const t0 = performance.now();
+      await sharp(data.avatar)
+        .resize(100, 100)
+        .webp({
+          quality: 80,
+          effort: 0
+        })
+        .toFile(path.join(__dirname, `../images/${avatarName}.webp`));
 
-      await runService("./services/compressWorker.js", {
-        data,
-        avatar_name
-      });
 
-      const t1 = performance.now();
-
-      console.log(`compression done : ${t1 - t0} ms`);
+      // await runService("./services/compressWorker.js", {
+      //   data,
+      //   avatarName
+      // });
     }
 
     const { avatarUrl: oldAvatar } = await User.findByPk(data.id, {
@@ -41,7 +47,7 @@ class UserManager {
         pseudo: data.pseudo,
         email: data.email,
         description: data.description,
-        avatarUrl: data.avatar ? `/images/${avatar_name}` : oldAvatar
+        avatarUrl: data.avatar ? `/images/${avatarName}` : oldAvatar
       },
       {
         where: {
@@ -97,15 +103,15 @@ class UserManager {
 
       console.log(user)
 
-      this.ios.of(`/${ns}`).emit("updateUser", ...user);
+      this._ios.of(`/${ns}`).emit("updateUser", ...user);
     }
   }
 
-  public async deleteUser(socket: Socket, data: { id: number, namespacesId: number[] }) {
+  public async deleteUser(socket: Socket, data: DeleteUserInterface) {
     const { id, namespacesId } = data;
 
     for (let nsId of namespacesId) {
-      this.ios.of(`/${nsId}`).emit("deleteUser", { id });
+      this._ios.of(`/${nsId}`).emit("deleteUser", { id });
     }
   }
 
@@ -115,7 +121,7 @@ class UserManager {
 
     if (namespaces.length) {
       namespaces.forEach((ns) => {
-        this.ios.of(`/${ns}`).emit("userConnect", { id });
+        this._ios.of(`/${ns}`).emit("userConnect", { id });
       });
     }
   }
@@ -125,7 +131,7 @@ class UserManager {
     const { id } = socket.request.user!;
 
     namespaces.forEach((ns) => {
-      this.ios.of(`/${ns}`).emit("userDisconnect", { id });
+      this._ios.of(`/${ns}`).emit("userDisconnect", { id });
     });
   }
 };

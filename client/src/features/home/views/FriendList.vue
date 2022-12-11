@@ -1,12 +1,7 @@
-<script>
-import { defineComponent } from "vue";
+<script setup lang="ts">
 import FriendListTopBar from "@/features/home/components/FriendListTopBar.vue";
 
-export default defineComponent({
-  components: { FriendListTopBar },
-});
 </script>
-
 <template>
   <FriendListTopBar />
 </template>

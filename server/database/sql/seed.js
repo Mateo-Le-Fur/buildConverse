@@ -1,4 +1,3 @@
-const client = require("../../config/sequelize");
 const { faker } = require("@faker-js/faker");
 //
 // const { Namespace } = require("../../models/");
@@ -125,9 +124,9 @@ async function insertUserHasNamespace(namespaceUsers) {
 }
 
 (async () => {
-  generateUsers(3500);
+  generateUsers(500000);
   const userData = await insertUsers(users);
 
-  generateUserHasNamespace(2000);
-  const userDataTwo = await insertUserHasNamespace(namespaceUsers);
+  // generateUserHasNamespace(2000);
+  // const userDataTwo = await insertUserHasNamespace(namespaceUsers);
 })();

@@ -9,6 +9,7 @@ import { SocketCustom } from "../interfaces/SocketCustom";
 import { UpdateNamespaceInterface } from "../interfaces/UpdateNamespaceInterface";
 import runService from "../services/runService";
 import { workerData } from "worker_threads";
+import { Op } from "sequelize";
 
 const { unlinkImage } = require("../utils/unlinckImage");
 
@@ -63,6 +64,7 @@ class NamespacesManager {
     namespaceId: number,
   ) {
     const t0 = performance.now();
+
 
     let foundNamespace = await UserNamespace.findByPk(namespaceId);
 
@@ -140,7 +142,7 @@ class NamespacesManager {
   public async createNamespace(socket: SocketCustom, data: NamespaceInterface) {
     console.time("create");
 
-    const { id: userId } = socket.request.user!;
+    const userId = socket.request.user?.id;
 
     const { count } = await getNumberOfUserNamespaces(userId)
 
@@ -407,7 +409,7 @@ class NamespacesManager {
 
     const { id: namespaceId } = data;
 
-    const { id: userId } = socket.request.user!;
+    const userId = socket.request.user?.id;
 
     await UserHasNamespace.destroy({
       where: {

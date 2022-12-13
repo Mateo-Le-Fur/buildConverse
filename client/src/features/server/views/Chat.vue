@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useSocket } from "@/shared/stores/socketStore";
 import SendMessage from "../components/SendMessage.vue";
-import { onMounted, onUpdated, ref, watchEffect } from "vue";
+import { onMounted, onUnmounted, onUpdated, ref, watchEffect } from "vue";
 import { useRoom } from "@/features/server/stores/roomStore";
 import type { RouteParams } from "vue-router";
 import botAvatar from "@/assets/images/bot.png";
@@ -73,7 +73,7 @@ const props = defineProps<{
 
 .chat-container {
   justify-content: end;
-  min-width: 0;
+  width: 0;
 
   .room-name {
     padding: 10px 20px 10px 20px;

@@ -12,7 +12,6 @@ const socketStore = useSocket();
 const userNsStore = useNsUser();
 const roomStore = useRoom();
 
-
 // Je récupère l'id de mon serveur dans le paramètre de ma route
 const props = defineProps<{
   rooms: RoomInterface[];
@@ -78,7 +77,6 @@ async function onEdit() {
 }
 
 async function updateRoom(roomId: number, namespaceId: number) {
-  console.log(roomId);
   await nextTick(() => {
     const input = toRaw(inputElem.value);
 

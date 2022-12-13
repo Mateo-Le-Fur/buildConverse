@@ -1,13 +1,30 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { useMe } from "@/features/home/stores/meStore";
 
-const items = ref<string[]>(["En ligne", "Tous", "En attente"]);
 
-const selectedItem = ref<string>(items.value[0]);
+const meStore = useMe();
+
+defineProps<{
+  addFriend: boolean;
+}>();
+
+const emit = defineEmits<{
+  (e: "selectedItem", status: string): void;
+  (e: "addFriend", value: boolean): void;
+}>();
+
+const items = ref<{ value: string; x: string }[]>([
+  { value: "En ligne", x: "online" },
+  { value: "Tous", x: "all" },
+  { value: "En attente", x: "pending" }
+]);
+
+const selectedItem = ref<{ value: string; x: string }>(items.value[0]);
 </script>
 
 <template>
-  <div class="top-bar-container d-flex align-items-center">
+  <div class="top-bar-container d-flex align-items-center mb-20">
     <div class="friend d-flex align-items-center g-10">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
         <path
@@ -17,24 +34,24 @@ const selectedItem = ref<string>(items.value[0]);
       <p>Amis</p>
     </div>
     <div class="sepatator"></div>
-    <ul class="d-flex g-25">
-      <li
-        v-for="(item, index) of items"
-        @click="selectedItem = item"
-        :class="{ selected: item === selectedItem }"
-        :key="index"
-      >
-        {{ item }}
-      </li>
-      <li class="add">Ajouter</li>
-    </ul>
+    <nav class="d-flex g-25">
+      <div
+        v-for="item of items"
+        @click="(selectedItem = item), emit('selectedItem', item.x), emit('addFriend', false)"
+        :class="{ selected: item === selectedItem && !addFriend, pending: item.x === 'pending' }"
+        :key="item.value"
+      >{{ item.value }}
+        <div v-if="item.x === 'pending'" class="d-flex justify-content-center request-count">{{ meStore.getFriendsRequest()}}</div>
+      </div>
+      <div @click="emit('addFriend', true)" class="add">Ajouter</div>
+    </nav>
   </div>
 </template>
 
 <style scoped lang="scss">
 .top-bar-container {
   padding: 15px 20px;
-  border-bottom: 1px solid var(--primary-3);
+  border-bottom: 1px solid #242526;
   max-height: 50px;
 
   .friend {
@@ -52,8 +69,9 @@ const selectedItem = ref<string>(items.value[0]);
     background-color: #44484fff;
   }
 
-  ul {
-    li {
+  nav {
+    div {
+      color: #f4f4f4;
       padding: 2px 8px;
       cursor: pointer;
       border-radius: 5px;
@@ -62,8 +80,27 @@ const selectedItem = ref<string>(items.value[0]);
     .selected {
       background-color: #44484fff;
     }
+
     .add {
       background-color: #2d7c45ff;
+    }
+
+
+    .pending {
+      position: relative;
+    }
+
+    .request-count {
+      font-size: 0.8rem;
+      margin: auto;
+      padding: 2px 1px 0 0;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background-color: red;
+      position: absolute;
+      top: -10px;
+      right: -10px;
     }
   }
 }

@@ -3,8 +3,10 @@ import { useSocket } from "@/shared/stores/socketStore";
 import PrivateMessage from "@/features/home/components/PrivateMessage.vue";
 import FriendList from "@/features/home/views/FriendList.vue";
 import { useRoute } from "vue-router";
+import { useMe } from "@/features/home/stores/meStore";
 
 const socketStore = useSocket();
+const meStore = useMe();
 
 const route = useRoute();
 
@@ -15,7 +17,7 @@ const route = useRoute();
   <div v-if="socketStore.isNamespacesLoaded" class="home-container d-flex">
     <div class="d-flex flex-column flex-fill">
       <div>
-        <FriendList v-show="!route.params.idPrivateMessage"/>
+        <FriendList v-if="!route.params.idPrivateMessage" />
       </div>
       <div>
         <router-view></router-view>

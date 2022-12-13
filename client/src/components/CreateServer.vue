@@ -37,7 +37,6 @@ const { handleSubmit, setErrors } = useForm<Namespace>({
 });
 
 const submitNamespace = handleSubmit((formValue: Namespace) => {
-  console.log(formValue);
   try {
     if (props.namespaceImage?.size! > 1e7) {
       throw new Error("10Mo Maximum pour la taille des images");

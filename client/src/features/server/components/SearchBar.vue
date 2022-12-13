@@ -25,7 +25,7 @@ const roomStore = useRoom();
 .container {
   justify-content: space-between;
   max-height: 50px;
-  border-bottom: 1px solid var(--primary-3);
+  border-bottom: 1px solid #242526;
 
   .name {
     font-size: 1.2rem;

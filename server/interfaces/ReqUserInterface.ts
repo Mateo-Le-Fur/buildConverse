@@ -4,7 +4,7 @@ import { JwtPayload } from "jsonwebtoken";
 
 export interface JWTPayload extends JwtPayload {
   id: number;
-  pseudo?: string;
+  pseudo: string;
 }
 
 export interface RequestCustom extends Request {

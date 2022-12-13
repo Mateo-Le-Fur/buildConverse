@@ -110,7 +110,7 @@ function leaveNamespace(namespaceId: number) {
     font-weight: bold;
     text-align: center;
     justify-content: space-between;
-    border-bottom: 1px solid var(--primary-3);
+    border-bottom: 1px solid #242526;
 
     &:hover {
       background-color: #3d4045;

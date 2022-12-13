@@ -8,15 +8,13 @@ const state = reactive<{
 }>({
   elementActive: "friends",
 });
-
-console.log(state.elementActive)
 </script>
 
 <template>
   <div class="d-flex flex-column flex-fill">
     <SearchBar />
     <nav class="nav-container d-flex flex-column flex-fill p-8">
-      <router-link  to="/channels/me">
+      <router-link to="/channels/me">
         <div
           @click="state.elementActive = 'friends'"
           :class="{
@@ -42,7 +40,7 @@ console.log(state.elementActive)
           }"
           class="private-message d-flex flex-column"
         >
-          <router-link  class="p-10" to="/channels/me/123">TEST</router-link>
+          <router-link class="p-10" to="/channels/me/123">TEST</router-link>
         </div>
       </div>
     </nav>

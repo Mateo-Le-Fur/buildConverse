@@ -9,9 +9,11 @@ import { z } from "zod";
 import { useField, useForm } from "vee-validate";
 import { deleteUser, fetchCurrentUser } from "@/shared/services";
 import { getActivePinia } from "pinia";
+import { useMe } from "@/features/home/stores/meStore";
 
 const userStore = useUser();
 const socketStore = useSocket();
+const meStore = useMe();
 const router = useRouter();
 
 const state = reactive<{
@@ -101,9 +103,8 @@ const submit = handleSubmit(async (formValue: User) => {
       description.value !== userStore.currentUser?.description ||
       avatar.value
     ) {
-      const namespaces = socketStore.namespaces.map((ns) => {
-        return ns.id;
-      });
+      const namespaces = socketStore.namespaces.map((ns) => ns.id);
+      const friends = meStore.friends?.map((friend) => friend.id);
 
       socketStore.ioClient?.emit(
         "updateUser",
@@ -112,6 +113,7 @@ const submit = handleSubmit(async (formValue: User) => {
           email: formValue.email,
           description: description.value,
           namespaces,
+          friends,
           id: userStore.currentUser?.id,
           avatar: avatar.value ? avatar.value : null,
           avatarName: avatar.value ? avatar.value?.name : null,

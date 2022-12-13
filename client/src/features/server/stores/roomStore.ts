@@ -56,13 +56,16 @@ export const useRoom = defineStore("room", {
         `/channels/${this.activeRoom?.namespaceId}/${room?.id}`
       );
 
-      this.joinRoom(room);
+      this.joinRoom(room, Number(room?.namespaceId));
     },
 
-    joinRoom(room: RoomInterface | undefined) {
+    joinRoom(room: RoomInterface | undefined, namespaceId: number) {
       const socketStore = useSocket();
 
-      socketStore.activeNsSocket.emit("joinRoom", room?.id);
+      socketStore.activeNsSocket.emit("joinRoom", {
+        roomId: room?.id,
+        namespaceId,
+      });
 
       this.activeRoom = room;
     },
@@ -77,8 +80,6 @@ export const useRoom = defineStore("room", {
       const room = this.rooms.find(
         (room: RoomInterface) => room.namespaceId === namespaceId
       );
-
-      console.log(room)
       return room!.id;
     },
   },

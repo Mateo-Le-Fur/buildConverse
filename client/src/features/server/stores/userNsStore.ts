@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 
 import type { User } from "@/shared/interfaces/User";
 import { useUser } from "@/shared/stores";
+import { useMe } from "@/features/home/stores/meStore";
 
 interface userState {
   userList: User[];
@@ -15,13 +16,11 @@ export const useNsUser = defineStore("userSocket", {
     userList: [],
     numberOfUsers: 0,
     isUsersLoaded: false,
-    error: null
+    error: null,
   }),
 
   actions: {
     getUsersData(data: { users: User[]; numberOfUsers: number }) {
-      console.log(data);
-      console.log("user data : " + data.users);
       this.userList = data.users;
       this.numberOfUsers = data.numberOfUsers;
 
@@ -56,14 +55,14 @@ export const useNsUser = defineStore("userSocket", {
     },
 
     async updateUser(data: User) {
-      const userIndex = this.userList.findIndex(
+      const userNamespaceIndex = this.userList.findIndex(
         (user) =>
           user.id === data.id &&
           user.UserHasNamespace.namespaceId ===
-          data.UserHasNamespace.namespaceId
+            data.UserHasNamespace.namespaceId
       );
-      if (userIndex !== -1) {
-        this.userList[userIndex] = data;
+      if (userNamespaceIndex !== -1) {
+        this.userList[userNamespaceIndex] = data;
       }
     },
 
@@ -85,12 +84,11 @@ export const useNsUser = defineStore("userSocket", {
     },
 
     userDisconnect(data: { id: number }) {
-      console.log(data);
       const user = this.userList.find((user) => user.id === data.id);
 
       if (user) {
         user!.status = "offline";
       }
-    }
-  }
+    },
+  },
 });

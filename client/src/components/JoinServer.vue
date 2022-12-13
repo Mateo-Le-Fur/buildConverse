@@ -37,12 +37,10 @@ const { handleSubmit, setErrors } = useForm<Namespace>({
 });
 
 const submitInviteCode = handleSubmit((formValue: Namespace, actions) => {
-  console.log(formValue);
   try {
     joinNamespace(formValue);
     actions.resetForm();
   } catch (e: any) {
-    console.log(e);
     setErrors({
       inviteCode: e.message,
     });

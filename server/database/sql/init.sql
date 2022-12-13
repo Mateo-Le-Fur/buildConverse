@@ -8,7 +8,7 @@ DROP TABLE
     "private_chats",
     "private_messages",
     "bans",
-    "friends",
+    "friend",
     "friend_request",
     "user_has_namespace";
 
@@ -96,6 +96,7 @@ CREATE TABLE "friend_request" (
     "sender_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     "recipient_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    UNIQUE (sender_id, recipient_id)
 );
 
 

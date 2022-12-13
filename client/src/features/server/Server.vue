@@ -54,13 +54,13 @@ function joinNamespace() {
 function changeRoom(room: RoomInterface) {
   if (roomStore.activeRoom?.id !== Number(room.id)) {
     socketStore.activeNsSocket.emit("leaveRoom", roomStore.activeRoom?.id);
-    roomStore.joinRoom(room);
+    roomStore.joinRoom(room, room.namespaceId);
   }
 }
 </script>
 
 <template>
-  <div v-if="socketStore.isNamespacesLoaded" class="channel-container d-flex">
+  <div class="channel-container d-flex">
     <div class="d-flex flex-column">
       <ServerOptions :route-params="route.params" />
       <Room

@@ -19,7 +19,7 @@
   padding: 10px;
   max-height: 50px;
   background-color: var(--primary-2);
-  border-bottom: 1px solid var(--primary-3);
+  border-bottom: 1px solid #242526;
 
   div {
     background-color: var(--primary-3);

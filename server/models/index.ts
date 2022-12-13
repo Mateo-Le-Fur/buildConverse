@@ -3,22 +3,24 @@ import Room from "./Room";
 import UserNamespace from "./Namespace";
 import Message from "./Message";
 import UserHasNamespace from "./UserHasNamespace";
+import FriendRequest from "./FriendRequest";
+import Friend from "./Friend";
 
 UserNamespace.hasMany(Room, {
   foreignKey: "namespace_id",
-  as: "rooms",
+  as: "rooms"
 });
 
 Room.belongsTo(UserNamespace, {
   foreignKey: "namespace_id",
-  as: "namespaces",
+  as: "namespaces"
 });
 
 User.belongsToMany(Room, {
   as: "message_has_room",
   through: Message,
   foreignKey: "user_id",
-  otherKey: "room_id",
+  otherKey: "room_id"
 });
 
 Room.belongsToMany(User, {
@@ -26,20 +28,39 @@ Room.belongsToMany(User, {
   through: Message,
   foreignKey: "user_id",
   otherKey: "room_id",
+  timestamps: false
 });
 
 User.belongsToMany(User, {
   as: "friends",
-  through: "friend",
-  foreignKey: "user_id",
-  otherKey: "user_id",
+  through: Friend,
+  foreignKey: "user1_id",
+  otherKey: "user2_id",
+  timestamps: false
 });
 
 User.belongsToMany(User, {
-  as: "friends_requests",
-  through: "friend_request",
-  foreignKey: "user_id",
-  otherKey: "user_id",
+  as: "userFriends",
+  through: Friend,
+  foreignKey: "user2_id",
+  otherKey: "user1_id",
+  timestamps: false
+});
+
+User.belongsToMany(User, {
+  as: "pendingRequests",
+  through: FriendRequest,
+  foreignKey: "sender_id",
+  otherKey: "recipient_id",
+  timestamps: false
+});
+
+User.belongsToMany(User, {
+  as: "friendsRequests",
+  through: FriendRequest,
+  foreignKey: "recipient_id",
+  otherKey: "sender_id",
+  timestamps: false
 });
 
 User.belongsToMany(UserNamespace, {
@@ -47,7 +68,7 @@ User.belongsToMany(UserNamespace, {
   through: UserHasNamespace,
   foreignKey: "user_id",
   otherKey: "namespace_id",
-  timestamps: false,
+  timestamps: false
 });
 
 UserNamespace.belongsToMany(User, {
@@ -55,7 +76,7 @@ UserNamespace.belongsToMany(User, {
   through: UserHasNamespace,
   foreignKey: "namespace_id",
   otherKey: "user_id",
-  timestamps: false,
+  timestamps: false
 });
 
-export { User, Room, UserNamespace, Message, UserHasNamespace };
+export { User, Room, UserNamespace, Message, UserHasNamespace, FriendRequest, Friend };

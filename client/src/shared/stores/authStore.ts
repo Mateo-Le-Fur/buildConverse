@@ -3,6 +3,7 @@ import type { User } from "@/shared/interfaces/User";
 import type { LoginForm } from "@/shared/interfaces/LoginForm";
 import { fetchCurrentUser, login, logout } from "@/shared/services";
 import { useSocket } from "@/shared/stores/socketStore";
+import { useMe } from "@/features/home/stores/meStore";
 
 interface AuthState {
   currentUser: User | null;
@@ -41,11 +42,10 @@ export const useUser = defineStore("user", {
 
     async logout() {
       const socketStore = useSocket();
-      const namespaces: number[] = [];
-      socketStore.namespaces.forEach((ns) => {
-        namespaces.push(ns.id);
-      });
-      socketStore.ioClient?.emit("leave", { namespaces });
+      const meStore = useMe();
+      const namespaces = socketStore.namespaces.map((ns) => ns.id);
+      const friends = meStore.friends?.map((friend) => friend.id);
+      socketStore.ioClient?.emit("leave", { namespaces, friends });
       await logout();
       socketStore.ioClient?.disconnect();
       socketStore.namespaceSockets.forEach((nsSocket: any) => {

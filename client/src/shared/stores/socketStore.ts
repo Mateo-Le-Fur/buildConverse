@@ -7,6 +7,9 @@ import type { User } from "@/shared/interfaces/User";
 import { useRoom } from "@/features/server/stores/roomStore";
 import { useNsUser } from "@/features/server/stores/userNsStore";
 import { useUser } from "@/shared/stores/authStore";
+import type { FriendsInterface } from "@/shared/interfaces/FriendsInterface";
+import { useMe } from "@/features/home/stores/meStore";
+import { any } from "zod";
 
 interface SocketState {
   ioClient: Socket | null;
@@ -48,11 +51,10 @@ export const useSocket = defineStore("socket", {
     init() {
       this.ioClient = io(this.opts);
       const userNsStore = useNsUser();
+      const meStore = useMe();
 
       let checkInterval: number;
       this.ioClient.on("connect", () => {
-        console.log("socket on");
-
         checkInterval = setInterval(() => {
           this.ioClient?.emit("jwt_expire", () => "check");
         }, 1000 * 60);
@@ -62,20 +64,55 @@ export const useSocket = defineStore("socket", {
         console.log(err.message);
       });
 
-      this.ioClient?.on("updateUser", async (data: User) => {
-        await userNsStore.updateUser(data);
-      });
-
-      this.ioClient?.on("deleteUser", async (data: { id: number }) => {
-        userNsStore.deleteUser(data);
-      });
-
       this.ioClient?.on("jwt_expire", async (data: boolean) => {
         if (data) {
           clearInterval(checkInterval);
           const userStore = useUser();
           await userStore.logout();
         }
+      });
+    },
+
+    initMe() {
+      const meStore = useMe();
+
+      this.ioClient?.on("friends", (data: FriendsInterface[]) => {
+        meStore.getFriends(data);
+      });
+
+      this.ioClient?.on("friendRequest", (data: FriendsInterface) => {
+        meStore.friendRequest(data);
+      });
+
+      this.ioClient?.on("acceptFriendRequest", (data: FriendsInterface) => {
+        meStore.acceptFriendRequest(data);
+      });
+
+      this.ioClient?.on("declineFriendRequest", (senderId: number) => {
+        meStore.declineFriendRequest(senderId);
+      });
+
+      this.ioClient?.on("friendRequestAccepted", (data: FriendsInterface) => {
+        meStore.friendRequestAccepted(data);
+      });
+
+      this.ioClient?.on("updateUser", async (data: FriendsInterface | null) => {
+        if (data) {
+          meStore.updateUser(data);
+        }
+      });
+
+      this.ioClient?.on("deleteUser", async (data: { id: number } | null) => {
+        if (data) {
+        }
+      });
+
+      this.ioClient?.on("userConnect", async (data: { id: number }) => {
+        meStore.userConnect(data);
+      });
+
+      this.ioClient?.on("userDisconnect", async (data: { id: number }) => {
+        meStore.userDisconnect(data);
       });
     },
 
@@ -205,7 +242,7 @@ export const useSocket = defineStore("socket", {
       });
     },
 
-    joinNamespace(nsSocket: any, roomId: string, channelId: string) {
+    joinNamespace(nsSocket: any, roomId: string, namespaceId: string) {
       const roomStore = useRoom();
       const userNsStore = useNsUser();
 
@@ -213,16 +250,11 @@ export const useSocket = defineStore("socket", {
 
       const room = roomStore.findRoom(roomId);
 
-      roomStore.joinRoom(room);
-
-      /* Je vérifie que l'id du serveur ne corresponde pas à l'id du serveur contenu dans ma liste d'utilisateurs
-      si c'est le cas cela veut dire que j'accède au serveur sur lequel j'étais déjà et donc cela m'évite de renvoyer une
-      requête au serveur.
-       */
+      roomStore.joinRoom(room, Number(namespaceId));
 
       userNsStore.isUsersLoaded = false;
 
-      this.activeNsSocket.emit("getNamespaceUsers", channelId);
+      this.activeNsSocket.emit("getNamespaceUsers", namespaceId);
     },
 
     async userLeaveNamespace(data: { id: number }) {

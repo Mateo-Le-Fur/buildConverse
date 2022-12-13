@@ -13,7 +13,7 @@ async function getNumberOfUsers(
 }
 
 async function getNumberOfUserNamespaces(
-  userId: number
+  userId: number | undefined
 ): Promise<{ count: number }> {
   const namespaces: [{ count: number }] = await client.query(
     `SELECT COUNT(id) FROM "user_has_namespace" WHERE user_id = ${userId}`,

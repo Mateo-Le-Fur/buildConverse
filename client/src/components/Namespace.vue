@@ -10,7 +10,7 @@ import { useRoute } from "vue-router";
 
 const socketStore = useSocket();
 const roomStore = useRoom();
-const route = useRoute()
+const route = useRoute();
 
 const addServerPopup = ref<boolean>(false);
 
@@ -20,7 +20,7 @@ watch(
     if (value) {
       setTimeout(() => {
         const anchorElem = [
-          ...document.querySelectorAll(".tooltip")
+          ...document.querySelectorAll(".tooltip"),
         ] as HTMLAnchorElement[];
 
         for (let i = 0; i < anchorElem.length; i++) {
@@ -31,7 +31,7 @@ watch(
             placement: "right",
             offset: [0, 20],
             maxWidth: 250,
-            theme: "custom"
+            theme: "custom",
           });
         }
       });

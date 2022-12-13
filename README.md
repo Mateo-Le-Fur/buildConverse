@@ -12,6 +12,42 @@
 <img alt="JWT" src="https://img.shields.io/badge/json%20web%20tokens-323330?style=for-the-badge&logo=json-web-tokens&logoColor=pink"  style="margin: 0 5px"/>
 <img alt="Socket.io" src="https://img.shields.io/badge/Socket.io-black?style=for-the-badge&logo=socket.io&badgeColor=010101"  style="margin: 0 5px"/>
 
+# Fonctionnalités actuelles :
+
+### INFO : Toutes les actions de l'utilisateur sont visibles en temps réel par les autres, à conditions qu'ils partagent le ou les mêmes serveurs ou qu'ils soient amis.
+
+ - Créer/Modifie/Supprimer son compte 
+ 
+ - Ajouter/Modifier une photo de profil
+   
+ - Envoyer des demandes d'amis 
+ 
+ - Accepter/Refuser des demandes d'amis   
+ 
+ - Affichage des amis connectés/déconnectés
+ 
+ - Créer/Modifier/Supprimer des serveurs en tant qu'administrateur d'un serveur
+
+ - Affichage des membres connecté/déconnecté d'un serveur
+ 
+ - Rejoindre un serveur via un code d'invitation
+ 
+ - Quitter un serveur
+ 
+ - Ajouter/Modifier l'avatar d'un serveur
+ 
+ - Créer/Modifier/Supprimer des salons
+ 
+ - Envoyer des messages dans les différents serveurs et salons
+
+# Fonctionnalités restantes à développer :
+
+-  Modifier/Supprimer un message
+-  Messages privés entre amis
+-  Salons vocaux
+-  Partage d'images et de fichiers dans le chat
+-  Corrections de tout problème potentiel lié à la sécurité
+
 
 
 

@@ -5,8 +5,11 @@ import { useMe } from "@/features/home/stores/meStore";
 import type { FriendsInterface } from "@/shared/interfaces/FriendsInterface";
 import AddFriend from "@/features/home/components/AddFriend.vue";
 import { useSocket } from "@/shared/stores/socketStore";
+import DeleteFriend from "@/features/home/components/DeleteFriend.vue";
 
 const addFriend = ref<boolean>(false);
+const confirmDelete = ref<boolean>(false);
+const idToDelete = ref<number | null>(null);
 const selectedItem = ref<string>("online");
 
 const socketStore = useSocket();
@@ -44,7 +47,7 @@ watch(
     }
   },
   {
-    deep: true,
+    deep: true
   }
 );
 
@@ -69,8 +72,23 @@ function acceptFriendRequest(senderId: number) {
   );
 }
 
+function getConversationWithAFriend(friendId: number) {
+  const foundConversation = meStore.recipients.find(
+    (conversation) => conversation.id === friendId
+  );
+
+  socketStore.ioClient?.emit("getConversationWithAFriend", {
+    friendId,
+    privateRoomId: foundConversation?.privateRoomId
+  });
+}
+
 function declineFriendRequest(senderId: number) {
   socketStore.ioClient?.emit("declineFriendRequest", senderId);
+}
+
+function deleteFriend(friendId: number) {
+  console.log(friendId);
 }
 </script>
 <template>
@@ -83,7 +101,8 @@ function declineFriendRequest(senderId: number) {
   <template v-if="!addFriend">
     <div class="d-flex flex-column p-30">
       <div
-        class="friends-list d-flex align-items-center justify-content-space-between p-10"
+        @click="getConversationWithAFriend(friend.id)"
+        class="friends d-flex align-items-center justify-content-space-between"
         v-for="friend of filter"
         :key="friend.id"
       >
@@ -120,6 +139,7 @@ function declineFriendRequest(senderId: number) {
             </svg>
           </div>
           <div
+            @click.stop="confirmDelete = true, idToDelete = friend.id"
             class="d-flex align-items-center justify-content-center svg-icon"
           >
             <svg
@@ -141,15 +161,25 @@ function declineFriendRequest(senderId: number) {
           </p>
         </div>
       </div>
+      <Teleport to="body">
+        <DeleteFriend @delete-friend="deleteFriend(idToDelete)" @close-popup="confirmDelete = false" v-if="confirmDelete" />
+      </Teleport>
     </div>
   </template>
   <AddFriend v-else />
 </template>
 
 <style scoped lang="scss">
-.friends-list {
+.friends {
+  cursor: pointer;
   width: 70%;
   border-top: 1px solid #4a4949;
+  padding: 12px;
+
+  &:hover {
+    background-color: #44484f;
+    border-radius: 5px;
+  }
 
   .pseudo {
     font-size: 1.1rem;
@@ -203,19 +233,19 @@ function declineFriendRequest(senderId: number) {
     cursor: pointer;
     background-color: var(--primary-2);
     border-radius: 50%;
-    height: 40px;
-    width: 40px;
+    height: 35px;
+    width: 35px;
 
     .chat {
       fill: #dddddd;
-      height: 20px;
-      width: 20px;
+      height: 15px;
+      width: 15px;
     }
 
     .delete {
       fill: #eb4144ff;
-      height: 23px;
-      width: 23px;
+      height: 18px;
+      width: 18px;
     }
   }
 }

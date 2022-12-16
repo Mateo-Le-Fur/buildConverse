@@ -10,6 +10,7 @@ import { useUser } from "@/shared/stores/authStore";
 import type { FriendsInterface } from "@/shared/interfaces/FriendsInterface";
 import { useMe } from "@/features/home/stores/meStore";
 import { any } from "zod";
+import type { RecipientInterface } from "@/shared/interfaces/RecipientInterface";
 
 interface SocketState {
   ioClient: Socket | null;
@@ -79,6 +80,25 @@ export const useSocket = defineStore("socket", {
       this.ioClient?.on("friends", (data: FriendsInterface[]) => {
         meStore.getFriends(data);
       });
+
+      this.ioClient?.on("conversations", (data: RecipientInterface[]) => {
+        meStore.getAllConversations(data);
+      });
+
+      this.ioClient?.on("getPrivateMessagesHistory", (data: Message[]) => {
+        meStore.getPrivateMessageHistory(data);
+      });
+
+      this.ioClient?.on("privateMessage", (data: Message) => {
+        meStore.privateMessage(data);
+      });
+
+      this.ioClient?.on(
+        "getConversationWithAFriend",
+        (data: RecipientInterface) => {
+          meStore.getConversationWithAFriend(data);
+        }
+      );
 
       this.ioClient?.on("friendRequest", (data: FriendsInterface) => {
         meStore.friendRequest(data);
@@ -319,6 +339,30 @@ export const useSocket = defineStore("socket", {
       this.namespaces[namespaceIndex] = data;
 
       this.namespaces[namespaceIndex].UserHasNamespace = UserHasNamespace;
+    },
+
+    getFilteredMessages() {
+      return this.messages.map((message, index) => {
+        const previous = this.messages[index - 1];
+        const showAvatar = this.shouldShowAvatar(previous, message);
+
+        if (showAvatar) {
+          return message;
+        } else {
+          return {
+            ...message,
+            avatarAuthor: null,
+          };
+        }
+      });
+    },
+
+    shouldShowAvatar(previous: Message, message: Message) {
+      const isFirst = !previous;
+      if (isFirst) return true;
+
+      const differentUser = message.authorName !== previous.authorName;
+      if (differentUser) return true;
     },
 
     setError(message: string) {

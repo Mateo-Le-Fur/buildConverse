@@ -17,10 +17,11 @@ class MessageManager {
     nsSocket: SocketCustom,
     data: MessageInterface
   ) {
-    const { id } = nsSocket.request.user!;
+
+    const userId = nsSocket.request.user?.id;
 
 
-    const user = await User.findByPk(id, {
+    const user = await User.findByPk(userId, {
       attributes: ["pseudo", ["avatar_url", "avatarUrl"]],
       raw: true
     });
@@ -31,7 +32,7 @@ class MessageManager {
         data: data.data,
         dataType: "text",
         room_id: data.roomId,
-        user_id: id,
+        user_id: userId,
         authorName: user?.pseudo,
         avatarAuthor: user?.avatarUrl
       })
@@ -42,7 +43,7 @@ class MessageManager {
       ...message,
       avatarAuthor: `${
         process.env.DEV_AVATAR_URL
-      }/user/${id}/${Date.now()}/avatar`
+      }/user/${userId}/${Date.now()}/avatar`
     };
 
     ns.in(`/${data.roomId}`).emit("message", message);

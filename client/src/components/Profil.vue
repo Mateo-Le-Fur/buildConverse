@@ -306,7 +306,7 @@ const { value: emailValue, errorMessage: emailError } = useField("email");
     left: -195px;
     height: 450px;
     width: 524px;
-    background-color: #282a2f;
+    background-color: var(--primary-3);
     z-index: 2;
     border-radius: 4px;
     box-shadow: rgba(0, 0, 0, 0.24) 0 3px 8px;
@@ -382,7 +382,7 @@ const { value: emailValue, errorMessage: emailError } = useField("email");
       outline: none;
       padding: 15px 10px;
       border-radius: 5px;
-      background-color: #236cab;
+      background-color: var(--primary-1);
     }
 
     .back {
@@ -410,7 +410,7 @@ const { value: emailValue, errorMessage: emailError } = useField("email");
         outline: none;
         padding: 15px 10px;
         border-radius: 5px;
-        background-color: #e10c0c;
+        background-color: var(--danger-1);
       }
     }
 

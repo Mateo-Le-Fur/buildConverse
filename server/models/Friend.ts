@@ -6,6 +6,12 @@ class Friend extends Model {}
 Friend.init(
   {
 
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
+
     user1Id: {
       type: DataTypes.INTEGER,
       field: "user1_id"

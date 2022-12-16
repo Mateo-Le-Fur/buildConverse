@@ -2,7 +2,7 @@
 import Profil from "@/components/Profil.vue";
 import type { RouteParams } from "vue-router";
 import type { RoomInterface } from "@/shared/interfaces/Room";
-import { nextTick, onMounted, onUpdated, ref, toRaw, watch } from "vue";
+import { nextTick, onMounted, onUnmounted, onUpdated, ref, toRaw, watch } from "vue";
 import CreateRoomPopup from "./CreateRoomPopup.vue";
 import { useSocket } from "@/shared/stores/socketStore";
 import { useNsUser } from "@/features/server/stores/userNsStore";
@@ -11,6 +11,10 @@ import { useRoom } from "@/features/server/stores/roomStore";
 const socketStore = useSocket();
 const userNsStore = useNsUser();
 const roomStore = useRoom();
+
+onUnmounted(() => {
+  socketStore.messages = [];
+});
 
 // Je récupère l'id de mon serveur dans le paramètre de ma route
 const props = defineProps<{
@@ -50,7 +54,7 @@ function deleteRoom(room: RoomInterface) {
   if (rooms.length > 1) {
     socketStore.activeNsSocket.emit("deleteRoom", {
       namespaceId: Number(props.params.idChannel),
-      id: room.id,
+      id: room.id
     });
   } else {
     socketStore.messages = socketStore.messages.filter(
@@ -64,7 +68,7 @@ function deleteRoom(room: RoomInterface) {
       roomId: room.id,
       id: -1,
       userId: -1,
-      updatedAt: "",
+      updatedAt: ""
     });
   }
 }
@@ -84,7 +88,7 @@ async function updateRoom(roomId: number, namespaceId: number) {
       id: roomId,
       namespaceId,
       // @ts-ignore
-      name: input[0].value,
+      name: input[0].value
     });
   });
 }

@@ -4,15 +4,15 @@ import { z } from "zod";
 import { useField, useForm } from "vee-validate";
 import type { Message } from "@/shared/interfaces/Message";
 import { useSocket } from "@/shared/stores/socketStore";
-import { useRoom } from "@/features/server/stores/roomStore";
+import { useMe } from "@/features/home/stores/meStore";
 import { useUser } from "@/shared/stores";
-import { onMounted, ref, watch } from "vue";
+import type { UnwrapRef } from "vue";
+import type { User } from "@/shared/interfaces/User";
 
 const socketStore = useSocket();
-const roomStore = useRoom();
 const userStore = useUser();
+const meStore = useMe();
 
-const inputElem = ref<HTMLInputElement | null>(null);
 
 const validationSchema = toFormValidator(
   z.object({
@@ -28,12 +28,12 @@ const { value: dataValue, errorMessage: dataError } = useField("data");
 
 const submit = handleSubmit((formValue: Message) => {
   try {
-    socketStore.activeNsSocket.emit("message", {
-      data: formValue.data,
-      roomId: roomStore.activeRoom?.id,
-      avatar: userStore.currentUser?.avatarUrl
+    // sendPrivateMessage
+    socketStore.ioClient?.emit("sendPrivateMessage", {
+      privateRoomId: meStore.currentRecipient?.privateRoomId,
+      recipientId: meStore.currentRecipient?.id,
+      data: formValue.data
     });
-
     dataValue.value = null;
   } catch (e: any) {
     setErrors({
@@ -41,18 +41,6 @@ const submit = handleSubmit((formValue: Message) => {
     });
   }
 });
-
-onMounted(() => {
-  inputElem.value?.focus();
-});
-
-watch(
-  () => roomStore.activeRoom,
-  () => {
-    dataValue.value = null;
-    inputElem.value?.focus();
-  }
-);
 
 function resetField(e: Event) {
   const target = e.target as HTMLInputElement;
@@ -64,11 +52,10 @@ function resetField(e: Event) {
   <form @submit.prevent="submit" class="form-message">
     <div>
       <input
-        ref="inputElem"
         @keyup.enter="resetField($event)"
         v-model="dataValue"
         type="text"
-        :placeholder="`Envoyer un message dans ${roomStore.activeRoom?.name}`"
+        :placeholder="`Envoyer un message à ${meStore.currentRecipient?.pseudo}`"
       />
     </div>
   </form>

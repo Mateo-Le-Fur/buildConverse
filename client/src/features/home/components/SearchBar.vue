@@ -19,7 +19,8 @@
   padding: 10px;
   max-height: 50px;
   background-color: var(--primary-2);
-  border-bottom: 1px solid #242526;
+  //border-bottom: 1px solid #242526;
+  box-shadow: 0 4px 6px -6px black;
 
   div {
     background-color: var(--primary-3);

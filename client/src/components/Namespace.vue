@@ -116,10 +116,12 @@ function changeNamespace(namespaceId: number, home: boolean = false) {
         >
           <span class="plus">+</span>
         </div>
-        <AddServerPopup
-          @close-popup="addServerPopup = false"
-          v-if="addServerPopup"
-        />
+        <Teleport to="body">
+          <AddServerPopup
+            @close-popup="addServerPopup = false"
+            v-if="addServerPopup"
+          />
+        </Teleport>
       </div>
     </div>
   </nav>

@@ -1,18 +1,23 @@
 import { defineStore } from "pinia";
-import type { User } from "@/shared/interfaces/User";
 import type { FriendsInterface } from "@/shared/interfaces/FriendsInterface";
+import type { RecipientInterface } from "@/shared/interfaces/RecipientInterface";
+import type { Message } from "@/shared/interfaces/Message";
 
 interface meState {
   friends: FriendsInterface[] | null | undefined;
-  conversations: [];
-  messages: [];
+  recipients: RecipientInterface[];
+  currentRecipient: RecipientInterface | null;
+  isConversationLoaded: boolean;
+  messages: Message[];
   error: null | string;
 }
 
 export const useMe = defineStore("me", {
   state: (): meState => ({
     friends: [],
-    conversations: [],
+    recipients: [],
+    currentRecipient: null,
+    isConversationLoaded: false,
     messages: [],
     error: null,
   }),
@@ -20,6 +25,44 @@ export const useMe = defineStore("me", {
   actions: {
     getFriends(data: FriendsInterface[]) {
       this.friends = data;
+    },
+
+    getCurrentConversation(id: number) {
+      this.currentRecipient =
+        this.recipients.find(
+          (conversation) => conversation.privateRoomId === id
+        ) ?? null;
+    },
+
+    getAllConversations(data: RecipientInterface[]) {
+      this.recipients = data;
+    },
+
+    getPrivateMessageHistory(data: Message[]) {
+      this.messages = data;
+    },
+
+    privateMessage(data: Message) {
+      if (this.currentRecipient?.privateRoomId === data.private_room_id) {
+        this.messages.push(data);
+      }
+    },
+
+    getConversationWithAFriend(data: RecipientInterface) {
+      this.currentRecipient = data;
+
+      for (const conversation of this.recipients) {
+        if (conversation.privateRoomId === data.privateRoomId) {
+          // @ts-ignore
+          this.router.push(`/channels/me/${data.privateRoomId}`);
+          return;
+        }
+      }
+
+      this.recipients.push(data);
+
+      // @ts-ignore
+      this.router.push(`/channels/me/${data.privateRoomId}`);
     },
 
     getFriendsRequest() {
@@ -78,6 +121,30 @@ export const useMe = defineStore("me", {
       if (friend) {
         friend.status = "offline";
       }
+    },
+
+    getFilteredMessages() {
+      return this.messages.map((message, index) => {
+        const previous = this.messages[index - 1];
+        const showAvatar = this.shouldShowAvatar(previous, message);
+
+        if (showAvatar) {
+          return message;
+        } else {
+          return {
+            ...message,
+            avatarAuthor: null,
+          };
+        }
+      });
+    },
+
+    shouldShowAvatar(previous: Message, message: Message) {
+      const isFirst = !previous;
+      if (isFirst) return true;
+
+      const differentUser = message.authorName !== previous.authorName;
+      if (differentUser) return true;
     },
   },
 });

@@ -36,8 +36,8 @@ export const router = createRouter({
           props: true,
         },
         {
-          path: ":idPrivateMessage",
-          name: "privateMessage",
+          path: ":privateRoomId",
+          name: "privateRoom",
           component: () => import("@/features/home/views/Chat.vue"),
           props: true,
         },

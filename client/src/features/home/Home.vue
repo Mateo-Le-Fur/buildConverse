@@ -4,24 +4,20 @@ import PrivateMessage from "@/features/home/components/PrivateMessage.vue";
 import FriendList from "@/features/home/views/FriendList.vue";
 import { useRoute } from "vue-router";
 import { useMe } from "@/features/home/stores/meStore";
+import { watch } from "vue";
 
 const socketStore = useSocket();
 const meStore = useMe();
 
 const route = useRoute();
-
 </script>
 
-<template>
+<template v-if="meStore.isConversationLoaded">
   <PrivateMessage />
-  <div v-if="socketStore.isNamespacesLoaded" class="home-container d-flex">
+  <div class="home-container d-flex">
     <div class="d-flex flex-column flex-fill">
-      <div>
-        <FriendList v-if="!route.params.idPrivateMessage" />
-      </div>
-      <div>
-        <router-view></router-view>
-      </div>
+      <FriendList v-if="!route.params.privateRoomId" />
+      <router-view v-else></router-view>
     </div>
   </div>
 </template>

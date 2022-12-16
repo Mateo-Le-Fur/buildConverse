@@ -18,6 +18,7 @@ import { UpdateNamespaceInterface } from "../interfaces/UpdateNamespaceInterface
 import { DeleteUserInterface } from "../interfaces/DeleteUserInterface";
 import { FriendsManager } from "./friend.socket";
 import { FriendsInterface } from "../interfaces/FriendsInterface";
+import { PrivateMessageInterface } from "../interfaces/PrivateMessageInterface";
 
 class SocketManager {
   private _ios: Server;
@@ -51,6 +52,7 @@ class SocketManager {
 
       try {
         await this._friendsManager.getUserFriends(socket);
+        await this._friendsManager.getAllConversations(socket);
         await this._namespacesManager.getUserNamespaces(socket);
       } catch (e) {
         console.error(e);
@@ -83,6 +85,7 @@ class SocketManager {
           });
         } catch (e) {
           if (e instanceof Error) {
+            console.error(e);
             callback({
               status: "error",
               message: e.message,
@@ -94,6 +97,36 @@ class SocketManager {
       socket.on("declineFriendRequest", async (senderId: number) => {
         try {
           await this._friendsManager.declineFriendRequest(socket, senderId);
+        } catch (e) {
+          console.error(e);
+        }
+      });
+
+      socket.on(
+        "getConversationWithAFriend",
+        async (data: { friendId: number; privateRoomId: number }) => {
+          try {
+            await this._friendsManager.getOrCreateConversationWithAFriend(
+              socket,
+              data
+            );
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      );
+
+      socket.on("getPrivateMessagesHistory", async (privateRoomId: number) => {
+        try {
+          await this._friendsManager.getPrivateMessages(socket, privateRoomId);
+        } catch (e) {
+          console.error(e);
+        }
+      });
+
+      socket.on("sendPrivateMessage", async (data: PrivateMessageInterface) => {
+        try {
+          await this._friendsManager.sendPrivateMessage(socket, data);
         } catch (e) {
           console.error(e);
         }

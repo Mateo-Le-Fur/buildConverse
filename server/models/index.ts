@@ -5,30 +5,33 @@ import Message from "./Message";
 import UserHasNamespace from "./UserHasNamespace";
 import FriendRequest from "./FriendRequest";
 import Friend from "./Friend";
+import PrivateRoom from "./PrivateRoom";
+import PrivateMessage from "./PrivateMessage";
+import UserHasPrivateRoom from "./UserHasPrivateRoom";
 
 UserNamespace.hasMany(Room, {
   foreignKey: "namespace_id",
-  as: "rooms"
+  as: "rooms",
 });
 
 Room.belongsTo(UserNamespace, {
   foreignKey: "namespace_id",
-  as: "namespaces"
+  as: "namespaces",
 });
 
 User.belongsToMany(Room, {
   as: "message_has_room",
   through: Message,
   foreignKey: "user_id",
-  otherKey: "room_id"
+  otherKey: "room_id",
 });
 
 Room.belongsToMany(User, {
   as: "room_has_message",
   through: Message,
-  foreignKey: "user_id",
-  otherKey: "room_id",
-  timestamps: false
+  foreignKey: "room_id",
+  otherKey: "user_id",
+  timestamps: false,
 });
 
 User.belongsToMany(User, {
@@ -36,7 +39,7 @@ User.belongsToMany(User, {
   through: Friend,
   foreignKey: "user1_id",
   otherKey: "user2_id",
-  timestamps: false
+  timestamps: false,
 });
 
 User.belongsToMany(User, {
@@ -44,7 +47,7 @@ User.belongsToMany(User, {
   through: Friend,
   foreignKey: "user2_id",
   otherKey: "user1_id",
-  timestamps: false
+  timestamps: false,
 });
 
 User.belongsToMany(User, {
@@ -52,7 +55,7 @@ User.belongsToMany(User, {
   through: FriendRequest,
   foreignKey: "sender_id",
   otherKey: "recipient_id",
-  timestamps: false
+  timestamps: false,
 });
 
 User.belongsToMany(User, {
@@ -60,7 +63,39 @@ User.belongsToMany(User, {
   through: FriendRequest,
   foreignKey: "recipient_id",
   otherKey: "sender_id",
-  timestamps: false
+  timestamps: false,
+});
+
+User.belongsToMany(PrivateRoom, {
+  as: "userHasPrivateMessage",
+  through: PrivateMessage,
+  foreignKey: "user_id",
+  otherKey: "private_room_id",
+  timestamps: false,
+});
+
+PrivateRoom.belongsToMany(User, {
+  as: "privateMessageHasUser",
+  through: PrivateMessage,
+  foreignKey: "private_room_id",
+  otherKey: "user_id",
+  timestamps: false,
+});
+
+User.belongsToMany(PrivateRoom, {
+  as: "userPrivateRooms",
+  through: UserHasPrivateRoom,
+  foreignKey: "user_id",
+  otherKey: "private_room_id",
+  timestamps: false,
+});
+
+PrivateRoom.belongsToMany(User, {
+  as: "privateRoomUsers",
+  through: UserHasPrivateRoom,
+  foreignKey: "private_room_id",
+  otherKey: "user_id",
+  timestamps: false,
 });
 
 User.belongsToMany(UserNamespace, {
@@ -68,7 +103,7 @@ User.belongsToMany(UserNamespace, {
   through: UserHasNamespace,
   foreignKey: "user_id",
   otherKey: "namespace_id",
-  timestamps: false
+  timestamps: false,
 });
 
 UserNamespace.belongsToMany(User, {
@@ -76,7 +111,18 @@ UserNamespace.belongsToMany(User, {
   through: UserHasNamespace,
   foreignKey: "namespace_id",
   otherKey: "user_id",
-  timestamps: false
+  timestamps: false,
 });
 
-export { User, Room, UserNamespace, Message, UserHasNamespace, FriendRequest, Friend };
+export {
+  User,
+  Room,
+  UserNamespace,
+  Message,
+  UserHasNamespace,
+  FriendRequest,
+  Friend,
+  PrivateRoom,
+  PrivateMessage,
+  UserHasPrivateRoom,
+};

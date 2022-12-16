@@ -5,11 +5,12 @@ DROP TABLE
     "namespace",
     "room",
     "message",
-    "private_chats",
-    "private_messages",
-    "bans",
+    "ban",
     "friend",
     "friend_request",
+    "private_room",
+    "private_message",
+    "user_has_private_room",
     "user_has_namespace";
 
 DROP TYPE data_type;
@@ -58,24 +59,8 @@ CREATE TABLE "message" (
     "updated_at" TIMESTAMPTZ
 );
 
-CREATE TABLE private_chats (
-    "id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    "user1_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-    "user2_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
 
-CREATE TABLE private_messages (
-    "id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    "data" TEXT NOT NULL,
-    "data_type" data_type NOT NULL DEFAULT 'text',
-    "chat_id" INT NOT NULL REFERENCES "private_chats"(id) ON DELETE CASCADE,
-    "user_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "updated_at" TIMESTAMPTZ
-);
-
-CREATE TABLE "bans" (
+CREATE TABLE "ban" (
     "id" INT GENERATED ALWAYS AS  IDENTITY PRIMARY KEY,
     "user_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     "namespace_id" INT NOT NULL REFERENCES "namespace"(id) ON DELETE CASCADE,
@@ -83,7 +68,7 @@ CREATE TABLE "bans" (
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE "friends" (
+CREATE TABLE "friend" (
     "id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     "user1_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     "user2_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
@@ -95,10 +80,35 @@ CREATE TABLE "friend_request" (
     "id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     "sender_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     "recipient_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (sender_id, recipient_id)
 );
 
+CREATE TABLE private_room (
+    "id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "updated_at" TIMESTAMPTZ
+);
+
+CREATE TABLE private_message (
+    "id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    "data" TEXT NOT NULL,
+    "data_type" data_type NOT NULL DEFAULT 'text',
+    "private_room_id" INT NOT NULL REFERENCES "private_room"(id) ON DELETE CASCADE,
+    "user_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    "author_name" TEXT NOT NULL,
+    "avatar_author" TEXT NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "updated_at" TIMESTAMPTZ
+);
+
+CREATE TABLE "user_has_private_room" (
+    "id" int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    "user_id" int NOT NULL REFERENCES "user" (id) ON DELETE CASCADE,
+    "private_room_id" int NOT NULL REFERENCES "private_room" (id) ON DELETE CASCADE,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    UNIQUE (user_id, private_room_id)
+);
 
 CREATE TABLE "user_has_namespace" (
     "id" int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

@@ -43,7 +43,7 @@ const selectedItem = ref<{ value: string; x: string }>(items.value[0]);
       >{{ item.value }}
         <div v-if="item.x === 'pending'" class="d-flex justify-content-center request-count">{{ meStore.getFriendsRequest()}}</div>
       </div>
-      <div @click="emit('addFriend', true)" class="add">Ajouter</div>
+      <div @click="emit('addFriend', true)" class="add">Ajouter un ami</div>
     </nav>
   </div>
 </template>
@@ -51,7 +51,7 @@ const selectedItem = ref<{ value: string; x: string }>(items.value[0]);
 <style scoped lang="scss">
 .top-bar-container {
   padding: 15px 20px;
-  border-bottom: 1px solid #242526;
+  box-shadow: 0 4px 6px -6px #111;
   max-height: 50px;
 
   .friend {
@@ -93,7 +93,6 @@ const selectedItem = ref<{ value: string; x: string }>(items.value[0]);
     .request-count {
       font-size: 0.8rem;
       margin: auto;
-      padding: 2px 1px 0 0;
       width: 20px;
       height: 20px;
       border-radius: 50%;

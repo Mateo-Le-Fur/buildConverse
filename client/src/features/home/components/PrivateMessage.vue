@@ -1,7 +1,26 @@
 <script setup lang="ts">
 import Profil from "@/components/Profil.vue";
 import SearchBar from "@/features/home/components/SearchBar.vue";
-import { onMounted, reactive } from "vue";
+import { onMounted, reactive, watch } from "vue";
+import { useMe } from "@/features/home/stores/meStore";
+import { useRoute } from "vue-router";
+import { useSocket } from "@/shared/stores/socketStore";
+
+const socketStore = useSocket();
+const meStore = useMe();
+
+const route = useRoute();
+
+watch(
+  () => route.params.privateRoomId,
+  (value) => {
+    if (value) {
+      meStore.getCurrentConversation(Number(value));
+      socketStore.ioClient?.emit("getPrivateMessagesHistory", value);
+    }
+  },
+  { immediate: true }
+);
 
 const state = reactive<{
   elementActive: string;
@@ -11,14 +30,13 @@ const state = reactive<{
 </script>
 
 <template>
-  <div class="d-flex flex-column flex-fill">
+  <div class="container d-flex flex-column flex-fill">
     <SearchBar />
     <nav class="nav-container d-flex flex-column flex-fill p-8">
-      <router-link to="/channels/me">
+      <router-link @click="meStore.currentRecipient = null" to="/channels/me">
         <div
-          @click="state.elementActive = 'friends'"
           :class="{
-            active: state.elementActive === 'friends',
+            active: meStore.currentRecipient === null,
           }"
           class="d-flex align-items-center g-10 friend p-10 mb-10"
         >
@@ -34,13 +52,23 @@ const state = reactive<{
       <div class="private-message-container d-flex flex-column g-5">
         <p class="p-10">Messages Privés</p>
         <div
-          @click="state.elementActive = ''"
+          v-for="recipient of meStore.recipients"
           :class="{
-            active: state.elementActive === '',
+            active:
+              recipient.privateRoomId ===
+              meStore.currentRecipient?.privateRoomId,
           }"
           class="private-message d-flex flex-column"
         >
-          <router-link class="p-10" to="/channels/me/123">TEST</router-link>
+          <router-link
+            class="d-flex align-items-center g-10"
+            :to="`/channels/me/${recipient.privateRoomId}`"
+          >
+            <div class="avatar">
+              <img :src="recipient.avatarUrl" />
+            </div>
+            <p>{{ recipient.pseudo }}</p>
+          </router-link>
         </div>
       </div>
     </nav>
@@ -49,30 +77,47 @@ const state = reactive<{
 </template>
 
 <style scoped lang="scss">
-.nav-container {
-  width: 240px;
+
+.container {
   background-color: var(--primary-2);
 
-  a {
-    color: #f4f4f4;
-    text-decoration: none;
-  }
+  .nav-container {
+    width: 240px;
 
-  .friend {
-    height: 40px;
-    border-radius: 5px;
-
-    svg {
-      width: 25px;
-      height: 25px;
-      fill: white;
+    a {
+      color: #f4f4f4;
+      text-decoration: none;
     }
-  }
 
-  .private-message-container {
-    .private-message {
+    .friend {
+      height: 40px;
       border-radius: 5px;
+
+      svg {
+        width: 25px;
+        height: 25px;
+        fill: white;
+      }
+    }
+
+    .private-message-container {
+      .private-message {
+        border-radius: 5px;
+        padding: 2px 10px;
+      }
+
+      .avatar {
+        width: 40px;
+        height: 40px;
+
+        img {
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+        }
+      }
     }
   }
 }
+
 </style>

@@ -1,11 +1,20 @@
 <script setup lang="ts">
 import { useSocket } from "@/shared/stores/socketStore";
 import SendMessage from "../components/SendMessage.vue";
-import { onMounted, onUnmounted, onUpdated, ref, watchEffect } from "vue";
+import {
+  onMounted,
+  onUnmounted,
+  onUpdated,
+  ref,
+  watch,
+  watchEffect,
+} from "vue";
 import { useRoom } from "@/features/server/stores/roomStore";
 import type { RouteParams } from "vue-router";
 import botAvatar from "@/assets/images/bot.png";
+import { useUser } from "@/shared/stores";
 
+const userStore = useUser();
 
 function scrollToBottom() {
   const element = ref<HTMLDivElement | null>(null);
@@ -13,7 +22,7 @@ function scrollToBottom() {
 
   element.value?.scrollTo({
     top: element.value?.scrollHeight,
-    left: 0
+    left: 0,
   });
 }
 
@@ -28,24 +37,27 @@ onUpdated(() => {
 const socketStore = useSocket();
 const roomStore = useRoom();
 
-const props = defineProps<{
+defineProps<{
   params: RouteParams;
 }>();
 </script>
 
 <template>
   <div class="chat-container d-flex flex-column flex-fill">
-    <div class="message-container">
+    <div v-if="roomStore.activeRoom" class="message-container">
       <h2 class="room-name">
         Bienvenue dans le salon {{ roomStore.activeRoom?.name }}
       </h2>
-      <template v-for="message of socketStore.messages" :key="message.id">
-        <div class="d-flex message">
-          <div>
-            <img class="mr-10" :src="message.avatarAuthor ?? botAvatar" />
+      <template
+        v-for="message of socketStore.getFilteredMessages()"
+        :key="message.id"
+      >
+        <div :class="{ groupMessage: !message.avatarAuthor }" class="d-flex message">
+          <div v-if="message.avatarAuthor">
+            <img class="mr-10" :src="message.avatarAuthor" />
           </div>
           <div class="d-flex flex-column w-100">
-            <div class="d-flex align-items-center mb-5">
+            <div v-if="message.avatarAuthor" class="d-flex align-items-center mb-5">
               <p class="author">
                 {{ message.authorName
                 }}<span v-if="message.id !== -1">{{
@@ -54,7 +66,7 @@ const props = defineProps<{
               </p>
             </div>
             <div class="d-flex w-100">
-              <p class="message-color" :class="{ red: message.id === -1 }">
+              <p class="message-color" :class="{ red: message.id === -1, indent: !message.avatarAuthor}">
                 {{ message.data }}
               </p>
             </div>
@@ -67,13 +79,8 @@ const props = defineProps<{
 </template>
 
 <style scoped lang="scss">
-.scroller {
-  height: 100%;
-}
-
 .chat-container {
   justify-content: end;
-  width: 0;
 
   .room-name {
     padding: 10px 20px 10px 20px;
@@ -141,5 +148,13 @@ const props = defineProps<{
   .red {
     color: #eb4144 !important;
   }
+}
+
+.indent {
+  padding-left: 58px;
+}
+
+.groupMessage {
+  margin-top: 0 !important;
 }
 </style>

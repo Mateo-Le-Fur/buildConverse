@@ -35,7 +35,7 @@ watch(
     }
   },
   {
-    immediate: true,
+    immediate: true
   }
 );
 
@@ -53,6 +53,7 @@ function joinNamespace() {
 
 function changeRoom(room: RoomInterface) {
   if (roomStore.activeRoom?.id !== Number(room.id)) {
+    socketStore.messages = [];
     socketStore.activeNsSocket.emit("leaveRoom", roomStore.activeRoom?.id);
     roomStore.joinRoom(room, room.namespaceId);
   }

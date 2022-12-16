@@ -4,4 +4,6 @@ export interface FriendsInterface extends UserInterface {
 
   friends: UserInterface[];
   friendsRequests: UserInterface[];
+
+  conversationId: number;
 }

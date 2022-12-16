@@ -24,6 +24,8 @@
  
  - Accepter/Refuser des demandes d'amis   
  
+ - Envoyer des messages à un ami
+ 
  - Affichage des amis connectés/déconnectés
  
  - Créer/Modifier/Supprimer des serveurs en tant qu'administrateur d'un serveur
@@ -43,7 +45,6 @@
 # Fonctionnalités restantes à développer :
 
 -  Modifier/Supprimer un message
--  Messages privés entre amis
 -  Salons vocaux
 -  Partage d'images et de fichiers dans le chat
 -  Corrections de tout problème potentiel lié à la sécurité

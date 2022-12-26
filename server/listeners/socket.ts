@@ -102,6 +102,14 @@ class SocketManager {
         }
       });
 
+      socket.on("deleteFriend", async (data: { friendId: number, privateRoomId: number }) => {
+        try {
+          await this._friendsManager.deleteFriend(socket, data);
+        } catch (e) {
+          console.error(e);
+        }
+      });
+
       socket.on(
         "getConversationWithAFriend",
         async (data: { friendId: number; privateRoomId: number }) => {
@@ -132,11 +140,21 @@ class SocketManager {
         }
       });
 
-      socket.on("createNamespace", async (data: NamespaceInterface) => {
+      socket.on("createNamespace", async (data: NamespaceInterface, callback) => {
         try {
           await this._namespacesManager.createNamespace(socket, data);
+          callback({
+            status: "ok",
+            message: "",
+          });
         } catch (e) {
-          console.error(e);
+          if (e instanceof Error) {
+            console.error(e);
+            callback({
+              status: "error",
+              message: e.message,
+            });
+          }
         }
       });
 

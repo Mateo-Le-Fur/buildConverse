@@ -10,7 +10,7 @@
   --gray-2: #ddd;
   --gray-3: #34495e;
   --text-color: #444;
-  --text-primary-color: #f4f4f4;
+  --text-primary-color: #ffffff;
   --border: 1px solid var(--gray-2);
   --font-family: "Roboto", sans-serif;
 }
@@ -70,6 +70,7 @@ label {
 }
 
 .form-error {
+  max-width: 250px;
   color: #eb4144;
   font-size: 14px;
   font-weight: 500;

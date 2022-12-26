@@ -4,11 +4,11 @@ import {
   PrivateMessage,
   PrivateRoom,
   User,
-  UserHasPrivateRoom
+  UserHasPrivateRoom,
+  Friend
 } from "../models";
 import { SocketCustom } from "../interfaces/SocketCustom";
 import { FriendsInterface } from "../interfaces/FriendsInterface";
-import Friend from "../models/Friend";
 import { PrivateMessageInterface } from "../interfaces/PrivateMessageInterface";
 import { UserInterface } from "../interfaces/User";
 import { RecipientInterface } from "../interfaces/RecipientInterface";
@@ -210,34 +210,66 @@ class FriendsManager {
           (user: UserInterface) => user.id !== userId
         );
 
-        return {
-          ...filteredUser,
-          avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
-            filteredUser.id
-          }/${Date.now()}/avatar`,
-          privateRoomId: element.id
-        };
+        if (filteredUser) {
+          return {
+            ...filteredUser,
+            avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
+              filteredUser.id
+            }/${Date.now()}/avatar`,
+            privateRoomId: element.id
+          };
+        }
       });
 
       const t1 = performance.now();
 
       console.log(t1 - t0);
 
+      console.log(result);
+
       socket.emit("conversations", result);
     }
   }
 
-  public async deleteFriend(data: { friendId: number, privateRoomId: number }) {
+  public async deleteFriend(socket: SocketCustom, data: { friendId: number, privateRoomId: number }) {
 
+    const userId = socket.request.user?.id;
+
+    await Friend.destroy({
+      where: {
+        user1_id: data.friendId,
+        user2_id: userId
+
+      }
+    });
+
+    await Friend.destroy({
+      where: {
+        user1_id: userId,
+        user2_id: data.friendId
+      }
+    });
+
+    const socketId = this._clients.get(data.friendId);
+
+    if (socketId) this._ios.to(socketId).emit("deleteFriend", userId);
+
+    socket.emit("deleteFriend", data.friendId);
   }
 
   public async getOrCreateConversationWithAFriend(
     socket: SocketCustom,
     data: { friendId: number; privateRoomId: number }
   ) {
+
+
     const t0 = performance.now();
 
     const userId = socket.request.user?.id;
+
+    const checkIfFriendExist = await User.findByPk(data.friendId);
+
+    if (!checkIfFriendExist) return;
 
     const recipientRooms = (
       await UserHasPrivateRoom.findAll({
@@ -253,7 +285,7 @@ class FriendsManager {
           user_id: userId
         }
       })
-    ).map((el:UserHasPrivateRoom) => el.toJSON());
+    ).map((el: UserHasPrivateRoom) => el.toJSON());
 
     const checkIfConversationAlreadyCreated = senderRooms.filter(
       (sender: SenderInterface) => {
@@ -283,6 +315,8 @@ class FriendsManager {
       raw: true,
       nest: true
     });
+
+    console.log(recipient);
 
     if (!recipient) {
       const privateRoom = (await PrivateRoom.create()).get();

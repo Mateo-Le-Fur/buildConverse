@@ -19,7 +19,7 @@ export const useMe = defineStore("me", {
     currentRecipient: null,
     isConversationLoaded: false,
     messages: [],
-    error: null,
+    error: null
   }),
 
   actions: {
@@ -35,7 +35,9 @@ export const useMe = defineStore("me", {
     },
 
     getAllConversations(data: RecipientInterface[]) {
-      this.recipients = data;
+      if (data[0]) {
+        this.recipients = data;
+      }
     },
 
     getPrivateMessageHistory(data: Message[]) {
@@ -95,6 +97,11 @@ export const useMe = defineStore("me", {
       this.friends?.push(data);
     },
 
+    deleteFriend(friendId: number) {
+
+      this.friends = this.friends?.filter((friend) => friend.id !== friendId)
+    },
+
     updateUser(data: FriendsInterface) {
       const userIndex = this.friends?.findIndex(
         (friend) => friend.id === data.id
@@ -104,8 +111,6 @@ export const useMe = defineStore("me", {
         this.friends[userIndex] = data;
       }
     },
-
-    deleteUser() {},
 
     userConnect(data: { id: number }) {
       const friend = this.friends?.find((friend) => friend.id === data.id);
@@ -133,7 +138,7 @@ export const useMe = defineStore("me", {
         } else {
           return {
             ...message,
-            avatarAuthor: null,
+            avatarAuthor: null
           };
         }
       });
@@ -145,6 +150,6 @@ export const useMe = defineStore("me", {
 
       const differentUser = message.authorName !== previous.authorName;
       if (differentUser) return true;
-    },
-  },
+    }
+  }
 });

@@ -4,26 +4,28 @@ import PrivateMessage from "@/features/home/components/PrivateMessage.vue";
 import FriendList from "@/features/home/views/FriendList.vue";
 import { useRoute } from "vue-router";
 import { useMe } from "@/features/home/stores/meStore";
-import { watch } from "vue";
+import { onUnmounted } from "vue";
 
-const socketStore = useSocket();
 const meStore = useMe();
 
 const route = useRoute();
+
+onUnmounted(() => {
+  meStore.currentRecipient = null;
+});
 </script>
 
-<template v-if="meStore.isConversationLoaded">
-  <PrivateMessage />
-  <div class="home-container d-flex">
-    <div class="d-flex flex-column flex-fill">
-      <FriendList v-if="!route.params.privateRoomId" />
-      <router-view v-else></router-view>
+<template>
+  <div class="d-flex flex-fill">
+    <PrivateMessage />
+    <div class="w-100 d-flex">
+      <div class="d-flex flex-column flex-fill">
+        <FriendList v-if="!route.params.privateRoomId" />
+        <router-view v-else></router-view>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-.home-container {
-  width: 100%;
-}
 </style>

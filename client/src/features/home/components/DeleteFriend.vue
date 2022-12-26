@@ -16,7 +16,7 @@ const emit = defineEmits<{
       <button @click="emit('closePopup')" class="btn btn-primary">
         J'ai changé d'avis
       </button>
-      <button @click="emit('deleteFriend')" class="btn btn-danger">
+      <button @click="emit('deleteFriend'), emit('closePopup')" class="btn btn-danger">
         Sûr et Certain
       </button>
     </div>

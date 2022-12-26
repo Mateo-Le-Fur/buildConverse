@@ -45,7 +45,7 @@ watch(namespaceImage, (NewValue) => {
         type="file"
       />
       <CreateServer :namespace-image="namespaceImage" />
-      <JoinServer />
+      <JoinServer @close-popup="emit('closePopup')"/>
     </div>
   </div>
 </template>

@@ -77,7 +77,6 @@ const state = reactive<{
 </template>
 
 <style scoped lang="scss">
-
 .container {
   background-color: var(--primary-2);
 
@@ -119,5 +118,4 @@ const state = reactive<{
     }
   }
 }
-
 </style>

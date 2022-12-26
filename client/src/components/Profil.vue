@@ -41,15 +41,14 @@ function previewAvatar(e: Event) {
 }
 
 async function deleteAccount() {
-  const namespacesId: number[] = [];
-  socketStore.namespaces.forEach((ns) => {
-    namespacesId.push(ns.id);
-  });
+  const namespacesId = socketStore.namespaces.map((namespace) => namespace.id)
+  const privateRoomsId = meStore.recipients.map((recipient) => recipient.privateRoomId)
 
   await deleteUser(userStore.currentUser?.id);
 
   socketStore.ioClient?.emit("deleteUser", {
     namespacesId,
+    privateRoomsId,
     id: userStore.currentUser?.id,
   });
 

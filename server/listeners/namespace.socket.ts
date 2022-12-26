@@ -25,7 +25,7 @@ class NamespacesManager {
     this._ios = ios;
     this._clients = clients;
     this._userLimit = 3000;
-    this._userNamespacesLimit = 10;
+    this._userNamespacesLimit = 2;
   }
 
   public async getUserNamespaces(
@@ -346,6 +346,12 @@ class NamespacesManager {
       throw new Error("Tu as déjà rejoint ce serveur");
 
     if (checkIfServerIsFull) throw new Error("Le serveur est plein");
+
+    const { count: namespacesLimit } = await getNumberOfUserNamespaces(userId)
+
+    if (namespacesLimit >= this._userNamespacesLimit) {
+      throw new Error(`Tu ne peut pas créer/rejoindre plus de ${this._userNamespacesLimit} serveur`)
+    }
 
     await UserHasNamespace.create({
       user_id: userId,

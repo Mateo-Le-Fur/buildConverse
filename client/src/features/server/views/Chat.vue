@@ -52,12 +52,12 @@ defineProps<{
         v-for="message of socketStore.getFilteredMessages()"
         :key="message.id"
       >
-        <div :class="{ groupMessage: !message.avatarAuthor }" class="d-flex message">
-          <div v-if="message.avatarAuthor">
+        <div v-if="message.avatarAuthor" class="d-flex message">
+          <div>
             <img class="mr-10" :src="message.avatarAuthor" />
           </div>
           <div class="d-flex flex-column w-100">
-            <div v-if="message.avatarAuthor" class="d-flex align-items-center mb-5">
+            <div class="d-flex align-items-center mb-5">
               <p class="author">
                 {{ message.authorName
                 }}<span v-if="message.id !== -1">{{
@@ -66,10 +66,17 @@ defineProps<{
               </p>
             </div>
             <div class="d-flex w-100">
-              <p class="message-color" :class="{ red: message.id === -1, indent: !message.avatarAuthor}">
+              <p class="message-color" :class="{ red: message.id === -1}">
                 {{ message.data }}
               </p>
             </div>
+          </div>
+        </div>
+        <div v-else class="d-flex message" :class="{ groupMessage: !message.avatarAuthor }">
+          <div class="d-flex w-100">
+            <p class="message-color" :class="{ red: message.id === -1, indent: !message.avatarAuthor}">
+              {{ message.data }}
+            </p>
           </div>
         </div>
       </template>

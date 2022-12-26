@@ -18,24 +18,28 @@ const roomStore = useRoom();
 const userNsStore = useNsUser();
 
 //  création ou récupération de namespaces
-watch(
-  () => socketStore.isNamespacesLoaded,
-  (newValue) => {
-    if (newValue && socketStore.namespaces.length) {
-      joinNamespace();
-    }
-  }
-);
+// watch(
+//   () => socketStore.isNamespacesLoaded,
+//   (newValue) => {
+//     if (newValue && socketStore.namespaces.length) {
+//       joinNamespace();
+//     }
+//   }
+// );
 
 watch(
-  () => route.params.idChannel,
+  () => [
+    route.params.idChannel,
+    socketStore.isNamespacesLoaded,
+    socketStore.creatingNamespace,
+  ],
   () => {
-    if (socketStore.isNamespacesLoaded && socketStore.namespaces.length) {
+    if (socketStore.isNamespacesLoaded) {
       joinNamespace();
     }
   },
   {
-    immediate: true
+    immediate: true,
   }
 );
 

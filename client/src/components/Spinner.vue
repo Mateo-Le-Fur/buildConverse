@@ -1,31 +1,63 @@
 <template>
-  <div class="lds_dual_ring"></div>
+  <div class="d-flex align-items-center lds-ellipsis"><div></div><div></div><div></div><div></div></div>
 </template>
 
 <script setup lang="ts"></script>
 
 <style lang="scss" scoped>
-.lds_dual_ring {
+.lds-ellipsis {
   display: inline-block;
-  width: 40px;
-  height: 40px;
+  position: relative;
+  width: 80px;
+  height: 38px;
 }
-.lds_dual_ring:after {
-  content: " ";
-  display: block;
-  width: 32px;
-  height: 32px;
+.lds-ellipsis div {
+  position: absolute;
+  top: 16px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  border: 3px solid;
-  border-color: white transparent white transparent;
-  animation: lds-dual-ring 1.2s linear infinite;
+  background: #fff;
+  animation-timing-function: cubic-bezier(0, 1, 1, 0);
 }
-@keyframes lds-dual-ring {
+.lds-ellipsis div:nth-child(1) {
+  left: 8px;
+  animation: lds-ellipsis1 0.6s infinite;
+}
+.lds-ellipsis div:nth-child(2) {
+  left: 8px;
+  animation: lds-ellipsis2 0.6s infinite;
+}
+.lds-ellipsis div:nth-child(3) {
+  left: 32px;
+  animation: lds-ellipsis2 0.6s infinite;
+}
+.lds-ellipsis div:nth-child(4) {
+  left: 56px;
+  animation: lds-ellipsis3 0.6s infinite;
+}
+@keyframes lds-ellipsis1 {
   0% {
-    transform: rotate(0deg);
+    transform: scale(0);
   }
   100% {
-    transform: rotate(360deg);
+    transform: scale(1);
+  }
+}
+@keyframes lds-ellipsis3 {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(0);
+  }
+}
+@keyframes lds-ellipsis2 {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(24px, 0);
   }
 }
 </style>

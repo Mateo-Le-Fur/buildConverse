@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import FriendListTopBar from "@/features/home/components/FriendListTopBar.vue";
-import { ref, toRaw, watch } from "vue";
+import { ref, watch } from "vue";
 import { useMe } from "@/features/home/stores/meStore";
 import type { FriendsInterface } from "@/shared/interfaces/FriendsInterface";
 import AddFriend from "@/features/home/components/AddFriend.vue";
@@ -47,7 +47,7 @@ watch(
     }
   },
   {
-    deep: true
+    deep: true,
   }
 );
 
@@ -79,7 +79,7 @@ function getConversationWithAFriend(friendId: number) {
 
   socketStore.ioClient?.emit("getConversationWithAFriend", {
     friendId,
-    privateRoomId: foundConversation?.privateRoomId
+    privateRoomId: foundConversation?.privateRoomId,
   });
 }
 
@@ -88,7 +88,17 @@ function declineFriendRequest(senderId: number) {
 }
 
 function deleteFriend(friendId: number) {
-  console.log(friendId);
+  const checkIfConversationExist = meStore.recipients.find(
+    (recipient) => recipient.id === friendId
+  );
+
+  console.log(checkIfConversationExist, friendId)
+
+  socketStore.ioClient?.emit("deleteFriend", {
+    friendId,
+    privateRoomId: checkIfConversationExist?.privateRoomId,
+  });
+
 }
 </script>
 <template>
@@ -139,7 +149,7 @@ function deleteFriend(friendId: number) {
             </svg>
           </div>
           <div
-            @click.stop="confirmDelete = true, idToDelete = friend.id"
+            @click.stop="(confirmDelete = true), (idToDelete = friend.id)"
             class="d-flex align-items-center justify-content-center svg-icon"
           >
             <svg
@@ -155,14 +165,18 @@ function deleteFriend(friendId: number) {
           </div>
         </div>
         <div class="d-flex" v-else>
-          <p @click="acceptFriendRequest(friend.id)" class="accept">Accepter</p>
-          <p @click="declineFriendRequest(friend.id)" class="decline">
+          <p @click.stop="acceptFriendRequest(friend.id)" class="accept">Accepter</p>
+          <p @click.stop="declineFriendRequest(friend.id)" class="decline">
             Refuser
           </p>
         </div>
       </div>
       <Teleport to="body">
-        <DeleteFriend @delete-friend="deleteFriend(idToDelete)" @close-popup="confirmDelete = false" v-if="confirmDelete" />
+        <DeleteFriend
+          @delete-friend="deleteFriend(idToDelete)"
+          @close-popup="confirmDelete = false"
+          v-if="confirmDelete"
+        />
       </Teleport>
     </div>
   </template>

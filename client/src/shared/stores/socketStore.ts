@@ -9,7 +9,6 @@ import { useNsUser } from "@/features/server/stores/userNsStore";
 import { useUser } from "@/shared/stores/authStore";
 import type { FriendsInterface } from "@/shared/interfaces/FriendsInterface";
 import { useMe } from "@/features/home/stores/meStore";
-import { any } from "zod";
 import type { RecipientInterface } from "@/shared/interfaces/RecipientInterface";
 
 interface SocketState {
@@ -20,7 +19,7 @@ interface SocketState {
   namespaceSockets: [] | any;
   messages: Message[];
   isNamespacesLoaded: boolean;
-  isNamespaceCreated: boolean | null;
+  creatingNamespace: boolean | null;
   isNamespaceUpdated: boolean;
   countLoadedNamespace: number;
   error: any;
@@ -34,7 +33,7 @@ export const useSocket = defineStore("socket", {
     namespaces: [],
     messages: [],
     isNamespacesLoaded: false,
-    isNamespaceCreated: null,
+    creatingNamespace: false,
     isNamespaceUpdated: false,
     countLoadedNamespace: 0,
     error: null,
@@ -51,8 +50,6 @@ export const useSocket = defineStore("socket", {
   actions: {
     init() {
       this.ioClient = io(this.opts);
-      const userNsStore = useNsUser();
-      const meStore = useMe();
 
       let checkInterval: number;
       this.ioClient.on("connect", () => {
@@ -116,6 +113,12 @@ export const useSocket = defineStore("socket", {
         meStore.friendRequestAccepted(data);
       });
 
+      this.ioClient?.on("deleteFriend", async (friendId) => {
+        if (friendId) {
+          meStore.deleteFriend(friendId);
+        }
+      });
+
       this.ioClient?.on("updateUser", async (data: FriendsInterface | null) => {
         if (data) {
           meStore.updateUser(data);
@@ -145,7 +148,9 @@ export const useSocket = defineStore("socket", {
         for (const ns of this.namespaces) {
           const nsSocket = io(`/${ns.id}`);
 
-          this.initNamespaceData(nsSocket, data.length);
+          this.initNamespaceData(nsSocket, data.length, () => {
+            this.isNamespacesLoaded = true;
+          });
 
           this.namespaceSockets.push(nsSocket);
         }
@@ -154,39 +159,42 @@ export const useSocket = defineStore("socket", {
       this.ioClient?.on("createdNamespace", async (data: Namespace[]) => {
         const roomStore = useRoom();
 
-        this.namespaces.push(...data);
-
         const ns = data[0];
 
         const nsSocket = io(`/${ns.id}`);
 
-        this.initNamespaceData(nsSocket, data.length);
+        this.initNamespaceData(nsSocket, data.length, async () => {
+          this.namespaces.push(...data);
 
-        this.namespaceSockets.push(nsSocket);
+          this.namespaceSockets.push(nsSocket);
 
-        if (this.activeNsSocket) {
-          this.activeNsSocket.emit("leaveRoom", roomStore.activeRoom?.id);
-        }
+          if (this.activeNsSocket) {
+            this.activeNsSocket.emit("leaveRoom", roomStore.activeRoom?.id);
+          }
 
-        this.isNamespaceCreated = true;
+          this.creatingNamespace = false;
 
-        // @ts-ignore
-        await this.router.push(`/channels/${ns.id}/${ns.rooms[0].id}`);
+          // @ts-ignore
+          await this.router.push(`/channels/${ns.id}/${ns.rooms[0].id}`);
+        });
       });
     },
 
-    initNamespaceData(nsSocket: any, numberOfnamespace: number) {
+    initNamespaceData(
+      nsSocket: any,
+      numberOfnamespace: number,
+      callback: () => void
+    ) {
       const roomStore = useRoom();
       const userNsStore = useNsUser();
 
-      this.isNamespacesLoaded = false;
       nsSocket.on("rooms", (data: RoomInterface[]) => {
         roomStore.getRoomsData(data);
 
         this.countLoadedNamespace++;
 
         if (this.countLoadedNamespace === numberOfnamespace) {
-          this.isNamespacesLoaded = true;
+          callback();
           this.countLoadedNamespace = 0;
         }
       });
@@ -289,6 +297,8 @@ export const useSocket = defineStore("socket", {
     async deleteNamespace(data: { id: number }) {
       const roomStore = useRoom();
       const userNsStore = useNsUser();
+
+      roomStore.activeRoom = null;
 
       roomStore.rooms = roomStore.rooms.filter(
         (room) => room.namespaceId !== data.id

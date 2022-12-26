@@ -7,6 +7,7 @@ import CreateRoomPopup from "./CreateRoomPopup.vue";
 import { useSocket } from "@/shared/stores/socketStore";
 import { useNsUser } from "@/features/server/stores/userNsStore";
 import { useRoom } from "@/features/server/stores/roomStore";
+import botAvatar from "@/assets/images/bot.png"
 
 const socketStore = useSocket();
 const userNsStore = useNsUser();
@@ -64,11 +65,12 @@ function deleteRoom(room: RoomInterface) {
       data: "Tu ne peux pas supprimer ce salon",
       dataType: "text",
       authorName: "Chat Bot",
-      avatarAuthor: null,
+      avatarAuthor: botAvatar,
       roomId: room.id,
       id: -1,
       userId: -1,
-      updatedAt: ""
+      updatedAt: "",
+      createdAt: "",
     });
   }
 }

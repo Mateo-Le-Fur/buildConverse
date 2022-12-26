@@ -5,22 +5,13 @@ import { toFormValidator } from "@vee-validate/zod";
 import { z } from "zod";
 import { generateInviteCode } from "@/utils/generateInviteCode";
 import { useSocket } from "@/shared/stores/socketStore";
+import Spinner from "@/components/Spinner.vue";
 
 const socketStore = useSocket();
 
 const props = defineProps<{
   namespaceImage: File | undefined;
 }>();
-
-function createNamespace(formValue: Namespace) {
-  socketStore.isNamespaceCreated = false;
-  socketStore.ioClient?.emit("createNamespace", {
-    name: formValue.name,
-    inviteCode: generateInviteCode(),
-    imgName: props.namespaceImage?.name,
-    imgUrl: props.namespaceImage,
-  });
-}
 
 const validationSchema = toFormValidator(
   z.object({
@@ -35,6 +26,30 @@ const validationSchema = toFormValidator(
 const { handleSubmit, setErrors } = useForm<Namespace>({
   validationSchema,
 });
+
+function createNamespace(formValue: Namespace) {
+  socketStore.creatingNamespace = true;
+  socketStore.ioClient?.emit(
+    "createNamespace",
+    {
+      name: formValue.name,
+      inviteCode: generateInviteCode(),
+      imgName: props.namespaceImage?.name,
+      imgUrl: props.namespaceImage,
+    },
+    (response: { status: string; message: string }) => {
+      if (response.status !== "ok") {
+        setErrors({
+          name: response.message,
+        });
+
+        setTimeout(() => {
+          socketStore.creatingNamespace = false;
+        }, 2000);
+      }
+    }
+  );
+}
 
 const submitNamespace = handleSubmit((formValue: Namespace) => {
   try {
@@ -70,15 +85,19 @@ const { value: nameValue, errorMessage: nameError } = useField(
       />
       <p class="form-error" v-if="nameError">{{ nameError }}</p>
 
-      <button class="mb-20">C'est partie !</button>
-      <!--              <div-->
-      <!--                class="d-flex align-items-center justify-content-center"-->
-      <!--                v-else-->
-      <!--              >-->
-      <!--                <spinner />-->
-      <!--              </div>-->
+      <div class="send-form d-flex flex-column mb-20">
+        <button v-if="!socketStore.creatingNamespace">C'est partie !</button>
+        <div v-else class="d-flex align-items-center justify-content-center">
+          <Spinner />
+        </div>
+      </div>
     </div>
   </form>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.send-form {
+  background-color: #236cab;
+  border-radius: 3px;
+}
+</style>

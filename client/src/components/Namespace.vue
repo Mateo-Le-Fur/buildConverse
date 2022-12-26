@@ -40,9 +40,9 @@ watch(
 );
 
 watch(
-  () => socketStore.isNamespaceCreated,
+  () => socketStore.creatingNamespace,
   (newValue) => {
-    if (newValue === true) {
+    if (newValue === false) {
       addServerPopup.value = false;
     }
   }

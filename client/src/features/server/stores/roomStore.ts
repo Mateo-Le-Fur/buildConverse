@@ -13,14 +13,14 @@ export const useRoom = defineStore("room", {
   state: (): RoomState => ({
     activeRoom: null,
     rooms: [],
-    error: null,
+    error: null
   }),
 
   getters: {
     findRoom(state): (roomId: string) => RoomInterface | undefined {
       return (roomId: string) =>
         state.rooms.find((room: RoomInterface) => room.id === Number(roomId));
-    },
+    }
   },
 
   actions: {
@@ -64,7 +64,7 @@ export const useRoom = defineStore("room", {
 
       socketStore.activeNsSocket.emit("joinRoom", {
         roomId: room?.id,
-        namespaceId,
+        namespaceId
       });
 
       this.activeRoom = room;
@@ -80,7 +80,7 @@ export const useRoom = defineStore("room", {
       const room = this.rooms.find(
         (room: RoomInterface) => room.namespaceId === namespaceId
       );
-      return room!.id;
-    },
-  },
+      if (room) return room.id;
+    }
+  }
 });

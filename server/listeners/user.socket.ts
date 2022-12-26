@@ -1,4 +1,4 @@
-import { User, UserNamespace } from "../models";
+import { PrivateRoom, User, UserHasPrivateRoom, UserNamespace } from "../models";
 import runService from "../services/runService";
 import { Server, Socket } from "socket.io";
 import { UpdateUserInterface } from "../interfaces/UpdateUserInterface";
@@ -7,6 +7,7 @@ import { SocketCustom } from "../interfaces/SocketCustom";
 import { UserInterface } from "../interfaces/User";
 import sharp from "sharp";
 import path from "path";
+import fs from "fs";
 
 class UserManager {
   private _ios: Server;
@@ -20,6 +21,8 @@ class UserManager {
   public async updateUser(socket: SocketCustom, data: UpdateUserInterface) {
     const userId = socket.request.user?.id;
 
+    const t0 = performance.now();
+
     const avatarName = data.avatar ? `${userId}-${Date.now()}` : null;
 
     if (data.avatar) {
@@ -27,7 +30,7 @@ class UserManager {
         .resize(100, 100)
         .webp({
           quality: 80,
-          effort: 0,
+          effort: 0
         })
         .toFile(path.join(__dirname, `../images/${avatarName}.webp`));
 
@@ -38,7 +41,7 @@ class UserManager {
     }
 
     const { avatarUrl: oldAvatar } = (await User.findByPk(userId, {
-      raw: true,
+      raw: true
     })) as User;
 
     await User.update(
@@ -46,12 +49,12 @@ class UserManager {
         pseudo: data.pseudo,
         email: data.email,
         description: data.description,
-        avatarUrl: data.avatar ? `/images/${avatarName}` : oldAvatar,
+        avatarUrl: data.avatar ? `/images/${avatarName}` : oldAvatar
       },
       {
         where: {
-          id: userId,
-        },
+          id: userId
+        }
       }
     );
 
@@ -61,7 +64,10 @@ class UserManager {
     }
 
     if (data.namespaces.length) {
+
+
       for await (const ns of data.namespaces) {
+
         let namespace = (
           await UserNamespace.findByPk(ns, {
             attributes: {
@@ -70,22 +76,22 @@ class UserManager {
                 "invite_code",
                 "img_url",
                 "created_at",
-                "updated_at",
-              ],
+                "updated_at"
+              ]
             },
             include: [
               {
                 model: User,
                 as: "users",
                 attributes: {
-                  exclude: ["password", "email", "created_at", "updated_at"],
+                  exclude: ["password", "email", "created_at", "updated_at"]
                 },
 
                 where: {
-                  id: userId,
-                },
-              },
-            ],
+                  id: userId
+                }
+              }
+            ]
           })
         )?.toJSON();
 
@@ -96,19 +102,26 @@ class UserManager {
               avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
                 element.id
               }/${Date.now()}/avatar`,
-              status: "online",
+              status: "online"
             };
           }
         });
 
+
         this._ios.of(`/${ns}`).emit("updateUser", ...user);
       }
+
+
     }
+
+    const t1 = performance.now();
+
+    console.log(`update user ${t1 - t0} ms`);
 
     if (data.friends.length) {
       const getUserUpdated = await User.findByPk(userId, {
         attributes: { exclude: ["password"] },
-        raw: true,
+        raw: true
       });
 
       const user = {
@@ -116,25 +129,65 @@ class UserManager {
         status: "online",
         avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
           getUserUpdated?.id
-        }/${Date.now()}/avatar`,
+        }/${Date.now()}/avatar`
       };
 
-      for (const id of data.friends) {
+      data.friends.forEach((id) => {
+
         const socketId = this._clients.get(id);
 
-        if (socketId) {
-          this._ios.to(socketId).emit("updateUser", user);
-        }
-      }
+        if (socketId) this._ios.to(socketId).emit("updateUser", user);
+
+      });
     }
   }
 
-  public async deleteUser(socket: Socket, data: DeleteUserInterface) {
-    const { id, namespacesId } = data;
+  public async deleteUser(socket: SocketCustom, data: DeleteUserInterface) {
+    const { id, namespacesId, privateRoomsId } = data;
 
-    for (let nsId of namespacesId) {
-      this._ios.of(`/${nsId}`).emit("deleteUser", { id });
+    const userId  = socket.request.user?.id;
+
+
+    await Promise.all(privateRoomsId.map(async (id) => {
+      const data = await UserHasPrivateRoom.findAll({
+        where: {
+          private_room_id: id
+        },
+        raw: true
+      });
+
+      console.log(data.length)
+
+      if (data.length <= 2) {
+        await PrivateRoom.destroy({
+          where: {
+            id: data[0].privateRoomId
+          }
+        })
+      }
+
+    }));
+
+    const user = await User.findByPk(userId, { raw: true });
+
+    if (user?.avatarUrl !== "/images/default-avatar") {
+      fs.unlinkSync(path.join(__dirname, `..${user?.avatarUrl}.webp`));
     }
+
+
+    await User.destroy({
+      where: {
+        id: userId
+      }
+    });
+
+
+    if (namespacesId.length) {
+      for (let nsId of namespacesId) {
+        this._ios.of(`/${nsId}`).emit("deleteUser", { id });
+      }
+    }
+
   }
 
   public connectUser(

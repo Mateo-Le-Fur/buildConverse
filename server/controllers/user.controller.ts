@@ -10,6 +10,26 @@ class userController {
   constructor() {
     this.getUserAvatar = this.getUserAvatar.bind(this);
     this.deleteAccount = this.deleteAccount.bind(this);
+    this.disableConversation = this.disableConversation.bind(this);
+  }
+
+  async disableConversation(req: RequestCustom, res: Response) {
+    const { id } = req.params;
+    const userId = req.user?.id;
+
+    await UserHasPrivateRoom.update(
+      {
+        active: false,
+      },
+      {
+        where: {
+          user_id: userId,
+          private_room_id: id,
+        },
+      }
+    );
+
+    res.json({ id });
   }
 
   async getUserAvatar(req: Request, res: Response) {
@@ -25,8 +45,6 @@ class userController {
 
     // const { id } = req.params;
     // if (Number(id) !== req.user?.id) throw new ApiError("forbidden", 403);
-
-
 
     res.clearCookie("jwt");
 

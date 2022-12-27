@@ -3,7 +3,10 @@ import { Server, Socket } from "socket.io";
 import { User, UserNamespace, Room, UserHasNamespace } from "../models";
 import path from "path";
 import sharp from "sharp";
-import { getNumberOfUsers, getNumberOfUserNamespaces } from "../query/namespace.query";
+import {
+  getNumberOfUsers,
+  getNumberOfUserNamespaces,
+} from "../query/namespace.query";
 import { getRandomImage } from "../utils/getRandomImage";
 import { SocketCustom } from "../interfaces/SocketCustom";
 import { UpdateNamespaceInterface } from "../interfaces/UpdateNamespaceInterface";
@@ -14,23 +17,19 @@ import { Op } from "sequelize";
 const { unlinkImage } = require("../utils/unlinckImage");
 
 class NamespacesManager {
-
   private _ios: Server;
-  private _clients: Map<number, string>
+  private _clients: Map<number, string>;
   private readonly _userLimit: number;
   private readonly _userNamespacesLimit: number;
-
 
   constructor(ios: Server, clients: Map<number, string>) {
     this._ios = ios;
     this._clients = clients;
     this._userLimit = 3000;
-    this._userNamespacesLimit = 2;
+    this._userNamespacesLimit = 25;
   }
 
-  public async getUserNamespaces(
-    socket: SocketCustom
-  ) {
+  public async getUserNamespaces(socket: SocketCustom) {
     const userId = socket.request.user?.id;
 
     let foundUsersNamespace = (
@@ -38,11 +37,10 @@ class NamespacesManager {
         include: {
           model: UserNamespace,
           as: "namespaces",
-          include: ["rooms"]
-        }
+          include: ["rooms"],
+        },
       })
     )?.toJSON();
-
 
     const namespaces = foundUsersNamespace?.namespaces.map(
       (namespace: NamespaceInterface) => {
@@ -50,7 +48,7 @@ class NamespacesManager {
           ...namespace,
           imgUrl: `${process.env.DEV_AVATAR_URL}/namespace/${
             namespace.id
-          }/${Date.now()}/avatar`
+          }/${Date.now()}/avatar`,
         };
       }
     );
@@ -58,13 +56,8 @@ class NamespacesManager {
     socket.emit("namespaces", namespaces);
   }
 
-
-  public async getNamespaceUsers(
-    nsSocket: Socket,
-    namespaceId: number,
-  ) {
+  public async getNamespaceUsers(nsSocket: Socket, namespaceId: number) {
     const t0 = performance.now();
-
 
     let foundNamespace = await UserNamespace.findByPk(namespaceId);
 
@@ -75,9 +68,8 @@ class NamespacesManager {
       limit: 50,
       offset: 0,
       raw: true,
-      nest: true
+      nest: true,
     });
-
 
     const updateUser = users?.map((element: User) => {
       const checkIfUserConnected = this._clients.get(element.id);
@@ -87,16 +79,15 @@ class NamespacesManager {
         avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
           element.id
         }/${Date.now()}/avatar`,
-        status: checkIfUserConnected ? "online" : "offline"
+        status: checkIfUserConnected ? "online" : "offline",
       };
     });
-
 
     const t1 = performance.now();
 
     nsSocket.emit("userList", {
       users: updateUser,
-      numberOfUsers: nbUsers.count
+      numberOfUsers: nbUsers.count,
     });
 
     console.log(`get user list : ${t1 - t0} ms`);
@@ -104,7 +95,7 @@ class NamespacesManager {
 
   public async loadMoreUser(
     nsSocket: Socket,
-    data: { currentArrayLength: number; namespaceId: number },
+    data: { currentArrayLength: number; namespaceId: number }
   ) {
     const { currentArrayLength, namespaceId } = data;
 
@@ -117,7 +108,7 @@ class NamespacesManager {
       limit: 50,
       offset: currentArrayLength,
       raw: true,
-      nest: true
+      nest: true,
     });
 
     const updateUser = foundUser?.map((element) => {
@@ -128,7 +119,7 @@ class NamespacesManager {
         avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
           element.id
         }/${Date.now()}/avatar`,
-        status: checkIfUserConnected ? "online" : "offline"
+        status: checkIfUserConnected ? "online" : "offline",
       };
     });
 
@@ -144,20 +135,22 @@ class NamespacesManager {
 
     const userId = socket.request.user?.id;
 
-    const { count } = await getNumberOfUserNamespaces(userId)
+    const { count } = await getNumberOfUserNamespaces(userId);
 
     if (count >= this._userNamespacesLimit) {
-      throw new Error(`Tu ne peut pas créer/rejoindre plus de ${this._userNamespacesLimit} serveur`)
+      throw new Error(
+        `Tu ne peut pas créer/rejoindre plus de ${this._userNamespacesLimit} serveur`
+      );
     }
 
-    const imgName = data.imgUrl ? Date.now() : null;
+    const imgName = data.imgBuffer ? Date.now() : null;
 
-    if (data.imgUrl) {
-      await sharp(data.imgUrl)
+    if (data.imgBuffer) {
+      await sharp(data.imgBuffer)
         .resize(150, 150)
         .webp({
           quality: 80,
-          effort: 0
+          effort: 0,
         })
         .toFile(path.join(__dirname, `../images/${imgName}.webp`));
     }
@@ -165,7 +158,7 @@ class NamespacesManager {
     const createNamespace = await UserNamespace.create({
       name: data.name,
       inviteCode: data.inviteCode,
-      imgUrl: imgName ? `/images/${imgName}` : `/images/${getRandomImage()}`
+      imgUrl: imgName ? `/images/${imgName}` : `/images/${getRandomImage()}`,
     });
 
     const { id } = createNamespace.toJSON();
@@ -173,36 +166,35 @@ class NamespacesManager {
     await Room.create({
       name: "# Général",
       index: 1,
-      namespaceId: id
+      namespaceId: id,
     });
-
 
     await UserHasNamespace.create({
       user_id: userId,
       namespace_id: id,
-      admin: true
+      admin: true,
     });
 
-    const foundUserNamespace  = (
+    const foundUserNamespace = (
       await User.findByPk(userId, {
         include: {
           model: UserNamespace,
           as: "namespaces",
           include: ["rooms"],
           where: {
-            id
-          }
-        }
+            id,
+          },
+        },
       })
     )?.toJSON();
 
-   const [ namespaces ] = [...foundUserNamespace?.namespaces];
+    const [namespaces] = [...foundUserNamespace?.namespaces];
 
     const userNamespace = {
       ...namespaces,
       imgUrl: `${process.env.DEV_AVATAR_URL}/namespace/${
         namespaces?.id
-      }/${Date.now()}/avatar`
+      }/${Date.now()}/avatar`,
     };
 
     socket.emit("createdNamespace", [userNamespace]);
@@ -210,8 +202,11 @@ class NamespacesManager {
     console.timeEnd("create");
   }
 
-  public async updateNamespace(socket: SocketCustom, data: UpdateNamespaceInterface) {
-    const { namespaceId, values, avatar } = data;
+  public async updateNamespace(
+    socket: SocketCustom,
+    data: UpdateNamespaceInterface
+  ) {
+    const { namespaceId, inviteCode, imgBuffer, name } = data;
 
     const userId = socket.request.user?.id;
 
@@ -219,42 +214,41 @@ class NamespacesManager {
       where: {
         user_id: userId,
         namespace_id: namespaceId,
-        admin: true
+        admin: true,
       },
-      raw: true
+      raw: true,
     });
 
     if (!checkIfUserIsAdmin) {
       throw new Error("Tu dois être administrateur pour modifier le serveur");
     }
 
-    const avatarName = avatar ? Date.now() : null;
+    const avatarName = imgBuffer ? Date.now() : null;
 
-    if (avatar) {
-      await sharp(avatar)
+    if (imgBuffer) {
+      await sharp(imgBuffer)
         .resize(100, 100)
         .webp({
           quality: 80,
-          effort: 0
+          effort: 0,
         })
         .toFile(path.join(__dirname, `../images/${avatarName}.webp`));
-
     }
 
-    const { imgUrl: oldAvatar } = await UserNamespace.findByPk(namespaceId, {
-      raw: true
-    }) as UserNamespace;
+    const { imgUrl: oldAvatar } = (await UserNamespace.findByPk(namespaceId, {
+      raw: true,
+    })) as UserNamespace;
 
     await UserNamespace.update(
       {
-        name: values.name,
-        inviteCode: values.inviteCode,
-        imgUrl: avatarName ? `/images/${avatarName}` : oldAvatar
+        name,
+        inviteCode,
+        imgUrl: avatarName ? `/images/${avatarName}` : oldAvatar,
       },
       {
         where: {
-          id: namespaceId
-        }
+          id: namespaceId,
+        },
       }
     );
 
@@ -262,8 +256,8 @@ class NamespacesManager {
       await UserNamespace.findByPk(namespaceId, {
         include: {
           model: Room,
-          as: "rooms"
-        }
+          as: "rooms",
+        },
       })
     )?.toJSON();
 
@@ -271,7 +265,7 @@ class NamespacesManager {
       ...updateNamespace,
       imgUrl: `${
         process.env.DEV_AVATAR_URL
-      }/namespace/${namespaceId}/${Date.now()}/avatar`
+      }/namespace/${namespaceId}/${Date.now()}/avatar`,
     };
 
     this._ios.of(`${namespaceId}`).emit("updateNamespace", updateNamespace);
@@ -286,9 +280,9 @@ class NamespacesManager {
       where: {
         user_id: userId,
         namespace_id: id,
-        admin: true
+        admin: true,
       },
-      raw: true
+      raw: true,
     });
 
     if (!checkIfUserIsAdmin) {
@@ -298,20 +292,19 @@ class NamespacesManager {
     this._ios.of(`${id}`).emit("deleteNamespace", { id });
 
     const namespace = await UserNamespace.findByPk(id, {
-      raw: true
+      raw: true,
     });
 
     unlinkImage(namespace?.imgUrl);
 
     await UserNamespace.destroy({
       where: {
-        id
-      }
+        id,
+      },
     });
 
     this._ios._nsps.delete(`/${id}`);
   }
-
 
   public async joinInvitation(
     socket: SocketCustom,
@@ -319,24 +312,23 @@ class NamespacesManager {
   ) {
     const userId = socket.request.user?.id;
 
-
     const foundNamespace = (
       await UserNamespace.findOne({
         where: {
-          invite_code: data.inviteCode
-        }
+          invite_code: data.inviteCode,
+        },
       })
     )?.toJSON() as UserNamespace;
 
     if (!foundNamespace) throw new Error("Code non valide");
 
-    const { id: namespaceId } = foundNamespace
+    const { id: namespaceId } = foundNamespace;
 
     const checkIfUserAlreadyHasServer = await UserHasNamespace.findOne({
       where: {
         user_id: userId,
-        namespace_id: namespaceId
-      }
+        namespace_id: namespaceId,
+      },
     });
 
     let { count } = await getNumberOfUsers(namespaceId);
@@ -347,15 +339,17 @@ class NamespacesManager {
 
     if (checkIfServerIsFull) throw new Error("Le serveur est plein");
 
-    const { count: namespacesLimit } = await getNumberOfUserNamespaces(userId)
+    const { count: namespacesLimit } = await getNumberOfUserNamespaces(userId);
 
     if (namespacesLimit >= this._userNamespacesLimit) {
-      throw new Error(`Tu ne peut pas créer/rejoindre plus de ${this._userNamespacesLimit} serveur`)
+      throw new Error(
+        `Tu ne peut pas créer/rejoindre plus de ${this._userNamespacesLimit} serveur`
+      );
     }
 
     await UserHasNamespace.create({
       user_id: userId,
-      namespace_id: namespaceId
+      namespace_id: namespaceId,
     });
 
     let foundUserNamespaces = (
@@ -365,20 +359,19 @@ class NamespacesManager {
           as: "namespaces",
           include: ["rooms"],
           where: {
-            inviteCode: data.inviteCode
-          }
-        }
+            inviteCode: data.inviteCode,
+          },
+        },
       })
     )?.toJSON();
 
     const [namespaces] = [...foundUserNamespaces?.namespaces];
 
-
     const userNamespaces = {
       ...namespaces,
-      imgUrl: `${process.env.DEV_AVATAR_URL}/namespace/${
-        namespaceId
-      }/${Date.now()}/avatar`
+      imgUrl: `${
+        process.env.DEV_AVATAR_URL
+      }/namespace/${namespaceId}/${Date.now()}/avatar`,
     };
 
     let foundNamespaceUser = (
@@ -389,30 +382,28 @@ class NamespacesManager {
             as: "users",
             attributes: { exclude: ["password"] },
             where: {
-              id: userId
-            }
-          }
-        ]
+              id: userId,
+            },
+          },
+        ],
       })
     )?.toJSON();
 
-    const [ users ] = [...foundNamespaceUser?.users]
+    const [users] = [...foundNamespaceUser?.users];
 
     const user = {
       ...users,
       avatarUrl: `${
         process.env.DEV_AVATAR_URL
       }/user/${userId}/${Date.now()}/avatar`,
-      status: "online"
+      status: "online",
     };
 
     socket.emit("createdNamespace", [userNamespaces]);
     this._ios.of(`/${namespaceId}`).emit("userJoinNamespace", [user]);
   }
 
-
   async leaveNamespace(socket: SocketCustom, data: { id: number }) {
-
     const { id: namespaceId } = data;
 
     const userId = socket.request.user?.id;
@@ -420,8 +411,8 @@ class NamespacesManager {
     await UserHasNamespace.destroy({
       where: {
         user_id: userId,
-        namespace_id: namespaceId
-      }
+        namespace_id: namespaceId,
+      },
     });
 
     this._ios.of(`/${namespaceId}`).emit("userLeaveNamespace", { id: userId });

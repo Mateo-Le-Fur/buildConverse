@@ -14,6 +14,10 @@ UserHasPrivateRoom.init(
       type: DataTypes.INTEGER,
       field: "private_room_id",
     },
+
+    active: {
+      type: DataTypes.BOOLEAN,
+    },
   },
   {
     sequelize,

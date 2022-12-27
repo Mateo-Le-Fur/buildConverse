@@ -1,8 +1,8 @@
 import { UserInterface } from "./User";
 
 export interface UpdateUserInterface extends UserInterface {
-  namespaces: number[],
+  namespaces: number[];
 
-  friends: number[],
-  avatar: Buffer,
+  friends: number[];
+  imgBuffer: Buffer;
 }

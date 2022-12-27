@@ -41,8 +41,10 @@ function previewAvatar(e: Event) {
 }
 
 async function deleteAccount() {
-  const namespacesId = socketStore.namespaces.map((namespace) => namespace.id)
-  const privateRoomsId = meStore.recipients.map((recipient) => recipient.privateRoomId)
+  const namespacesId = socketStore.namespaces.map((namespace) => namespace.id);
+  const privateRoomsId = meStore.recipients.map(
+    (recipient) => recipient.privateRoomId
+  );
 
   await deleteUser(userStore.currentUser?.id);
 
@@ -66,6 +68,7 @@ async function deleteAccount() {
 watch(
   () => state.isProfilOpen,
   () => {
+    socketStore.error = null;
     pseudoValue.value = userStore.currentUser?.pseudo;
     emailValue.value = userStore.currentUser?.email;
     state.user = { description: userStore.currentUser!.description };
@@ -113,19 +116,18 @@ const submit = handleSubmit(async (formValue: User) => {
           description: description.value,
           namespaces,
           friends,
-          id: userStore.currentUser?.id,
-          avatar: avatar.value ? avatar.value : null,
-          avatarName: avatar.value ? avatar.value?.name : null,
+          imgBuffer: avatar.value ? avatar.value : null,
         },
         async (response: { status: string; message: string }) => {
           if (response.status === "ok") {
             await userStore.fetchCurrentUser();
+            state.isProfilOpen = false;
+            avatar.value = null;
+          } else {
+            socketStore.setError(response.message);
           }
         }
       );
-
-      avatar.value = null;
-      state.isProfilOpen = false;
     }
   } catch (e: string | any) {
     setErrors({});
@@ -170,7 +172,9 @@ const { value: emailValue, errorMessage: emailError } = useField("email");
                 class="input-file"
                 type="file"
               />
-
+              <span class="form-error mb-10" v-if="socketStore.error">{{
+                socketStore.error
+              }}</span>
               <form
                 id="usrForm"
                 @submit.prevent="submit"

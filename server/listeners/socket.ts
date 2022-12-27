@@ -19,6 +19,10 @@ import { DeleteUserInterface } from "../interfaces/DeleteUserInterface";
 import { FriendsManager } from "./friend.socket";
 import { FriendsInterface } from "../interfaces/FriendsInterface";
 import { PrivateMessageInterface } from "../interfaces/PrivateMessageInterface";
+import namespaceValidator from "../validation/schema/namespace.schema";
+import roomValidator from "../validation/schema/room.schema";
+import joinNamespaceValidator from "../validation/schema/joinNamespace.schema";
+import userValidator from "../validation/schema/user.schema";
 
 class SocketManager {
   private _ios: Server;
@@ -102,13 +106,16 @@ class SocketManager {
         }
       });
 
-      socket.on("deleteFriend", async (data: { friendId: number, privateRoomId: number }) => {
-        try {
-          await this._friendsManager.deleteFriend(socket, data);
-        } catch (e) {
-          console.error(e);
+      socket.on(
+        "deleteFriend",
+        async (data: { friendId: number; privateRoomId: number }) => {
+          try {
+            await this._friendsManager.deleteFriend(socket, data);
+          } catch (e) {
+            console.error(e);
+          }
         }
-      });
+      );
 
       socket.on(
         "getConversationWithAFriend",
@@ -140,28 +147,32 @@ class SocketManager {
         }
       });
 
-      socket.on("createNamespace", async (data: NamespaceInterface, callback) => {
-        try {
-          await this._namespacesManager.createNamespace(socket, data);
-          callback({
-            status: "ok",
-            message: "",
-          });
-        } catch (e) {
-          if (e instanceof Error) {
-            console.error(e);
+      socket.on(
+        "createNamespace",
+        async (data: NamespaceInterface, callback) => {
+          try {
+            await namespaceValidator.validateAsync(data);
+            await this._namespacesManager.createNamespace(socket, data);
             callback({
-              status: "error",
-              message: e.message,
+              status: "ok",
+              message: "",
             });
+          } catch (e) {
+            if (e instanceof Error) {
+              callback({
+                status: "error",
+                message: e.message,
+              });
+            }
           }
         }
-      });
+      );
 
       socket.on(
         "userJoinNamespace",
         async (data: NamespaceInterface, callback) => {
           try {
+            await joinNamespaceValidator.validateAsync(data);
             await this._namespacesManager.joinInvitation(socket, data);
             callback({
               status: "ok",
@@ -179,6 +190,7 @@ class SocketManager {
 
       socket.on("updateUser", async (data: UpdateUserInterface, callback) => {
         try {
+          await userValidator.validateAsync(data);
           await this._usersManager.updateUser(socket, data);
           callback({
             status: "ok",
@@ -189,7 +201,6 @@ class SocketManager {
               status: "error",
               message: e.message,
             });
-            console.error(e);
           }
         }
       });
@@ -288,6 +299,7 @@ class SocketManager {
           "updateNamespace",
           async (data: UpdateNamespaceInterface, callback) => {
             try {
+              await namespaceValidator.validateAsync(data);
               await this._namespacesManager.updateNamespace(nsSocket, data);
               callback({
                 status: "ok",
@@ -336,7 +348,6 @@ class SocketManager {
                   status: "error",
                   message: e.message,
                 });
-                console.error(e);
               }
             }
           }
@@ -395,19 +406,37 @@ class SocketManager {
           nsSocket.leave(`/${roomId}`);
         });
 
-        nsSocket.on("createRoom", async (data: RoomInterface) => {
+        nsSocket.on("createRoom", async (data: RoomInterface, callback) => {
           try {
+            await roomValidator.validateAsync(data);
             await this._roomsManager.createRoom(data);
+            callback({
+              status: "ok",
+            });
           } catch (e) {
-            console.error(e);
+            if (e instanceof Error) {
+              callback({
+                status: "error",
+                message: e.message,
+              });
+            }
           }
         });
 
-        nsSocket.on("updateRoom", async (data: RoomInterface) => {
+        nsSocket.on("updateRoom", async (data: RoomInterface, callback) => {
           try {
+            await roomValidator.validateAsync(data);
             await this._roomsManager.updateRoom(data);
+            callback({
+              status: "ok",
+            });
           } catch (e) {
-            console.error(e);
+            if (e instanceof Error) {
+              callback({
+                status: "error",
+                message: e.message,
+              });
+            }
           }
         });
 
@@ -434,5 +463,4 @@ class SocketManager {
   }
 }
 
-const socketManager = new SocketManager();
-socketManager.init();
+export default SocketManager;

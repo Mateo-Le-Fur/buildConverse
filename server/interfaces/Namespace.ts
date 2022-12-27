@@ -6,13 +6,11 @@ export interface NamespaceInterface {
   id: number;
   name: string;
   inviteCode: string;
-  imgUrl: string;
+  imgBuffer: string;
   rooms: RoomInterface[];
   UserHasNamespace: UserHasNamespaceInterface;
   createdAt: string;
   updatedAt: string;
 
-  users?: UserInterface[]
-
-
+  users?: UserInterface[];
 }

@@ -1,15 +1,43 @@
 <script setup lang="ts">
 import Profil from "@/components/Profil.vue";
 import SearchBar from "@/features/home/components/SearchBar.vue";
-import { onMounted, reactive, watch } from "vue";
+import { onMounted, reactive, ref, watch } from "vue";
 import { useMe } from "@/features/home/stores/meStore";
 import { useRoute } from "vue-router";
 import { useSocket } from "@/shared/stores/socketStore";
+import { router } from "@/routes";
 
 const socketStore = useSocket();
 const meStore = useMe();
 
 const route = useRoute();
+
+const recipientHover = ref<boolean>(false);
+const recipientId = ref<number | null>(null);
+
+function onHover(id: number) {
+  recipientId.value = id;
+  recipientHover.value = true;
+}
+
+function onLeave() {
+  recipientHover.value = false;
+}
+
+async function disableConversation(privateRoomId: number) {
+  const { id } = await (
+    await fetch(`/api/user/user/disable-channel/${privateRoomId}`, {
+      method: "POST",
+    })
+  ).json();
+
+  meStore.disableConversation(id);
+
+  if (meStore.currentRecipient) {
+    meStore.currentRecipient = null;
+    await router.push("/channels/me");
+  }
+}
 
 watch(
   () => route.params.privateRoomId,
@@ -58,16 +86,41 @@ const state = reactive<{
               recipient.privateRoomId ===
               meStore.currentRecipient?.privateRoomId,
           }"
+          :key="recipient.id"
           class="private-message d-flex flex-column"
         >
           <router-link
+            @mouseover="onHover(recipient.id)"
+            @mouseleave="onLeave()"
             class="d-flex align-items-center g-10"
             :to="`/channels/me/${recipient.privateRoomId}`"
           >
-            <div class="avatar">
-              <img :src="recipient.avatarUrl" />
+            <div class="d-flex align-items-center flex-fill g-10">
+              <div class="avatar">
+                <img :src="recipient.avatarUrl" />
+              </div>
+              <div>
+                <p>{{ recipient.pseudo }}</p>
+              </div>
             </div>
-            <p>{{ recipient.pseudo }}</p>
+            <div>
+              <svg
+                @click.stop.prevent="
+                  disableConversation(recipient.privateRoomId)
+                "
+                :class="{
+                  deleteButton:
+                    recipientHover === true && recipient.id === recipientId,
+                }"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 320 512"
+              >
+                <!--! Font Awesome Pro 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
+                <path
+                  d="M310.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L160 210.7 54.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L114.7 256 9.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L160 301.3 265.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L205.3 256 310.6 150.6z"
+                />
+              </svg>
+            </div>
           </router-link>
         </div>
       </div>
@@ -103,6 +156,21 @@ const state = reactive<{
       .private-message {
         border-radius: 5px;
         padding: 2px 10px;
+
+        &:hover {
+          background-color: var(--primary-1);
+        }
+
+        svg {
+          display: none;
+        }
+
+        .deleteButton {
+          display: block;
+          width: 15px;
+          height: 15px;
+          fill: #dddddd;
+        }
       }
 
       .avatar {

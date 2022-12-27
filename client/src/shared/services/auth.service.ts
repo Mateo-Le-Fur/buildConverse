@@ -6,7 +6,7 @@ const BASE_URL = "/api/auth";
 
 export async function createUser(userForm: UserForm): Promise<User> {
   try {
-    const response = await fetch(`${BASE_URL}/signin`, {
+    const response = await fetch(`${BASE_URL}/register`, {
       method: "POST",
       body: JSON.stringify(userForm),
       headers: {

@@ -5,8 +5,8 @@ async function getNumberOfUsers(
   namespaceId: number
 ): Promise<{ count: number }> {
   const user: [{ count: number }] = await client.query(
-    `SELECT COUNT(id) FROM "user_has_namespace" WHERE namespace_id = ${namespaceId}`,
-    { type: QueryTypes.SELECT }
+    `SELECT COUNT(id) FROM "user_has_namespace" WHERE namespace_id = :id`,
+    { replacements: { id: namespaceId }, type: QueryTypes.SELECT }
   );
 
   return user[0];
@@ -16,8 +16,8 @@ async function getNumberOfUserNamespaces(
   userId: number | undefined
 ): Promise<{ count: number }> {
   const namespaces: [{ count: number }] = await client.query(
-    `SELECT COUNT(id) FROM "user_has_namespace" WHERE user_id = ${userId}`,
-    { type: QueryTypes.SELECT }
+    `SELECT COUNT(id) FROM "user_has_namespace" WHERE user_id = :id`,
+    { replacements: { id: userId }, type: QueryTypes.SELECT }
   );
 
   return namespaces[0];

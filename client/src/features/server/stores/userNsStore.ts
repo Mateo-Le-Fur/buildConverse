@@ -3,6 +3,7 @@ import { defineStore } from "pinia";
 import type { User } from "@/shared/interfaces/User";
 import { useUser } from "@/shared/stores";
 import { useMe } from "@/features/home/stores/meStore";
+import { useSocket } from "@/shared/stores/socketStore";
 
 interface userState {
   userList: User[];
@@ -55,23 +56,35 @@ export const useNsUser = defineStore("userSocket", {
     },
 
     async updateUser(data: User) {
-      const userNamespaceIndex = this.userList.findIndex(
-        (user) =>
-          user.id === data.id &&
-          user.UserHasNamespace.namespaceId ===
-            data.UserHasNamespace.namespaceId
-      );
-      if (userNamespaceIndex !== -1) {
-        this.userList[userNamespaceIndex] = data;
+      const socketStore = useSocket();
+      if (
+        `/${data.UserHasNamespace.namespaceId}` ===
+        socketStore.activeNsSocket?.nsp
+      ) {
+        const userNamespaceIndex = this.userList.findIndex(
+          (user) =>
+            user.id === data.id &&
+            user.UserHasNamespace.namespaceId ===
+              data.UserHasNamespace.namespaceId
+        );
+        if (userNamespaceIndex !== -1) {
+          this.userList[userNamespaceIndex] = data;
+        }
       }
     },
 
-    deleteUser(data: { id: number }) {
-      const userIndex = this.userList.findIndex((user) => user.id === data.id);
+    deleteUser(data: { id: number; nsId: number }) {
+      const socketStore = useSocket();
+      if (`/${data.nsId}` === socketStore.activeNsSocket?.nsp) {
+        console.log(data);
+        const userIndex = this.userList.findIndex(
+          (user) => user.id === data.id
+        );
 
-      if (userIndex !== -1) {
-        this.userList.splice(userIndex, 1);
-        this.numberOfUsers--;
+        if (userIndex !== -1) {
+          this.userList.splice(userIndex, 1);
+          this.numberOfUsers--;
+        }
       }
     },
 

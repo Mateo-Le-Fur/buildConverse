@@ -2,12 +2,20 @@
 import Profil from "@/components/Profil.vue";
 import type { RouteParams } from "vue-router";
 import type { RoomInterface } from "@/shared/interfaces/Room";
-import { nextTick, onMounted, onUnmounted, onUpdated, ref, toRaw, watch } from "vue";
+import {
+  nextTick,
+  onMounted,
+  onUnmounted,
+  onUpdated,
+  ref,
+  toRaw,
+  watch,
+} from "vue";
 import CreateRoomPopup from "./CreateRoomPopup.vue";
 import { useSocket } from "@/shared/stores/socketStore";
 import { useNsUser } from "@/features/server/stores/userNsStore";
 import { useRoom } from "@/features/server/stores/roomStore";
-import botAvatar from "@/assets/images/bot.png"
+import botAvatar from "@/assets/images/bot.png";
 
 const socketStore = useSocket();
 const userNsStore = useNsUser();
@@ -55,12 +63,9 @@ function deleteRoom(room: RoomInterface) {
   if (rooms.length > 1) {
     socketStore.activeNsSocket.emit("deleteRoom", {
       namespaceId: Number(props.params.idChannel),
-      id: room.id
+      id: room.id,
     });
   } else {
-    socketStore.messages = socketStore.messages.filter(
-      (message) => message.id !== -1
-    );
     socketStore.messages.push({
       data: "Tu ne peux pas supprimer ce salon",
       dataType: "text",
@@ -82,16 +87,21 @@ async function onEdit() {
   });
 }
 
-async function updateRoom(roomId: number, namespaceId: number) {
+async function updateRoom(room: RoomInterface) {
   await nextTick(() => {
-    const input = toRaw(inputElem.value);
+    const input = toRaw(inputElem.value) as HTMLInputElement[] | null;
 
-    socketStore.activeNsSocket.emit("updateRoom", {
-      id: roomId,
-      namespaceId,
-      // @ts-ignore
-      name: input[0].value
-    });
+    if (input && input[0].value !== room.name) {
+      socketStore.activeNsSocket.emit(
+        "updateRoom",
+        {
+          id: room.id,
+          namespaceId: room.namespaceId,
+          name: input[0].value,
+        },
+        (response: { status: string; message: string }) => {}
+      );
+    }
   });
 }
 </script>
@@ -101,7 +111,6 @@ async function updateRoom(roomId: number, namespaceId: number) {
     <nav class="nav-container d-flex flex-column flex-fill">
       <div class="create-room d-flex align-items-center">
         <p class="text-room">SALONS TEXTUELS</p>
-
         <div
           @click="createRoomPopup = true"
           style="cursor: pointer"
@@ -195,7 +204,7 @@ async function updateRoom(roomId: number, namespaceId: number) {
                     />
                     <svg
                       @click.stop.prevent="
-                        updateRoom(room.id, room.namespace_id);
+                        updateRoom(room);
                         editMode = false;
                       "
                       xmlns="http://www.w3.org/2000/svg"

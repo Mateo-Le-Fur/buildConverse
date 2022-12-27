@@ -28,7 +28,8 @@ const validationSchema = toFormValidator(
   z.object({
     name: z
       .string({ required_error: "Le champ doit être remplie : (" })
-      .min(1, "Minimum 1 caractères requis"),
+      .min(1, "Minimum 1 caractères requis")
+      .max(30, "Maximum 30 caractères"),
 
     inviteCode: z
       .string({ required_error: "Le champ doit être remplie : (" })
@@ -48,9 +49,10 @@ const submit = handleSubmit(async (formValue: Partial<Namespace>) => {
         formValue.inviteCode === props.currentNamespace?.inviteCode
       )
     ) {
-      throw new Error("Tu ne peux pas modifier le code");
+      setErrors({
+        inviteCode: "Tu ne peux pas modifier le code",
+      });
     }
-
     if (
       formValue.name !== props.currentNamespace?.name ||
       formValue.inviteCode !== props.currentNamespace?.inviteCode ||
@@ -59,24 +61,23 @@ const submit = handleSubmit(async (formValue: Partial<Namespace>) => {
       socketStore.activeNsSocket.emit(
         "updateNamespace",
         {
+          ...formValue,
           namespaceId: props.currentNamespace?.id,
-          values: formValue,
-          avatar: avatar.value ?? null,
+          imgBuffer: avatar.value ?? null,
         },
-        (response: { status: string; message?: string }) => {
+        (response: { status: string; message: string }) => {
           if (response.status === "ok") {
             emit("closePopup");
           } else {
-            socketStore.setError(response.message!);
+            socketStore.setError(response.message);
           }
         }
       );
       socketStore.isNamespaceUpdated = false;
     }
   } catch (e: string | any) {
-    setErrors({
-      inviteCode: e.message,
-    });
+    console.error(e);
+    throw e;
   }
 });
 
@@ -139,7 +140,8 @@ function previewAvatar(e: Event) {
         <div class="d-flex g-15 mb-20">
           <div class="d-flex flex-column server-name">
             <label for="name">Nom du serveur</label>
-            <input v-model="nameValue" id="name" type="text" />
+            <input class="mb-10" v-model="nameValue" id="name" type="text" />
+            <span class="form-error" v-if="nameError">{{ nameError }}</span>
           </div>
           <div class="d-flex flex-column server-invite-code">
             <label for="invite_code">Code d'invitation</label>

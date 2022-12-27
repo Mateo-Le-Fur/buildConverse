@@ -10,12 +10,12 @@ import { UserInterface } from "../interfaces/User";
 
 class authController {
   constructor() {
-    this.signin = this.signin.bind(this);
+    this.register = this.register.bind(this);
     this.login = this.login.bind(this);
     this.logout = this.logout.bind(this);
     this.getCurrent = this.getCurrent.bind(this);
   }
-  async signin(req: Request, res: Response) {
+  async register(req: Request, res: Response) {
     const { pseudo, email, password }: UserFormInterface = req.body;
 
     const foundUser = await User.findOne({

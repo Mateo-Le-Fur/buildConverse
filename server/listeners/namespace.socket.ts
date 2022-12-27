@@ -57,8 +57,6 @@ class NamespacesManager {
   }
 
   public async getNamespaceUsers(nsSocket: Socket, namespaceId: number) {
-    const t0 = performance.now();
-
     let foundNamespace = await UserNamespace.findByPk(namespaceId);
 
     const nbUsers = await getNumberOfUsers(namespaceId);
@@ -83,14 +81,10 @@ class NamespacesManager {
       };
     });
 
-    const t1 = performance.now();
-
     nsSocket.emit("userList", {
       users: updateUser,
       numberOfUsers: nbUsers.count,
     });
-
-    console.log(`get user list : ${t1 - t0} ms`);
   }
 
   public async loadMoreUser(
@@ -122,10 +116,6 @@ class NamespacesManager {
         status: checkIfUserConnected ? "online" : "offline",
       };
     });
-
-    const t1 = performance.now();
-
-    console.log(`load more user : ${t1 - t0} ms`);
 
     nsSocket.emit("loadMoreUser", updateUser);
   }

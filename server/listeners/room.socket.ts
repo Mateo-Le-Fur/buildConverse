@@ -85,8 +85,6 @@ class RoomsManager {
 
     const { count } = await getNumberOfRooms(namespaceId);
 
-    console.log(count);
-
     if (count > 1) {
       await Room.destroy({
         where: {

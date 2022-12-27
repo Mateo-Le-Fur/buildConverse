@@ -25,7 +25,6 @@ class UserManager {
 
   public async updateUser(socket: SocketCustom, data: UpdateUserInterface) {
     const userId = socket.request.user?.id;
-    const t0 = performance.now();
 
     const avatarName = data.imgBuffer ? `${userId}-${Date.now()}` : null;
 
@@ -111,10 +110,6 @@ class UserManager {
         this._ios.of(`/${ns}`).emit("updateUser", ...user);
       }
     }
-
-    const t1 = performance.now();
-
-    console.log(`update user ${t1 - t0} ms`);
 
     if (data.friends.length) {
       const getUserUpdated = await User.findByPk(userId, {

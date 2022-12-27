@@ -76,7 +76,6 @@ export const useNsUser = defineStore("userSocket", {
     deleteUser(data: { id: number; nsId: number }) {
       const socketStore = useSocket();
       if (`/${data.nsId}` === socketStore.activeNsSocket?.nsp) {
-        console.log(data);
         const userIndex = this.userList.findIndex(
           (user) => user.id === data.id
         );

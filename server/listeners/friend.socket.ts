@@ -262,8 +262,6 @@ class FriendsManager {
     socket: SocketCustom,
     data: { friendId: number; privateRoomId: number }
   ) {
-    const t0 = performance.now();
-
     const userId = socket.request.user?.id;
 
     const checkIfFriendExist = await User.findByPk(data.friendId);
@@ -355,11 +353,6 @@ class FriendsManager {
       };
 
       socket.emit("getConversationWithAFriend", recipientCreated);
-
-      const t1 = performance.now();
-
-      console.log(t1 - t0);
-
       return;
     }
 

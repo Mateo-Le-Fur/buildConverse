@@ -92,13 +92,10 @@ function deleteFriend(friendId: number) {
     (recipient) => recipient.id === friendId
   );
 
-  console.log(checkIfConversationExist, friendId)
-
   socketStore.ioClient?.emit("deleteFriend", {
     friendId,
     privateRoomId: checkIfConversationExist?.privateRoomId,
   });
-
 }
 </script>
 <template>
@@ -165,7 +162,9 @@ function deleteFriend(friendId: number) {
           </div>
         </div>
         <div class="d-flex" v-else>
-          <p @click.stop="acceptFriendRequest(friend.id)" class="accept">Accepter</p>
+          <p @click.stop="acceptFriendRequest(friend.id)" class="accept">
+            Accepter
+          </p>
           <p @click.stop="declineFriendRequest(friend.id)" class="decline">
             Refuser
           </p>

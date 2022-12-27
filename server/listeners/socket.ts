@@ -277,7 +277,6 @@ class SocketManager {
           if (isAuthorize) {
             next();
           } else {
-            console.log("Tu n'as pas accès à ce serveur ");
             next(new Error("Tu n'as pas accès à ce serveur "));
           }
         }
@@ -402,7 +401,6 @@ class SocketManager {
         });
 
         nsSocket.on("leaveRoom", (roomId: RoomInterface) => {
-          console.log(roomId);
           nsSocket.leave(`/${roomId}`);
         });
 

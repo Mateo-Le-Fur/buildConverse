@@ -57,6 +57,7 @@ function changeNamespace(namespaceId: number, home: boolean = false) {
   }
   if (home) {
     socketStore.activeNsSocket = null;
+    socketStore.isMessagesLoaded = false;
   }
 }
 </script>

@@ -21,6 +21,11 @@ watchEffect(() => {
   );
 });
 
+function closePopupUpdate() {
+  socketStore.error = null;
+  popupUpdateServer.value = false;
+}
+
 function deleteNamespace(namespaceId: number) {
   socketStore.activeNsSocket.emit(
     "deleteNamespace",
@@ -76,7 +81,7 @@ function leaveNamespace(namespaceId: number) {
         >
           Modifier le serveur
           <UpdateServer
-            @close-popup="popupUpdateServer = false"
+            @close-popup="closePopupUpdate()"
             :current-namespace="currentNamespace"
             v-if="popupUpdateServer"
           />

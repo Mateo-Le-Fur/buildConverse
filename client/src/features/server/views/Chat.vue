@@ -1,17 +1,9 @@
 <script setup lang="ts">
 import { useSocket } from "@/shared/stores/socketStore";
 import SendMessage from "../components/SendMessage.vue";
-import {
-  onMounted,
-  onUnmounted,
-  onUpdated,
-  ref,
-  watch,
-  watchEffect,
-} from "vue";
+import { onMounted, onUpdated, ref } from "vue";
 import { useRoom } from "@/features/server/stores/roomStore";
 import type { RouteParams } from "vue-router";
-import botAvatar from "@/assets/images/bot.png";
 import { useUser } from "@/shared/stores";
 
 const userStore = useUser();
@@ -44,7 +36,10 @@ defineProps<{
 
 <template>
   <div class="chat-container d-flex flex-column flex-fill">
-    <div v-if="roomStore.activeRoom" class="message-container">
+    <div
+      v-if="socketStore.isMessagesLoaded && roomStore.activeRoom"
+      class="message-container"
+    >
       <h2 class="room-name">
         Bienvenue dans le salon {{ roomStore.activeRoom?.name }}
       </h2>
@@ -66,15 +61,22 @@ defineProps<{
               </p>
             </div>
             <div class="d-flex w-100">
-              <p class="message-color" :class="{ red: message.id === -1}">
+              <p class="message-color" :class="{ red: message.id === -1 }">
                 {{ message.data }}
               </p>
             </div>
           </div>
         </div>
-        <div v-else class="d-flex message" :class="{ groupMessage: !message.avatarAuthor }">
+        <div
+          v-else
+          class="d-flex message"
+          :class="{ groupMessage: !message.avatarAuthor }"
+        >
           <div class="d-flex w-100">
-            <p class="message-color" :class="{ red: message.id === -1, indent: !message.avatarAuthor}">
+            <p
+              class="message-color"
+              :class="{ red: message.id === -1, indent: !message.avatarAuthor }"
+            >
               {{ message.data }}
             </p>
           </div>

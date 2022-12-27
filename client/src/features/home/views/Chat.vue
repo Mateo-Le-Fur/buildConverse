@@ -4,13 +4,29 @@ import SendMessage from "@/features/home/components/SendMessage.vue";
 import { useMe } from "@/features/home/stores/meStore";
 import ChatTopBar from "@/features/home/components/ChatTopBar.vue";
 import { useUser } from "@/shared/stores";
-import { ref, watch } from "vue";
+import { onMounted, onUpdated, ref, watch } from "vue";
 import type { Message } from "@/shared/interfaces/Message";
 
 const meStore = useMe();
 const userStore = useUser();
 
+function scrollToBottom() {
+  const element = ref<HTMLDivElement | null>(null);
+  element.value = document.querySelector(".message-container");
 
+  element.value?.scrollTo({
+    top: element.value?.scrollHeight,
+    left: 0,
+  });
+}
+
+onMounted(() => {
+  scrollToBottom();
+});
+
+onUpdated(() => {
+  scrollToBottom();
+});
 </script>
 
 <template>

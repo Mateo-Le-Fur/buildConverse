@@ -14,7 +14,9 @@ const validationSchema = toFormValidator(
     email: z
       .string({ required_error: "Le champ doit être remplie : (" })
       .email("Le format de l'email n'est pas valide : ("),
-    password: z.string({ required_error: "Le champ doit être remplie : (" }),
+    password: z
+      .string({ required_error: "Le champ doit être remplie : (" })
+      .max(100, "Le mot de passe ne peut dépasser 100 caractères : ("),
   })
 );
 

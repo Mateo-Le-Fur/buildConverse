@@ -21,6 +21,9 @@ interface SocketState {
   isNamespacesLoaded: boolean;
   creatingNamespace: boolean | null;
   isNamespaceUpdated: boolean;
+
+  isMessagesLoaded: boolean;
+
   countLoadedNamespace: number;
   error: any;
 }
@@ -35,6 +38,7 @@ export const useSocket = defineStore("socket", {
     isNamespacesLoaded: false,
     creatingNamespace: false,
     isNamespaceUpdated: false,
+    isMessagesLoaded: false,
     countLoadedNamespace: 0,
     error: null,
     opts: { reconnection: false, forceNew: false, transports: ["websocket"] },
@@ -214,7 +218,7 @@ export const useSocket = defineStore("socket", {
         await userNsStore.updateUser(data);
       });
 
-      nsSocket.on("deleteUser", async (data: { id: number }) => {
+      nsSocket.on("deleteUser", async (data: { id: number; nsId: number }) => {
         userNsStore.deleteUser(data);
       });
 
@@ -239,6 +243,7 @@ export const useSocket = defineStore("socket", {
 
       nsSocket.on("history", (data: Message[]) => {
         this.messages = data;
+        this.isMessagesLoaded = true;
       });
 
       nsSocket.on("message", (data: Message) => {
@@ -377,9 +382,6 @@ export const useSocket = defineStore("socket", {
 
     setError(message: string) {
       this.error = message;
-      setTimeout(() => {
-        this.error = null;
-      }, 2000);
     },
   },
 });

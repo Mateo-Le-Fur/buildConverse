@@ -3,7 +3,6 @@ import { MessageInterface } from "../interfaces/Message";
 import { RoomInterface } from "../interfaces/Room";
 import { Namespace } from "socket.io/dist/namespace";
 
-
 import { Room, Message } from "../models";
 import { getNumberOfRooms } from "../query/room.query";
 
@@ -17,9 +16,9 @@ class RoomsManager {
   public async getAllRooms(nsSocket: Socket, namespaceId: string) {
     const getRooms = await Room.findAll({
       where: {
-        namespace_id: namespaceId
+        namespace_id: namespaceId,
       },
-      order: [["created_at", "asc"]]
+      order: [["created_at", "asc"]],
     });
 
     nsSocket.emit("rooms", getRooms);
@@ -28,11 +27,11 @@ class RoomsManager {
   public async getAllMessages(nsSocket: Socket, roomId: number) {
     let messages = await Message.findAll({
       where: {
-        room_id: roomId
+        room_id: roomId,
       },
       order: [["created_at", "asc"]],
       raw: true,
-      nest: true
+      nest: true,
     });
 
     messages = messages.map((message: MessageInterface) => {
@@ -40,7 +39,7 @@ class RoomsManager {
         ...message,
         avatarAuthor: `${process.env.DEV_AVATAR_URL}/user/${
           message.user_id
-        }/${Date.now()}/avatar`
+        }/${Date.now()}/avatar`,
       };
     });
 
@@ -49,33 +48,39 @@ class RoomsManager {
 
   public async createRoom(data: RoomInterface) {
     const room = await Room.create({
-      name: data.name,
+      name: `# ${data.name}`,
       index: data.index,
-      namespace_id: data.namespaceId
+      namespace_id: data.namespaceId,
     });
 
     this._ios.of(`/${data.namespaceId}`).emit("createRoom", room);
   }
 
-  public async updateRoom(data: { id: number, namespaceId: number, name: string }) {
-
+  public async updateRoom(data: {
+    id: number;
+    namespaceId: number;
+    name: string;
+  }) {
     const { id, namespaceId, name } = data;
 
     await Room.update(
       {
-        name
+        name,
       },
       {
         where: {
-          id
-        }
+          id,
+        },
       }
     );
 
     this._ios.of(`/${namespaceId}`).emit("updateRoom", data);
   }
 
-  public async deleteRoom(nsSocket: Socket, data: { id: number, namespaceId: number }) {
+  public async deleteRoom(
+    nsSocket: Socket,
+    data: { id: number; namespaceId: number }
+  ) {
     const { id, namespaceId } = data;
 
     const { count } = await getNumberOfRooms(namespaceId);
@@ -85,8 +90,8 @@ class RoomsManager {
     if (count > 1) {
       await Room.destroy({
         where: {
-          id
-        }
+          id,
+        },
       });
     }
 
@@ -94,6 +99,6 @@ class RoomsManager {
 
     this._ios.of(`${namespaceId}`).emit("deleteRoom", data);
   }
-};
+}
 
 export { RoomsManager };

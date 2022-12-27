@@ -2,6 +2,7 @@ import type { NamespaceInterface } from "./Namespace";
 
 export interface RoomInterface {
   id: number;
+  roomId: number;
   name: string;
   index: string;
   namespaceId: number;

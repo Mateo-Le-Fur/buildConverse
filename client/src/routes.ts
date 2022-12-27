@@ -21,7 +21,7 @@ export const router = createRouter({
     {
       path: "/inscription",
       beforeEnter: [isNotAuthenticatedGaurd],
-      component: () => import("@/views/Signin.vue"),
+      component: () => import("@/views/Register.vue"),
     },
 
     {

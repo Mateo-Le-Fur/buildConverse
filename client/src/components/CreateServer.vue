@@ -19,7 +19,7 @@ const validationSchema = toFormValidator(
       .string({ required_error: "Tu n'as rien saisi : (" })
       .trim()
       .min(2, "2 caractère minimum : (")
-      .max(30, "30 caractères maximum : ("),
+      .max(50, "50 caractères maximum : ("),
   })
 );
 
@@ -34,8 +34,7 @@ function createNamespace(formValue: Namespace) {
     {
       name: formValue.name,
       inviteCode: generateInviteCode(),
-      imgName: props.namespaceImage?.name,
-      imgUrl: props.namespaceImage,
+      imgBuffer: props.namespaceImage,
     },
     (response: { status: string; message: string }) => {
       if (response.status !== "ok") {

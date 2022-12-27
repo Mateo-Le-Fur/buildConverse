@@ -31,12 +31,21 @@ const { handleSubmit, setErrors } = useForm<Namespace>({
 
 const submit = handleSubmit((formValue: Namespace) => {
   try {
-    socketStore.activeNsSocket.emit("createRoom", {
-      name: `# ${formValue.name}`,
-      index: 1,
-      namespaceId: props.params.idChannel,
-    });
-    emit("roomPopup", false);
+    socketStore.activeNsSocket.emit(
+      "createRoom",
+      {
+        name: formValue.name,
+        index: 1,
+        namespaceId: props.params.idChannel,
+      },
+      (response: { status: string; message: string }) => {
+        if (response.status !== "ok") {
+          socketStore.setError(response.message);
+        } else {
+          emit("roomPopup", false);
+        }
+      }
+    );
   } catch (e: string | any) {
     setErrors({
       name: e.message,
@@ -59,7 +68,10 @@ const { value: nameValue, errorMessage: nameError } = useField("name");
           <span>#</span>
           <input v-model="nameValue" type="text" placeholder="Nom du salon" />
         </div>
-        <p v-if="nameError">{{ nameError }}</p>
+        <span class="form-error" v-if="nameError">{{ nameError }}</span>
+        <span class="form-error" v-if="socketStore.error">{{
+          socketStore.error
+        }}</span>
         <button>Créer</button>
       </form>
     </div>

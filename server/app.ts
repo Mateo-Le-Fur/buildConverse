@@ -4,7 +4,7 @@ import cors from "cors";
 import path from "path";
 import router from "./routes";
 import { errorHandler } from "./helpers/errorHandler";
-
+import SocketManager from "./listeners/socket";
 import cookieParser from "cookie-parser";
 const app: Express = express();
 
@@ -13,8 +13,8 @@ export { server, app };
 
 app.use(cookieParser());
 
-require("./config/jwt.config");
-require("./listeners/socket");
+const socketManager = new SocketManager();
+socketManager.init();
 
 app.use(cors());
 app.use(express.static(path.join(__dirname, "../../client/dist")));

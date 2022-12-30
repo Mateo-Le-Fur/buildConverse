@@ -167,13 +167,11 @@ class FriendsManager {
         }/user/${userId}/${Date.now()}/avatar`;
       }
 
-      this._ios
-        .to(socketId)
-        .emit("friendRequestAccepted", {
-          ...user,
-          privateRoomId: privateRoom.id,
-          active: false,
-        });
+      this._ios.to(socketId).emit("friendRequestAccepted", {
+        ...user,
+        privateRoomId: privateRoom.id,
+        active: false,
+      });
     }
 
     socket.emit("acceptFriendRequest", {
@@ -308,29 +306,14 @@ class FriendsManager {
 
     if (!checkIfFriendExist) return;
 
-    const recipientRooms = (
-      await UserHasPrivateRoom.findAll({
-        where: {
-          user_id: data.friendId,
-        },
-      })
-    ).map((el: UserHasPrivateRoom) => el.toJSON());
-
-    const senderRooms = (
-      await UserHasPrivateRoom.findAll({
+    const userRoom: UserHasPrivateRoomInterface =
+      await UserHasPrivateRoom.findOne({
         where: {
           user_id: userId,
+          private_room_id: data.privateRoomId,
         },
-      })
-    ).map((el: UserHasPrivateRoom) => el.toJSON());
-
-    const checkIfConversationAlreadyCreated = senderRooms.filter(
-      (sender: SenderInterface) => {
-        return recipientRooms.some((recipient: RecipientInterface) => {
-          return sender.privateRoomId === recipient.privateRoomId;
-        });
-      }
-    );
+        raw: true,
+      });
 
     let recipient = await PrivateRoom.findOne({
       include: [
@@ -344,23 +327,13 @@ class FriendsManager {
         },
       ],
       where: {
-        id:
-          data.privateRoomId ??
-          checkIfConversationAlreadyCreated[0]?.privateRoomId,
+        id: data.privateRoomId,
       },
       raw: true,
       nest: true,
     });
 
-    const privateRoom = senderRooms.filter(
-      (room: UserHasPrivateRoomInterface) =>
-        room.privateRoomId ===
-        recipient.privateRoomUsers.UserHasPrivateRoom.privateRoomId
-    );
-
-    let [{ active, privateRoomId }] = [...privateRoom];
-
-    if (!active) {
+    if (!userRoom.active) {
       await UserHasPrivateRoom.update(
         {
           active: true,
@@ -368,12 +341,10 @@ class FriendsManager {
         {
           where: {
             user_id: userId,
-            private_room_id: privateRoomId,
+            private_room_id: userRoom.privateRoomId,
           },
         }
       );
-
-      active = true;
     }
 
     recipient = {
@@ -381,7 +352,7 @@ class FriendsManager {
       avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
         recipient.privateRoomUsers?.id
       }/${Date.now()}/avatar`,
-      active,
+      active: true,
       privateRoomId: recipient.id,
     };
 

@@ -14,8 +14,6 @@
 
 # Fonctionnalités actuelles :
 
-### INFO : Toutes les actions de l'utilisateur sont visibles en temps réel par les autres, à conditions qu'ils partagent le ou les mêmes serveurs ou qu'ils soient amis.
-
  - Créer/Modifie/Supprimer son compte 
  
  - Ajouter/Modifier une photo de profil

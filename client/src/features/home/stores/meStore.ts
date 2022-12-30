@@ -9,6 +9,10 @@ interface meState {
   currentRecipient: RecipientInterface | null;
   isConversationLoaded: boolean;
   messages: Message[];
+  isMessagePushInArray: boolean;
+  isMessagesLoaded: boolean;
+  isMoreMessagesLoaded: boolean;
+  isBeginningConversation: boolean;
   error: null | string;
 }
 
@@ -18,7 +22,11 @@ export const useMe = defineStore("me", {
     recipients: [],
     currentRecipient: null,
     isConversationLoaded: false,
+    isMessagesLoaded: false,
+    isMoreMessagesLoaded: false,
     messages: [],
+    isMessagePushInArray: false,
+    isBeginningConversation: false,
     error: null,
   }),
 
@@ -41,23 +49,47 @@ export const useMe = defineStore("me", {
     },
 
     disableConversation(privateRoomId: string) {
-      this.recipients = this.recipients.filter(
-        (recipient) => recipient.privateRoomId !== Number(privateRoomId)
+      const index = this.recipients.findIndex(
+        (recipient) => recipient.privateRoomId === Number(privateRoomId)
       );
+
+      if (index !== -1) {
+        this.recipients[index].active = false;
+      }
     },
 
     getPrivateMessageHistory(data: Message[]) {
+      this.isBeginningConversation = data.length < 50;
       this.messages = data;
+      this.isMessagesLoaded = true;
+    },
+
+    loadMorePrivateMessages(data: Message[]) {
+      this.isBeginningConversation =
+        data.length < 50 || this.messages.length < 50;
+
+      this.messages.push(...data);
+
+      if (data.length) this.isMoreMessagesLoaded = true;
     },
 
     privateMessage(data: Message) {
       if (this.currentRecipient?.privateRoomId === data.private_room_id) {
         this.messages.push(data);
+        this.isMessagePushInArray = true;
       }
     },
 
     getConversationWithAFriend(data: RecipientInterface) {
       this.currentRecipient = data;
+
+      const index = this.recipients.findIndex(
+        (recipient) => recipient.privateRoomId === data.privateRoomId
+      );
+
+      if (index !== -1) {
+        this.recipients[index].active = true;
+      }
 
       for (const conversation of this.recipients) {
         if (conversation.privateRoomId === data.privateRoomId) {
@@ -66,8 +98,6 @@ export const useMe = defineStore("me", {
           return;
         }
       }
-
-      this.recipients.push(data);
 
       // @ts-ignore
       this.router.push(`/channels/me/${data.privateRoomId}`);
@@ -92,6 +122,13 @@ export const useMe = defineStore("me", {
 
       if (this.friends?.length && friendIndex !== undefined) {
         this.friends[friendIndex].status = data.status;
+
+        const recipient = {
+          ...this.friends[friendIndex],
+          ...data,
+        };
+
+        this.recipients.push(recipient);
       }
     },
 
@@ -101,10 +138,23 @@ export const useMe = defineStore("me", {
 
     friendRequestAccepted(data: FriendsInterface) {
       this.friends?.push(data);
+      this.recipients.push(data);
     },
 
-    deleteFriend(friendId: number) {
-      this.friends = this.friends?.filter((friend) => friend.id !== friendId);
+    deleteFriend(data: { id: number; privateRoomId: number }) {
+      this.friends = this.friends?.filter((friend) => friend.id !== data.id);
+
+      if (data.privateRoomId) {
+        this.recipients = this.recipients.filter(
+          (recipient) => recipient.privateRoomId !== data.privateRoomId
+        );
+      }
+
+      if (this.currentRecipient?.privateRoomId === data.privateRoomId) {
+        this.currentRecipient = null;
+        // @ts-ignore
+        this.router.push("/channels/me");
+      }
     },
 
     updateUser(data: FriendsInterface) {
@@ -131,30 +181,6 @@ export const useMe = defineStore("me", {
       if (friend) {
         friend.status = "offline";
       }
-    },
-
-    getFilteredMessages() {
-      return this.messages.map((message, index) => {
-        const previous = this.messages[index - 1];
-        const showAvatar = this.shouldShowAvatar(previous, message);
-
-        if (showAvatar) {
-          return message;
-        } else {
-          return {
-            ...message,
-            avatarAuthor: null,
-          };
-        }
-      });
-    },
-
-    shouldShowAvatar(previous: Message, message: Message) {
-      const isFirst = !previous;
-      if (isFirst) return true;
-
-      const differentUser = message.authorName !== previous.authorName;
-      if (differentUser) return true;
     },
   },
 });

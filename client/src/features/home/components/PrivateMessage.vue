@@ -43,7 +43,8 @@ watch(
   () => route.params.privateRoomId,
   (value) => {
     if (value) {
-      meStore.getCurrentConversation(Number(value));
+      (meStore.isMessagesLoaded = false),
+        meStore.getCurrentConversation(Number(value));
       socketStore.ioClient?.emit("getPrivateMessagesHistory", value);
     }
   },
@@ -80,7 +81,9 @@ const state = reactive<{
       <div class="private-message-container d-flex flex-column g-5">
         <p class="p-10">Messages Privés</p>
         <div
-          v-for="recipient of meStore.recipients"
+          v-for="recipient of meStore.recipients.filter(
+            (recipient) => recipient.active === true
+          )"
           :class="{
             active:
               recipient.privateRoomId ===

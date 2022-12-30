@@ -6,6 +6,7 @@ import router from "./routes";
 import { errorHandler } from "./helpers/errorHandler";
 import SocketManager from "./listeners/socket";
 import cookieParser from "cookie-parser";
+
 const app: Express = express();
 
 const server = app.listen(process.env.PORT);

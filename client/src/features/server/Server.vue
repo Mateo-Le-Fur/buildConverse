@@ -9,12 +9,14 @@ import { useRoom } from "@/features/server/stores/roomStore";
 import { useNsUser } from "@/features/server/stores/userNsStore";
 import ServerOptions from "@/features/server/components/ServerOptions.vue";
 import SearchBar from "@/features/server/components/SearchBar.vue";
+import { useChat } from "@/shared/stores/chatStore";
 
 const route = useRoute();
 
 const socketStore = useSocket();
 const roomStore = useRoom();
 const userNsStore = useNsUser();
+const chatStore = useChat();
 
 //  création ou récupération de namespaces
 // watch(
@@ -57,7 +59,6 @@ function joinNamespace() {
 function changeRoom(room: RoomInterface) {
   if (roomStore.activeRoom?.id !== Number(room.id)) {
     socketStore.isMessagesLoaded = false;
-    socketStore.messages = [];
     socketStore.activeNsSocket.emit("leaveRoom", roomStore.activeRoom?.id);
     roomStore.joinRoom(room, room.namespaceId);
   }

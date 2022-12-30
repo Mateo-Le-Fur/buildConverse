@@ -18,12 +18,13 @@ interface SocketState {
   namespaces: Namespace[];
   namespaceSockets: [] | any;
   messages: Message[];
+  isMoreMessagesLoaded: boolean;
+  isBeginningConversation: boolean;
+  isMessagePushInArray: boolean;
   isNamespacesLoaded: boolean;
   creatingNamespace: boolean | null;
   isNamespaceUpdated: boolean;
-
   isMessagesLoaded: boolean;
-
   countLoadedNamespace: number;
   error: any;
 }
@@ -35,6 +36,9 @@ export const useSocket = defineStore("socket", {
     namespaceSockets: [],
     namespaces: [],
     messages: [],
+    isMoreMessagesLoaded: false,
+    isMessagePushInArray: false,
+    isBeginningConversation: false,
     isNamespacesLoaded: false,
     creatingNamespace: false,
     isNamespaceUpdated: false,
@@ -90,6 +94,10 @@ export const useSocket = defineStore("socket", {
         meStore.getPrivateMessageHistory(data);
       });
 
+      this.ioClient?.on("loadMorePrivateMessages", (data: Message[]) => {
+        meStore.loadMorePrivateMessages(data);
+      });
+
       this.ioClient?.on("privateMessage", (data: Message) => {
         meStore.privateMessage(data);
       });
@@ -117,11 +125,14 @@ export const useSocket = defineStore("socket", {
         meStore.friendRequestAccepted(data);
       });
 
-      this.ioClient?.on("deleteFriend", async (friendId) => {
-        if (friendId) {
-          meStore.deleteFriend(friendId);
+      this.ioClient?.on(
+        "deleteFriend",
+        async (data: { id: number; privateRoomId: number }) => {
+          if (data) {
+            meStore.deleteFriend(data);
+          }
         }
-      });
+      );
 
       this.ioClient?.on("updateUser", async (data: FriendsInterface | null) => {
         if (data) {
@@ -181,6 +192,10 @@ export const useSocket = defineStore("socket", {
           // @ts-ignore
           await this.router.push(`/channels/${ns.id}/${ns.rooms[0].id}`);
         });
+      });
+
+      this.ioClient?.on("loadMoreMessages", (data: Message[]) => {
+        this.loadMoreMessages(data);
       });
     },
 
@@ -242,12 +257,14 @@ export const useSocket = defineStore("socket", {
       });
 
       nsSocket.on("history", (data: Message[]) => {
+        this.isBeginningConversation = data.length < 50;
         this.messages = data;
         this.isMessagesLoaded = true;
       });
 
       nsSocket.on("message", (data: Message) => {
         this.messages.push(data);
+        this.isMessagePushInArray = true;
       });
 
       nsSocket.on("createRoom", async (data: RoomInterface) => {
@@ -356,28 +373,13 @@ export const useSocket = defineStore("socket", {
       this.namespaces[namespaceIndex].UserHasNamespace = UserHasNamespace;
     },
 
-    getFilteredMessages() {
-      return this.messages.map((message, index) => {
-        const previous = this.messages[index - 1];
-        const showAvatar = this.shouldShowAvatar(previous, message);
+    loadMoreMessages(data: Message[]) {
+      this.isBeginningConversation =
+        data.length < 50 || this.messages.length < 50;
 
-        if (showAvatar) {
-          return message;
-        } else {
-          return {
-            ...message,
-            avatarAuthor: null,
-          };
-        }
-      });
-    },
+      this.messages.push(...data);
 
-    shouldShowAvatar(previous: Message, message: Message) {
-      const isFirst = !previous;
-      if (isFirst) return true;
-
-      const differentUser = message.authorName !== previous.authorName;
-      if (differentUser) return true;
+      if (data.length) this.isMoreMessagesLoaded = true;
     },
 
     setError(message: string) {

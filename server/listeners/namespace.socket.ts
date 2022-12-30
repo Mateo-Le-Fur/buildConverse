@@ -140,7 +140,6 @@ class NamespacesManager {
         .resize(150, 150)
         .webp({
           quality: 80,
-          effort: 0,
         })
         .toFile(path.join(__dirname, `../images/${imgName}.webp`));
     }

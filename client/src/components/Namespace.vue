@@ -3,7 +3,7 @@ import tippy from "tippy.js";
 import "tippy.js/dist/tippy.css";
 import "tippy.js/dist/svg-arrow.css";
 import { useSocket } from "@/shared/stores/socketStore";
-import { ref, watch } from "vue";
+import { nextTick, ref, watch } from "vue";
 import { useRoom } from "@/features/server/stores/roomStore";
 import AddServerPopup from "@/components/AddServerPopup.vue";
 import { useRoute } from "vue-router";
@@ -14,36 +14,41 @@ const route = useRoute();
 
 const addServerPopup = ref<boolean>(false);
 
+function displayTooltip(): void {
+  const anchorElem = [
+    ...document.querySelectorAll(".tooltip"),
+  ] as HTMLAnchorElement[];
+
+  for (let i = 0; i < anchorElem.length; i++) {
+    tippy(anchorElem[i], {
+      content: anchorElem[i].dataset.tooltip as string,
+      allowHTML: true,
+      arrow: true,
+      placement: "right",
+      offset: [0, 20],
+      maxWidth: 250,
+      theme: "custom",
+    });
+  }
+}
+
 watch(
   () => socketStore.isNamespacesLoaded,
-  (value) => {
-    if (value) {
-      setTimeout(() => {
-        const anchorElem = [
-          ...document.querySelectorAll(".tooltip"),
-        ] as HTMLAnchorElement[];
-
-        for (let i = 0; i < anchorElem.length; i++) {
-          tippy(anchorElem[i], {
-            content: anchorElem[i].dataset.tooltip as string,
-            allowHTML: true,
-            arrow: true,
-            placement: "right",
-            offset: [0, 20],
-            maxWidth: 250,
-            theme: "custom",
-          });
-        }
-      });
+  async (newValue) => {
+    if (newValue) {
+      await nextTick();
+      displayTooltip();
     }
   }
 );
 
 watch(
   () => socketStore.creatingNamespace,
-  (newValue) => {
+  async (newValue) => {
     if (newValue === false) {
+      await nextTick();
       addServerPopup.value = false;
+      displayTooltip();
     }
   }
 );

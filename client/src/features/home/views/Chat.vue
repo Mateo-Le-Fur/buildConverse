@@ -1,31 +1,53 @@
 <script setup lang="ts">
-import { useSocket } from "@/shared/stores/socketStore";
 import SendMessage from "@/features/home/components/SendMessage.vue";
 import { useMe } from "@/features/home/stores/meStore";
 import ChatTopBar from "@/features/home/components/ChatTopBar.vue";
-import { useUser } from "@/shared/stores";
-import { onMounted, onUpdated, ref, watch } from "vue";
-import type { Message } from "@/shared/interfaces/Message";
+import { nextTick, onMounted, onUnmounted, onUpdated, ref, watch } from "vue";
+import { useChat } from "@/shared/stores/chatStore";
 
 const meStore = useMe();
-const userStore = useUser();
+const chatStore = useChat();
 
-function scrollToBottom() {
-  const element = ref<HTMLDivElement | null>(null);
-  element.value = document.querySelector(".message-container");
+const isMounted = ref<boolean>(false);
 
-  element.value?.scrollTo({
-    top: element.value?.scrollHeight,
-    left: 0,
-  });
-}
+watch(
+  () => meStore.isMessagesLoaded,
+  async () => {
+    await nextTick();
+    chatStore.init(document.querySelector(".message-container"));
+    chatStore.scrollToBottomOnMounted();
+  },
+  {
+    immediate: true,
+  }
+);
 
-onMounted(() => {
-  scrollToBottom();
-});
+watch(
+  () => meStore.isMessagePushInArray,
+  async (value) => {
+    if (value) {
+      await nextTick();
+      chatStore.scrollToBottom();
+      meStore.isMessagePushInArray = false;
+    }
+  }
+);
 
-onUpdated(() => {
-  scrollToBottom();
+watch(
+  () => meStore.isMoreMessagesLoaded,
+  async (value) => {
+    if (value) {
+      await nextTick();
+
+      chatStore.newMessagesLoaded();
+
+      meStore.isMoreMessagesLoaded = false;
+    }
+  }
+);
+
+onUnmounted(() => {
+  chatStore.$reset();
 });
 </script>
 
@@ -33,19 +55,30 @@ onUpdated(() => {
   <div class="d-flex flex-column flex-fill overflow-auto">
     <ChatTopBar />
     <div class="chat-container d-flex flex-column flex-fill">
-      <div class="message-container">
-        <h2 class="room-name">
+      <div
+        @scroll="
+          chatStore.loadMoreMessages(
+            $event,
+            'loadMorePrivateMessages',
+            meStore.messages.length,
+            meStore.currentRecipient?.privateRoomId
+          )
+        "
+        v-if="meStore.isMessagesLoaded"
+        class="message-container"
+      >
+        <h2 v-if="meStore.isBeginningConversation" class="room-name">
           Ceci est le début de la conversation avec
           {{ meStore.currentRecipient?.pseudo }}
         </h2>
         <div
-          v-for="message of meStore.getFilteredMessages()"
+          v-for="message of chatStore.filteredMessages(meStore.messages)"
           :key="message.id"
           class="d-flex message"
           :class="{ groupMessage: !message.avatarAuthor }"
         >
           <div class="d-flex g-15">
-            <div v-if="message.avatarAuthor">
+            <div class="avatar" v-if="message.avatarAuthor">
               <img
                 :src="message.avatarAuthor"
                 alt="user avatar"
@@ -76,7 +109,7 @@ onUpdated(() => {
           </div>
         </div>
       </div>
-      <SendMessage />
+      <SendMessage @scroll-to-bottom="chatStore.scrollToBottom()" />
     </div>
   </div>
 </template>
@@ -127,10 +160,16 @@ onUpdated(() => {
       background-color: #32353bff;
     }
 
-    img {
+    .avatar {
       width: 40px;
       height: 40px;
-      border-radius: 50%;
+      img {
+        width: 40px;
+        min-width: 40px;
+        height: 40px;
+        min-height: 40px;
+        border-radius: 50%;
+      }
     }
 
     .message-color {

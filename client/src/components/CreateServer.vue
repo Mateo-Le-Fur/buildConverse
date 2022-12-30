@@ -41,10 +41,6 @@ function createNamespace(formValue: Namespace) {
         setErrors({
           name: response.message,
         });
-
-        setTimeout(() => {
-          socketStore.creatingNamespace = false;
-        }, 2000);
       }
     }
   );

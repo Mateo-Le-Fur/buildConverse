@@ -5,6 +5,7 @@ import { Namespace } from "socket.io/dist/namespace";
 
 import { Room, Message } from "../models";
 import { getNumberOfRooms } from "../query/room.query";
+import { SocketCustom } from "../interfaces/SocketCustom";
 
 class RoomsManager {
   private _ios: Server;
@@ -24,15 +25,16 @@ class RoomsManager {
     nsSocket.emit("rooms", getRooms);
   }
 
-  public async getAllMessages(nsSocket: Socket, roomId: number) {
-    let messages = await Message.findAll({
-      where: {
-        room_id: roomId,
-      },
-      order: [["created_at", "asc"]],
-      raw: true,
-      nest: true,
-    });
+  public async getMessages(nsSocket: Socket, roomId: number) {
+    let messages = (
+      await Message.findAll({
+        where: {
+          room_id: roomId,
+        },
+        order: [["id", "desc"]],
+        limit: 50,
+      })
+    ).map((el: Message) => el.toJSON());
 
     messages = messages.map((message: MessageInterface) => {
       return {
@@ -44,6 +46,32 @@ class RoomsManager {
     });
 
     nsSocket.emit("history", messages);
+  }
+  public async loadMoreMessage(
+    socket: SocketCustom,
+    data: { id: number; messagesArrayLength: number }
+  ) {
+    let messages = (
+      await Message.findAll({
+        where: {
+          room_id: data.id,
+        },
+        order: [["id", "desc"]],
+        limit: 50,
+        offset: data.messagesArrayLength,
+      })
+    ).map((el: Message) => el.toJSON());
+
+    messages = messages.map((message: MessageInterface) => {
+      return {
+        ...message,
+        avatarAuthor: `${process.env.DEV_AVATAR_URL}/user/${
+          message.user_id
+        }/${Date.now()}/avatar`,
+      };
+    });
+
+    socket.emit("loadMoreMessages", messages);
   }
 
   public async createRoom(data: RoomInterface) {

@@ -28,9 +28,9 @@ const validationSchema = toFormValidator(
       .string({ required_error: "Le champ doit être remplie : (" })
       .regex(
         new RegExp(
-          "^[a-zA-Z0-9.!#$%&''*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+          "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$"
         ),
-        "Le mot de passe doit contenir minimum 8 caractères , 1 caractère spécial et 1 chiffre !"
+        "Le mot de passe doit contenir minimum 8 caractères , 1 majuscule, 1 caractère spécial et 1 chiffre !"
       ),
   })
 );

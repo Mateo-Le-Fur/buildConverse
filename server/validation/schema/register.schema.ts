@@ -15,11 +15,11 @@ export = Joi.object({
 
   password: Joi.string()
     .max(100)
-    .pattern(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/)
+    .pattern(/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/)
     .required()
     .messages({
       "string.max": "100 caractères maximum",
       "string.pattern.base":
-        "Le mot de passe doit contenir minimum 8 caractères , 1 caractère spécial et 1 chiffre !",
+        "Le mot de passe doit contenir minimum 8 caractères , 1 majuscule, 1 caractère spécial et 1 chiffre !",
     }),
 });

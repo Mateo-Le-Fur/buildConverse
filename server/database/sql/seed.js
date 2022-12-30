@@ -22,6 +22,8 @@ const client = new Sequelize("", {
 // }
 //
 
+const names = ["mateo", "jean"];
+
 function getRandomIntInclusive(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
@@ -42,6 +44,7 @@ function pgQuoteEscape(row) {
 
 const users = [];
 const namespaceUsers = [];
+const privateMessages = [];
 
 function generateUsers(userNb) {
   for (let i = 0; i < userNb; i++) {
@@ -134,9 +137,61 @@ async function insertUserHasNamespace(namespaceUsers) {
   return result.rows;
 }
 
+function generatePrivateMessages(nb) {
+  for (let i = 1; i < nb; i++) {
+    randomName = names[getRandomIntInclusive(0, 1)];
+
+    const messages = {
+      data: faker.random.words(30),
+      data_type: "text",
+      private_room_id: 7,
+      user_id: getRandomIntInclusive(1, 2),
+      author_name: randomName,
+      avatar_author: "a",
+    };
+
+    privateMessages.push(messages);
+  }
+  return privateMessages;
+}
+
+async function insertPrivateMessages(privateMessages) {
+  const privateMessagesValues = privateMessages.map((message) => {
+    const newPrivateMessages = pgQuoteEscape(message);
+    return `(
+          '${newPrivateMessages.data}',
+          '${newPrivateMessages.data_type}',
+          '${newPrivateMessages.private_room_id}',
+          '${newPrivateMessages.user_id}',
+          '${newPrivateMessages.author_name}',
+          '${newPrivateMessages.avatar_author}'
+      )`;
+  });
+
+  const queryStr = `
+           INSERT INTO "private_message"
+           (
+            "data",
+            "data_type",
+            "private_room_id",
+            "user_id",
+            "author_name",
+            "avatar_author"
+           )
+           VALUES
+           ${privateMessagesValues}
+           RETURNING id
+   `;
+  const result = await client.query(queryStr);
+  return result.rows;
+}
+
 (async () => {
-  generateUsers(1000);
-  const userData = await insertUsers(users);
+  // generateUsers(1000);
+  // const userData = await insertUsers(users);
+
+  generatePrivateMessages(1000);
+  const privateMessagesData = await insertPrivateMessages(privateMessages);
 
   // generateUserHasNamespace(2000);
   // const userDataTwo = await insertUserHasNamespace(namespaceUsers);

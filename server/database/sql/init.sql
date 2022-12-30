@@ -106,7 +106,7 @@ CREATE TABLE "user_has_private_room" (
     "id" int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     "user_id" int NOT NULL REFERENCES "user" (id) ON DELETE CASCADE,
     "private_room_id" int NOT NULL REFERENCES "private_room" (id) ON DELETE CASCADE,
-    "active" BOOLEAN NOT NULL DEFAULT true,
+    "active" BOOLEAN NOT NULL DEFAULT false,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (user_id, private_room_id)
 );

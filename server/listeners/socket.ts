@@ -121,10 +121,7 @@ class SocketManager {
         "getConversationWithAFriend",
         async (data: { friendId: number; privateRoomId: number }) => {
           try {
-            await this._friendsManager.getOrCreateConversationWithAFriend(
-              socket,
-              data
-            );
+            await this._friendsManager.getConversationWithAFriend(socket, data);
           } catch (e) {
             console.error(e);
           }
@@ -138,6 +135,17 @@ class SocketManager {
           console.error(e);
         }
       });
+
+      socket.on(
+        "loadMorePrivateMessages",
+        async (data: { id: number; messagesArrayLength: number }) => {
+          try {
+            await this._friendsManager.loadMorePrivateMessages(socket, data);
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      );
 
       socket.on("sendPrivateMessage", async (data: PrivateMessageInterface) => {
         try {
@@ -185,6 +193,13 @@ class SocketManager {
               });
             }
           }
+        }
+      );
+
+      socket.on(
+        "loadMoreMessages",
+        async (data: { id: number; messagesArrayLength: number }) => {
+          await this._roomsManager.loadMoreMessage(socket, data);
         }
       );
 
@@ -394,7 +409,7 @@ class SocketManager {
             if (!foundNamespaceRoom) throw new Error("forbidden");
 
             nsSocket.join(`/${data.roomId}`);
-            await this._roomsManager.getAllMessages(nsSocket, data.roomId);
+            await this._roomsManager.getMessages(nsSocket, data.roomId);
           } catch (e) {
             console.error(e);
           }

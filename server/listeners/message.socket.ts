@@ -8,7 +8,6 @@ class MessageManager {
   private _ios: Server;
 
   constructor(ios: Server) {
-
     this._ios = ios;
   }
 
@@ -17,15 +16,12 @@ class MessageManager {
     nsSocket: SocketCustom,
     data: MessageInterface
   ) {
-
     const userId = nsSocket.request.user?.id;
-
 
     const user = await User.findByPk(userId, {
       attributes: ["pseudo", ["avatar_url", "avatarUrl"]],
-      raw: true
+      raw: true,
     });
-
 
     let message = (
       await Message.create({
@@ -34,20 +30,19 @@ class MessageManager {
         room_id: data.roomId,
         user_id: userId,
         authorName: user?.pseudo,
-        avatarAuthor: user?.avatarUrl
+        avatarAuthor: user?.avatarUrl,
       })
     ).get();
-
 
     message = {
       ...message,
       avatarAuthor: `${
         process.env.DEV_AVATAR_URL
-      }/user/${userId}/${Date.now()}/avatar`
+      }/user/${userId}/${Date.now()}/avatar`,
     };
 
     ns.in(`/${data.roomId}`).emit("message", message);
   }
-};
+}
 
 export { MessageManager };

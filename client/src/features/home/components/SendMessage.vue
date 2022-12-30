@@ -13,15 +13,18 @@ const socketStore = useSocket();
 const userStore = useUser();
 const meStore = useMe();
 
+const emit = defineEmits<{
+  (e: "scrollToBottom"): void;
+}>();
 
 const validationSchema = toFormValidator(
   z.object({
-    data: z.string().max(500).optional()
+    data: z.string().max(500).optional(),
   })
 );
 
 const { handleSubmit, setErrors } = useForm<Message>({
-  validationSchema
+  validationSchema,
 });
 
 const { value: dataValue, errorMessage: dataError } = useField("data");
@@ -32,12 +35,12 @@ const submit = handleSubmit((formValue: Message) => {
     socketStore.ioClient?.emit("sendPrivateMessage", {
       privateRoomId: meStore.currentRecipient?.privateRoomId,
       recipientId: meStore.currentRecipient?.id,
-      data: formValue.data
+      data: formValue.data,
     });
     dataValue.value = null;
   } catch (e: any) {
     setErrors({
-      data: e.data
+      data: e.data,
     });
   }
 });

@@ -1,50 +1,99 @@
 <script setup lang="ts">
 import { useSocket } from "@/shared/stores/socketStore";
 import SendMessage from "../components/SendMessage.vue";
-import { onMounted, onUpdated, ref } from "vue";
+import { nextTick, onMounted, onUnmounted, onUpdated, ref, watch } from "vue";
 import { useRoom } from "@/features/server/stores/roomStore";
 import type { RouteParams } from "vue-router";
 import { useUser } from "@/shared/stores";
+import { useChat } from "@/shared/stores/chatStore";
 
-const userStore = useUser();
-
-function scrollToBottom() {
-  const element = ref<HTMLDivElement | null>(null);
-  element.value = document.querySelector(".message-container");
-
-  element.value?.scrollTo({
-    top: element.value?.scrollHeight,
-    left: 0,
-  });
-}
-
-onMounted(() => {
-  scrollToBottom();
-});
-
-onUpdated(() => {
-  scrollToBottom();
-});
-
+const chatStore = useChat();
 const socketStore = useSocket();
 const roomStore = useRoom();
+const isMounted = ref<boolean>(false);
 
-defineProps<{
+const props = defineProps<{
   params: RouteParams;
 }>();
+
+// function scrollToBottom() {
+//   const element = ref<HTMLDivElement | null>(null);
+//   element.value = document.querySelector(".message-container");
+//
+//   element.value?.scrollTo({
+//     top: element.value?.scrollHeight,
+//     left: 0,
+//   });
+// }
+
+// watch(
+//   () => props.params.idRoom,
+//   async (value) => {
+//     chatStore.init(document.querySelector(".message-container"));
+//     console.log(value);
+//     await nextTick();
+//     chatStore.scrollToBottomOnMounted();
+//   }
+// );
+
+watch(
+  () => socketStore.isMessagesLoaded,
+  async () => {
+    await nextTick();
+    chatStore.init(document.querySelector(".message-container"));
+    chatStore.scrollToBottomOnMounted();
+  },
+  {
+    immediate: true,
+  }
+);
+
+watch(
+  () => socketStore.isMessagePushInArray,
+  async (value) => {
+    if (value) {
+      await nextTick();
+      chatStore.scrollToBottom();
+      socketStore.isMessagePushInArray = false;
+    }
+  }
+);
+
+watch(
+  () => socketStore.isMoreMessagesLoaded,
+  async (value) => {
+    if (value) {
+      await nextTick();
+      chatStore.newMessagesLoaded();
+      socketStore.isMoreMessagesLoaded = false;
+    }
+  }
+);
+
+onUnmounted(() => {
+  chatStore.$reset();
+});
 </script>
 
 <template>
   <div class="chat-container d-flex flex-column flex-fill">
     <div
-      v-if="socketStore.isMessagesLoaded && roomStore.activeRoom"
+      @scroll="
+        chatStore.loadMoreMessages(
+          $event,
+          'loadMoreMessages',
+          socketStore.messages.length,
+          roomStore.activeRoom?.id
+        )
+      "
+      v-if="roomStore.activeRoom && socketStore.isMessagesLoaded"
       class="message-container"
     >
-      <h2 class="room-name">
+      <h2 v-if="socketStore.isBeginningConversation" class="room-name">
         Bienvenue dans le salon {{ roomStore.activeRoom?.name }}
       </h2>
       <template
-        v-for="message of socketStore.getFilteredMessages()"
+        v-for="message of chatStore.filteredMessages(socketStore.messages)"
         :key="message.id"
       >
         <div v-if="message.avatarAuthor" class="d-flex message">

@@ -26,13 +26,11 @@
  
  - Affichage des amis connectés/déconnectés
  
- - Créer/Modifier/Supprimer des serveurs en tant qu'administrateur d'un serveur
+ - Créer/Modifier/Supprimer des serveurs
 
  - Affichage des membres connecté/déconnecté d'un serveur
  
  - Rejoindre un serveur via un code d'invitation
- 
- - Quitter un serveur
  
  - Ajouter/Modifier l'avatar d'un serveur
  

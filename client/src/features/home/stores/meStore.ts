@@ -4,7 +4,7 @@ import type { RecipientInterface } from "@/shared/interfaces/RecipientInterface"
 import type { Message } from "@/shared/interfaces/Message";
 
 interface meState {
-  friends: FriendsInterface[] | null | undefined;
+  friends: FriendsInterface[] | any[];
   recipients: RecipientInterface[];
   currentRecipient: RecipientInterface | null;
   isConversationLoaded: boolean;
@@ -104,7 +104,7 @@ export const useMe = defineStore("me", {
     },
 
     getFriendsRequest() {
-      const requestCount = this.friends?.filter(
+      const requestCount = this.friends.filter(
         (friend) => friend.status === "pending"
       );
 
@@ -112,15 +112,15 @@ export const useMe = defineStore("me", {
     },
 
     friendRequest(data: FriendsInterface) {
-      this.friends!.push(data);
+      this.friends.push(data);
     },
 
     acceptFriendRequest(data: FriendsInterface) {
-      const friendIndex = this.friends?.findIndex(
+      const friendIndex = this.friends.findIndex(
         (friend) => friend.id === data.id
       );
 
-      if (this.friends?.length && friendIndex !== undefined) {
+      if (this.friends.length && friendIndex !== undefined) {
         this.friends[friendIndex].status = data.status;
 
         const recipient = {
@@ -133,16 +133,16 @@ export const useMe = defineStore("me", {
     },
 
     declineFriendRequest(senderId: number) {
-      this.friends = this.friends?.filter((friend) => friend.id !== senderId);
+      this.friends = this.friends.filter((friend) => friend.id !== senderId);
     },
 
     friendRequestAccepted(data: FriendsInterface) {
-      this.friends?.push(data);
+      this.friends.push(data);
       this.recipients.push(data);
     },
 
     deleteFriend(data: { id: number; privateRoomId: number }) {
-      this.friends = this.friends?.filter((friend) => friend.id !== data.id);
+      this.friends = this.friends.filter((friend) => friend.id !== data.id);
 
       if (data.privateRoomId) {
         this.recipients = this.recipients.filter(
@@ -158,17 +158,17 @@ export const useMe = defineStore("me", {
     },
 
     updateUser(data: FriendsInterface) {
-      const userIndex = this.friends?.findIndex(
+      const userIndex = this.friends.findIndex(
         (friend) => friend.id === data.id
       );
 
-      if (this.friends?.length && userIndex !== -1 && userIndex !== undefined) {
+      if (this.friends.length && userIndex !== -1 && userIndex !== undefined) {
         this.friends[userIndex] = data;
       }
     },
 
     userConnect(data: { id: number }) {
-      const friend = this.friends?.find((friend) => friend.id === data.id);
+      const friend = this.friends.find((friend) => friend.id === data.id);
 
       if (friend) {
         friend.status = "online";
@@ -176,7 +176,7 @@ export const useMe = defineStore("me", {
     },
 
     userDisconnect(data: { id: number }) {
-      const friend = this.friends?.find((friend) => friend.id === data.id);
+      const friend = this.friends.find((friend) => friend.id === data.id);
 
       if (friend) {
         friend.status = "offline";

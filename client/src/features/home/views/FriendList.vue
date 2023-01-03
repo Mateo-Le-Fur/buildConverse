@@ -33,7 +33,7 @@ watch(selectedItem, (value) => {
 
 watch(
   () => meStore.friends!,
-  (value) => {
+  () => {
     switch (selectedItem.value) {
       case "online":
         filterFriends("online");
@@ -44,6 +44,9 @@ watch(
       case "pending":
         filterFriends("pending");
         break;
+      case "add":
+        filterFriends("add");
+        break;
     }
   },
   {
@@ -52,7 +55,6 @@ watch(
 );
 
 function filterFriends(status: string) {
-  addFriend.value = false;
   if (status === "all") {
     filter.value = meStore.friends;
     return;

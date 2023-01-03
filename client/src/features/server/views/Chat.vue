@@ -1,40 +1,18 @@
 <script setup lang="ts">
 import { useSocket } from "@/shared/stores/socketStore";
 import SendMessage from "../components/SendMessage.vue";
-import { nextTick, onMounted, onUnmounted, onUpdated, ref, watch } from "vue";
+import { nextTick, onUnmounted, watch } from "vue";
 import { useRoom } from "@/features/server/stores/roomStore";
 import type { RouteParams } from "vue-router";
-import { useUser } from "@/shared/stores";
 import { useChat } from "@/shared/stores/chatStore";
 
 const chatStore = useChat();
 const socketStore = useSocket();
 const roomStore = useRoom();
-const isMounted = ref<boolean>(false);
 
-const props = defineProps<{
+defineProps<{
   params: RouteParams;
 }>();
-
-// function scrollToBottom() {
-//   const element = ref<HTMLDivElement | null>(null);
-//   element.value = document.querySelector(".message-container");
-//
-//   element.value?.scrollTo({
-//     top: element.value?.scrollHeight,
-//     left: 0,
-//   });
-// }
-
-// watch(
-//   () => props.params.idRoom,
-//   async (value) => {
-//     chatStore.init(document.querySelector(".message-container"));
-//     console.log(value);
-//     await nextTick();
-//     chatStore.scrollToBottomOnMounted();
-//   }
-// );
 
 watch(
   () => socketStore.isMessagesLoaded,

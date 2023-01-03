@@ -15,7 +15,7 @@ DROP TABLE
 
 DROP TYPE data_type;
 
-CREATE TYPE data_type AS ENUM ('text', 'image', 'file');
+CREATE TYPE data_type AS ENUM ('text', 'image', 'file', 'invitation');
 
 CREATE TABLE "user" (
     "id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

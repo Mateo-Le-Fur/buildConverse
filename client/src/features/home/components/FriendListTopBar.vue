@@ -2,7 +2,6 @@
 import { ref } from "vue";
 import { useMe } from "@/features/home/stores/meStore";
 
-
 const meStore = useMe();
 
 defineProps<{
@@ -14,13 +13,14 @@ const emit = defineEmits<{
   (e: "addFriend", value: boolean): void;
 }>();
 
-const items = ref<{ value: string; x: string }[]>([
-  { value: "En ligne", x: "online" },
-  { value: "Tous", x: "all" },
-  { value: "En attente", x: "pending" }
+const items = ref<{ text: string; status: string }[]>([
+  { text: "En ligne", status: "online" },
+  { text: "Tous", status: "all" },
+  { text: "En attente", status: "pending" },
+  { text: "Ajouter un ami", status: "add" },
 ]);
 
-const selectedItem = ref<{ value: string; x: string }>(items.value[0]);
+const selectedItem = ref<{ text: string; status: string }>(items.value[0]);
 </script>
 
 <template>
@@ -33,17 +33,32 @@ const selectedItem = ref<{ value: string; x: string }>(items.value[0]);
       </svg>
       <p>Amis</p>
     </div>
-    <div class="sepatator"></div>
-    <nav class="d-flex g-25">
-      <div
-        v-for="item of items"
-        @click="(selectedItem = item), emit('selectedItem', item.x), emit('addFriend', false)"
-        :class="{ selected: item === selectedItem && !addFriend, pending: item.x === 'pending' }"
-        :key="item.value"
-      >{{ item.value }}
-        <div v-if="item.x === 'pending'" class="d-flex justify-content-center request-count">{{ meStore.getFriendsRequest()}}</div>
-      </div>
-      <div @click="emit('addFriend', true)" class="add">Ajouter un ami</div>
+    <div class="separator"></div>
+    <nav class="d-flex">
+      <ul class="d-flex g-15">
+        <li
+          v-for="item of items"
+          @click="
+            (selectedItem = item),
+              emit('selectedItem', item.status),
+              emit('addFriend', item.status === 'add')
+          "
+          :class="{
+            selected: item === selectedItem && !addFriend,
+            pending: item.status === 'pending',
+            add: item.status === 'add',
+          }"
+          :key="item.text"
+        >
+          {{ item.text }}
+          <div
+            v-if="item.status === 'pending'"
+            class="d-flex justify-content-center request-count"
+          >
+            {{ meStore.getFriendsRequest() }}
+          </div>
+        </li>
+      </ul>
     </nav>
   </div>
 </template>
@@ -62,7 +77,7 @@ const selectedItem = ref<{ value: string; x: string }>(items.value[0]);
     }
   }
 
-  .sepatator {
+  .separator {
     margin: 0 15px 0 10px;
     width: 1px;
     height: 100%;
@@ -70,36 +85,39 @@ const selectedItem = ref<{ value: string; x: string }>(items.value[0]);
   }
 
   nav {
-    div {
+    cursor: pointer;
+    ul {
       color: #f4f4f4;
-      padding: 2px 8px;
-      cursor: pointer;
-      border-radius: 5px;
-    }
 
-    .selected {
-      background-color: #44484fff;
+      li {
+        border-radius: 5px;
+        padding: 2px 8px;
+      }
+
+      .selected {
+        background-color: #44484fff;
+      }
+
+      .pending {
+        position: relative;
+      }
+
+      .request-count {
+        font-size: 0.8rem;
+        margin: auto;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: red;
+        position: absolute;
+        top: -10px;
+        right: -10px;
+      }
     }
 
     .add {
+      color: #f4f4f4;
       background-color: #2d7c45ff;
-    }
-
-
-    .pending {
-      position: relative;
-    }
-
-    .request-count {
-      font-size: 0.8rem;
-      margin: auto;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background-color: red;
-      position: absolute;
-      top: -10px;
-      right: -10px;
     }
   }
 }

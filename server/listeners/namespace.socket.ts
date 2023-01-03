@@ -279,7 +279,9 @@ class NamespacesManager {
       throw new Error("Tu dois être administrateur pour supprimer le serveur");
     }
 
-    this._ios.of(`${namespaceId}`).emit("deleteNamespace", { namespaceId });
+    this._ios
+      .of(`/${namespaceId}`)
+      .emit("deleteNamespace", { id: namespaceId });
 
     const namespace = await UserNamespace.findByPk(namespaceId, {
       raw: true,

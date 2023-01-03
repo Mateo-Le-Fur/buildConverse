@@ -3,9 +3,11 @@ import Namespace from "@/components/Namespace.vue";
 import { onMounted, watch } from "vue";
 import { useSocket } from "@/shared/stores/socketStore";
 import { useMe } from "@/features/home/stores/meStore";
+import { useUser } from "@/shared/stores";
 
 const socketStore = useSocket();
 const meStore = useMe();
+const userStore = useUser();
 
 onMounted(() => {
   window.addEventListener("beforeunload", () => {
@@ -30,7 +32,7 @@ watch(
 
 <template>
   <div class="app-container shape d-flex">
-    <Namespace />
+    <Namespace v-if="userStore.isAuthenticated" />
     <router-view></router-view>
   </div>
 </template>

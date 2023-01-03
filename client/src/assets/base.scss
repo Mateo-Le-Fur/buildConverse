@@ -301,11 +301,15 @@ h2 {
   color: #f4f4f4;
   margin-top: 4rem;
   width: 100%;
+  z-index: 2;
 
   .form-signup {
     width: 25%;
     min-width: 320px;
     max-width: 420px;
+    background-color: var(--primary-1);
+    padding: 30px 15px;
+    border-radius: 3px;
     label {
       color: #f4f4f4;
       font-size: 1rem;

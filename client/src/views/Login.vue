@@ -41,6 +41,7 @@ const { value: passwordValue, errorMessage: passwordError } =
 </script>
 
 <template>
+  <div class="background"></div>
   <div class="form-signup-container d-flex flex-column align-items-center">
     <h2 class="mb-20">Hello !</h2>
     <form @submit.prevent="submit" class="form-signup">
@@ -63,4 +64,11 @@ const { value: passwordValue, errorMessage: passwordError } =
   </div>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.background {
+  position: absolute;
+  height: 100vh;
+  width: 100vw;
+  background-image: url("@/assets/images/background.webp");
+}
+</style>

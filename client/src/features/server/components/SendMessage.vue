@@ -2,7 +2,7 @@
 import { toFormValidator } from "@vee-validate/zod";
 import { z } from "zod";
 import { useField, useForm } from "vee-validate";
-import type { Message } from "@/shared/interfaces/Message";
+import type { MessageInterface } from "@/shared/interfaces/MessageInterface";
 import { useSocket } from "@/shared/stores/socketStore";
 import { useRoom } from "@/features/server/stores/roomStore";
 import { useUser } from "@/shared/stores";
@@ -16,28 +16,28 @@ const inputElem = ref<HTMLInputElement | null>(null);
 
 const validationSchema = toFormValidator(
   z.object({
-    data: z.string().max(500).optional()
+    data: z.string().max(500).optional(),
   })
 );
 
-const { handleSubmit, setErrors } = useForm<Message>({
-  validationSchema
+const { handleSubmit, setErrors } = useForm<MessageInterface>({
+  validationSchema,
 });
 
 const { value: dataValue, errorMessage: dataError } = useField("data");
 
-const submit = handleSubmit((formValue: Message) => {
+const submit = handleSubmit((formValue: MessageInterface) => {
   try {
     socketStore.activeNsSocket.emit("message", {
       data: formValue.data,
       roomId: roomStore.activeRoom?.id,
-      avatar: userStore.currentUser?.avatarUrl
+      avatar: userStore.currentUser?.avatarUrl,
     });
 
     dataValue.value = null;
   } catch (e: any) {
     setErrors({
-      data: e.data
+      data: e.data,
     });
   }
 });

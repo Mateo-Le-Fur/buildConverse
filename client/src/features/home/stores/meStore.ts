@@ -1,14 +1,15 @@
 import { defineStore } from "pinia";
 import type { FriendsInterface } from "@/shared/interfaces/FriendsInterface";
 import type { RecipientInterface } from "@/shared/interfaces/RecipientInterface";
-import type { Message } from "@/shared/interfaces/Message";
+import type { MessageInterface } from "@/shared/interfaces/MessageInterface";
+import type { PrivateMessageInterface } from "@/shared/interfaces/PrivateMessageInterface";
 
 interface meState {
   friends: FriendsInterface[] | any[];
   recipients: RecipientInterface[];
   currentRecipient: RecipientInterface | null;
   isConversationLoaded: boolean;
-  messages: Message[];
+  messages: MessageInterface[];
   isMessagePushInArray: boolean;
   isMessagesLoaded: boolean;
   isMoreMessagesLoaded: boolean;
@@ -58,13 +59,13 @@ export const useMe = defineStore("me", {
       }
     },
 
-    getPrivateMessageHistory(data: Message[]) {
+    getPrivateMessageHistory(data: PrivateMessageInterface[]) {
       this.isBeginningConversation = data.length < 50;
       this.messages = data;
       this.isMessagesLoaded = true;
     },
 
-    loadMorePrivateMessages(data: Message[]) {
+    loadMorePrivateMessages(data: PrivateMessageInterface[]) {
       this.isBeginningConversation =
         data.length < 50 || this.messages.length < 50;
 
@@ -73,8 +74,8 @@ export const useMe = defineStore("me", {
       if (data.length) this.isMoreMessagesLoaded = true;
     },
 
-    privateMessage(data: Message) {
-      if (this.currentRecipient?.privateRoomId === data.private_room_id) {
+    privateMessage(data: PrivateMessageInterface) {
+      if (this.currentRecipient?.privateRoomId === data.privateRoomId) {
         this.messages.push(data);
         this.isMessagePushInArray = true;
       }

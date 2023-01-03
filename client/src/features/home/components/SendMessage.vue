@@ -2,7 +2,7 @@
 import { toFormValidator } from "@vee-validate/zod";
 import { z } from "zod";
 import { useField, useForm } from "vee-validate";
-import type { Message } from "@/shared/interfaces/Message";
+import type { MessageInterface } from "@/shared/interfaces/MessageInterface";
 import { useSocket } from "@/shared/stores/socketStore";
 import { useMe } from "@/features/home/stores/meStore";
 import { useUser } from "@/shared/stores";
@@ -23,13 +23,13 @@ const validationSchema = toFormValidator(
   })
 );
 
-const { handleSubmit, setErrors } = useForm<Message>({
+const { handleSubmit, setErrors } = useForm<MessageInterface>({
   validationSchema,
 });
 
 const { value: dataValue, errorMessage: dataError } = useField("data");
 
-const submit = handleSubmit((formValue: Message) => {
+const submit = handleSubmit((formValue: MessageInterface) => {
   try {
     // sendPrivateMessage
     socketStore.ioClient?.emit("sendPrivateMessage", {

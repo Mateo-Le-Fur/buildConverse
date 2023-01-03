@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { io, type ManagerOptions, Socket } from "socket.io-client";
 import type { Namespace } from "@/shared/interfaces/Namespace";
 import type { RoomInterface } from "@/shared/interfaces/Room";
-import type { Message } from "@/shared/interfaces/Message";
+import type { MessageInterface } from "@/shared/interfaces/MessageInterface";
 import type { User } from "@/shared/interfaces/User";
 import { useRoom } from "@/features/server/stores/roomStore";
 import { useNsUser } from "@/features/server/stores/userNsStore";
@@ -17,7 +17,7 @@ interface SocketState {
   activeNsSocket: any;
   namespaces: Namespace[];
   namespaceSockets: [] | any;
-  messages: Message[];
+  messages: MessageInterface[];
   isMoreMessagesLoaded: boolean;
   isBeginningConversation: boolean;
   isMessagePushInArray: boolean;
@@ -90,15 +90,21 @@ export const useSocket = defineStore("socket", {
         meStore.getAllConversations(data);
       });
 
-      this.ioClient?.on("getPrivateMessagesHistory", (data: Message[]) => {
-        meStore.getPrivateMessageHistory(data);
-      });
+      this.ioClient?.on(
+        "getPrivateMessagesHistory",
+        (data: MessageInterface[]) => {
+          meStore.getPrivateMessageHistory(data);
+        }
+      );
 
-      this.ioClient?.on("loadMorePrivateMessages", (data: Message[]) => {
-        meStore.loadMorePrivateMessages(data);
-      });
+      this.ioClient?.on(
+        "loadMorePrivateMessages",
+        (data: MessageInterface[]) => {
+          meStore.loadMorePrivateMessages(data);
+        }
+      );
 
-      this.ioClient?.on("privateMessage", (data: Message) => {
+      this.ioClient?.on("privateMessage", (data: MessageInterface) => {
         meStore.privateMessage(data);
       });
 
@@ -194,7 +200,7 @@ export const useSocket = defineStore("socket", {
         });
       });
 
-      this.ioClient?.on("loadMoreMessages", (data: Message[]) => {
+      this.ioClient?.on("loadMoreMessages", (data: MessageInterface[]) => {
         this.loadMoreMessages(data);
       });
     },
@@ -256,13 +262,13 @@ export const useSocket = defineStore("socket", {
         await this.userLeaveNamespace(data);
       });
 
-      nsSocket.on("history", (data: Message[]) => {
+      nsSocket.on("history", (data: MessageInterface[]) => {
         this.isBeginningConversation = data.length < 50;
         this.messages = data;
         this.isMessagesLoaded = true;
       });
 
-      nsSocket.on("message", (data: Message) => {
+      nsSocket.on("message", (data: MessageInterface) => {
         this.messages.push(data);
         this.isMessagePushInArray = true;
       });
@@ -373,7 +379,7 @@ export const useSocket = defineStore("socket", {
       this.namespaces[namespaceIndex].UserHasNamespace = UserHasNamespace;
     },
 
-    loadMoreMessages(data: Message[]) {
+    loadMoreMessages(data: MessageInterface[]) {
       this.isBeginningConversation =
         data.length < 50 || this.messages.length < 50;
 

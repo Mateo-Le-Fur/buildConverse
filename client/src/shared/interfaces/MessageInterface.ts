@@ -1,4 +1,4 @@
-export interface Message {
+export interface MessageInterface {
   id: number;
   data: string;
   dataType: "text" | "file" | "image";

@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { useSocket } from "@/shared/stores/socketStore";
 import type { Ref } from "vue";
 import { ref } from "vue";
-import type { Message } from "@/shared/interfaces/Message";
+import type { MessageInterface } from "@/shared/interfaces/MessageInterface";
 
 interface ChatState {
   element: Ref<HTMLDivElement | null>;
@@ -84,7 +84,7 @@ export const useChat = defineStore("chat", {
         });
     },
 
-    shouldShowAvatar(previous: Message, message: Message) {
+    shouldShowAvatar(previous: MessageInterface, message: MessageInterface) {
       const isFirst = !previous;
       if (isFirst) return true;
 

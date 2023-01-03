@@ -5,31 +5,43 @@ import {
   Sequelize,
   Options,
   FindOptions,
+  InferAttributes,
+  InferCreationAttributes,
+  CreationOptional,
+  ForeignKey,
 } from "sequelize";
 import sequelize from "../config/sequelize";
 import { NamespaceInterface } from "../interfaces/Namespace";
 import { RoomInterface } from "../interfaces/Room";
 import { UserHasNamespaceInterface } from "../interfaces/UserHasNamespace";
-import user from "./User";
+import { UserInterface } from "../interfaces/User";
 
-class UserNamespace extends Model<Optional<NamespaceInterface, any>> {
-  declare id: number;
+class UserNamespace extends Model<
+  InferAttributes<UserNamespace>,
+  InferCreationAttributes<UserNamespace>
+> {
+  declare id: CreationOptional<ForeignKey<any>>;
   declare name: string;
   declare inviteCode: string;
   declare imgUrl: string;
-  declare rooms: RoomInterface[];
-  declare UserHasNamespace: UserHasNamespaceInterface;
-  declare createdAt: string;
-  declare updatedAt: string;
+  declare rooms?: RoomInterface[];
+  declare UserHasNamespace?: UserHasNamespaceInterface;
+  declare users?: UserInterface[];
   declare getUsers: (
     opts:
       | Omit<FindOptions<Optional<NamespaceInterface, any>>, "where">
       | undefined
-  ) => user[];
+  ) => UserInterface[];
 }
 
 UserNamespace.init(
   {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+
     name: {
       type: DataTypes.TEXT,
       allowNull: false,

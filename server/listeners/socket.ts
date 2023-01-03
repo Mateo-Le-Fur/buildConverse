@@ -284,8 +284,8 @@ class SocketManager {
 
           const isAuthorize = await UserHasNamespace.findOne({
             where: {
-              user_id: userId,
-              namespace_id: namespaceId,
+              userId,
+              namespaceId,
             },
           });
 
@@ -388,35 +388,14 @@ class SocketManager {
 
         nsSocket.on("joinRoom", async (data) => {
           try {
-            const userId = nsSocket.request.user?.id;
-
-            const foundUserNamespace = await UserHasNamespace.findOne({
-              where: {
-                user_id: userId,
-                namespace_id: data.namespaceId,
-              },
-            });
-
-            if (!foundUserNamespace) throw new Error("forbidden");
-
-            const foundNamespaceRoom = await Room.findOne({
-              where: {
-                id: data.roomId,
-                namespace_id: foundUserNamespace.namespaceId,
-              },
-            });
-
-            if (!foundNamespaceRoom) throw new Error("forbidden");
-
-            nsSocket.join(`/${data.roomId}`);
-            await this._roomsManager.getMessages(nsSocket, data.roomId);
+            await this._roomsManager.joinRoom(nsSocket, data);
           } catch (e) {
             console.error(e);
           }
         });
 
-        nsSocket.on("leaveRoom", (roomId: RoomInterface) => {
-          nsSocket.leave(`/${roomId}`);
+        nsSocket.on("leaveRoom", (roomId: number) => {
+          this._roomsManager.leaveRoom(nsSocket, roomId);
         });
 
         nsSocket.on("createRoom", async (data: RoomInterface, callback) => {

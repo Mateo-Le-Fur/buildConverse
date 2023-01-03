@@ -1,7 +1,22 @@
-const { Model, DataTypes } = require("sequelize");
-const sequelize = require("../config/sequelize");
+import {
+  InferAttributes,
+  InferCreationAttributes,
+  Model,
+  DataTypes,
+  CreationOptional,
+  ForeignKey,
+} from "sequelize";
 
-class PrivateRoom extends Model {}
+import sequelize from "../config/sequelize";
+import { UserInterface } from "../interfaces/User";
+
+class PrivateRoom extends Model<
+  InferAttributes<PrivateRoom>,
+  InferCreationAttributes<PrivateRoom>
+> {
+  declare id: CreationOptional<ForeignKey<number>>;
+  declare privateRoomUsers?: UserInterface[];
+}
 
 PrivateRoom.init(
   {

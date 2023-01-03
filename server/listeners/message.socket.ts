@@ -23,25 +23,27 @@ class MessageManager {
       raw: true,
     });
 
-    let message = (
-      await Message.create({
-        data: data.data,
-        dataType: "text",
-        room_id: data.roomId,
-        user_id: userId,
-        authorName: user?.pseudo,
-        avatarAuthor: user?.avatarUrl,
-      })
-    ).get();
+    if (user) {
+      let message = (
+        await Message.create({
+          data: data.data,
+          dataType: "text",
+          roomId: data.roomId,
+          userId: userId,
+          authorName: user.pseudo,
+          avatarAuthor: user.avatarUrl,
+        })
+      ).get();
 
-    message = {
-      ...message,
-      avatarAuthor: `${
-        process.env.DEV_AVATAR_URL
-      }/user/${userId}/${Date.now()}/avatar`,
-    };
+      message = {
+        ...message,
+        avatarAuthor: `${
+          process.env.DEV_AVATAR_URL
+        }/user/${userId}/${Date.now()}/avatar`,
+      };
 
-    ns.in(`/${data.roomId}`).emit("message", message);
+      ns.in(`/${data.roomId}`).emit("message", message);
+    }
   }
 }
 

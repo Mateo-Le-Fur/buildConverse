@@ -86,7 +86,6 @@ class UserManager {
                 attributes: {
                   exclude: ["password", "email", "created_at", "updated_at"],
                 },
-
                 where: {
                   id: userId,
                 },
@@ -95,7 +94,7 @@ class UserManager {
           })
         )?.toJSON();
 
-        const user = namespace?.users.map((element: UserInterface) => {
+        const user = namespace?.users?.map((element: UserInterface) => {
           if (element) {
             return {
               ...element,
@@ -107,7 +106,9 @@ class UserManager {
           }
         });
 
-        this._ios.of(`/${ns}`).emit("updateUser", ...user);
+        const result = { ...user };
+
+        this._ios.of(`/${ns}`).emit("updateUser", result);
       }
     }
 
@@ -142,7 +143,7 @@ class UserManager {
       privateRoomsId.map(async (id) => {
         const data = await UserHasPrivateRoom.findAll({
           where: {
-            private_room_id: id,
+            privateRoomId: id,
           },
           raw: true,
         });

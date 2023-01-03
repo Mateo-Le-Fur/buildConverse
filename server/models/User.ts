@@ -1,18 +1,36 @@
-import { Model, DataTypes, Optional } from "sequelize";
+import {
+  Model,
+  DataTypes,
+  InferAttributes,
+  InferCreationAttributes,
+  CreationOptional,
+} from "sequelize";
 import sequelize from "../config/sequelize";
-import type { UserInterface } from "../interfaces/User";
+import Friend from "./Friend";
+import { FriendsInterface } from "../interfaces/FriendsInterface";
+import { NamespaceInterface } from "../interfaces/Namespace";
 
-class User extends Model<Optional<UserInterface, any>> {
-  declare id: number;
+class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+  declare id: CreationOptional<number>;
   declare pseudo: string;
-  declare password: string;
-  declare description: string;
-  declare status: string;
+  declare email: string;
+  declare password?: string;
+  declare description: CreationOptional<string>;
+  declare status: CreationOptional<string>;
   declare avatarUrl: string;
+  declare friends?: FriendsInterface[];
+  declare friendsRequests?: FriendsInterface[];
+  declare namespaces?: NamespaceInterface[];
 }
 
 User.init(
   {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+
     pseudo: {
       type: DataTypes.TEXT,
       allowNull: false,

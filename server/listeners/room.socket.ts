@@ -3,7 +3,7 @@ import { MessageInterface } from "../interfaces/Message";
 import { RoomInterface } from "../interfaces/Room";
 import { Namespace } from "socket.io/dist/namespace";
 
-import { Room, Message } from "../models";
+import { Room, Message, UserHasNamespace } from "../models";
 import { getNumberOfRooms } from "../query/room.query";
 import { SocketCustom } from "../interfaces/SocketCustom";
 
@@ -17,7 +17,7 @@ class RoomsManager {
   public async getAllRooms(nsSocket: Socket, namespaceId: string) {
     const getRooms = await Room.findAll({
       where: {
-        namespace_id: namespaceId,
+        namespaceId: namespaceId,
       },
       order: [["created_at", "asc"]],
     });
@@ -25,11 +25,42 @@ class RoomsManager {
     nsSocket.emit("rooms", getRooms);
   }
 
+  public async joinRoom(nsSocket: SocketCustom, data: RoomInterface) {
+    const userId = nsSocket.request.user?.id;
+
+    const { namespaceId, roomId } = data;
+
+    const foundUserNamespace = await UserHasNamespace.findOne({
+      where: {
+        userId,
+        namespaceId,
+      },
+    });
+
+    if (!foundUserNamespace) throw new Error("forbidden");
+
+    const foundNamespaceRoom = await Room.findOne({
+      where: {
+        id: roomId,
+        namespaceId: foundUserNamespace.namespaceId,
+      },
+    });
+
+    if (!foundNamespaceRoom) throw new Error("forbidden");
+
+    nsSocket.join(`/${data.roomId}`);
+    await this.getMessages(nsSocket, data.roomId);
+  }
+
+  public async leaveRoom(nsSocket: Socket, roomId: number) {
+    nsSocket.leave(`/${roomId}`);
+  }
+
   public async getMessages(nsSocket: Socket, roomId: number) {
     let messages = (
       await Message.findAll({
         where: {
-          room_id: roomId,
+          roomId: roomId,
         },
         order: [["id", "desc"]],
         limit: 50,
@@ -40,7 +71,7 @@ class RoomsManager {
       return {
         ...message,
         avatarAuthor: `${process.env.DEV_AVATAR_URL}/user/${
-          message.user_id
+          message.userId
         }/${Date.now()}/avatar`,
       };
     });
@@ -54,7 +85,7 @@ class RoomsManager {
     let messages = (
       await Message.findAll({
         where: {
-          room_id: data.id,
+          roomId: data.id,
         },
         order: [["id", "desc"]],
         limit: 50,
@@ -66,7 +97,7 @@ class RoomsManager {
       return {
         ...message,
         avatarAuthor: `${process.env.DEV_AVATAR_URL}/user/${
-          message.user_id
+          message.userId
         }/${Date.now()}/avatar`,
       };
     });
@@ -78,7 +109,7 @@ class RoomsManager {
     const room = await Room.create({
       name: `# ${data.name}`,
       index: data.index,
-      namespace_id: data.namespaceId,
+      namespaceId: data.namespaceId,
     });
 
     this._ios.of(`/${data.namespaceId}`).emit("createRoom", room);

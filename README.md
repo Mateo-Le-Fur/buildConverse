@@ -14,8 +14,6 @@
 
 # Fonctionnalités actuelles :
 
-### INFO : Toutes les actions de l'utilisateur sont visibles en temps réel par les autres, à conditions qu'ils partagent le ou les mêmes serveurs ou qu'ils soient amis.
-
  - Créer/Modifie/Supprimer son compte 
  
  - Ajouter/Modifier une photo de profil
@@ -28,13 +26,11 @@
  
  - Affichage des amis connectés/déconnectés
  
- - Créer/Modifier/Supprimer des serveurs en tant qu'administrateur d'un serveur
+ - Créer/Modifier/Supprimer des serveurs
 
  - Affichage des membres connecté/déconnecté d'un serveur
  
  - Rejoindre un serveur via un code d'invitation
- 
- - Quitter un serveur
  
  - Ajouter/Modifier l'avatar d'un serveur
  

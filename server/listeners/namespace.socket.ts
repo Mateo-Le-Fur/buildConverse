@@ -13,6 +13,7 @@ import { UpdateNamespaceInterface } from "../interfaces/UpdateNamespaceInterface
 import runService from "../services/runService";
 import { workerData } from "worker_threads";
 import { Op } from "sequelize";
+import { UserInterface } from "../interfaces/User";
 
 const { unlinkImage } = require("../utils/unlinckImage");
 
@@ -42,7 +43,7 @@ class NamespacesManager {
       })
     )?.toJSON();
 
-    const namespaces = foundUsersNamespace?.namespaces.map(
+    const namespaces = foundUsersNamespace?.namespaces?.map(
       (namespace: NamespaceInterface) => {
         return {
           ...namespace,
@@ -69,7 +70,7 @@ class NamespacesManager {
       nest: true,
     });
 
-    const updateUser = users?.map((element: User) => {
+    const updateUser = users?.map((element: UserInterface) => {
       const checkIfUserConnected = this._clients.get(element.id);
 
       return {
@@ -159,8 +160,8 @@ class NamespacesManager {
     });
 
     await UserHasNamespace.create({
-      user_id: userId,
-      namespace_id: id,
+      userId: userId,
+      namespaceId: id,
       admin: true,
     });
 
@@ -177,7 +178,7 @@ class NamespacesManager {
       })
     )?.toJSON();
 
-    const [namespaces] = [...foundUserNamespace?.namespaces];
+    const [namespaces] = [...foundUserNamespace?.namespaces!];
 
     const userNamespace = {
       ...namespaces,
@@ -201,8 +202,8 @@ class NamespacesManager {
 
     const checkIfUserIsAdmin = await UserHasNamespace.findOne({
       where: {
-        user_id: userId,
-        namespace_id: namespaceId,
+        userId,
+        namespaceId,
         admin: true,
       },
       raw: true,
@@ -250,25 +251,25 @@ class NamespacesManager {
       })
     )?.toJSON();
 
-    updateNamespace = {
+    const newUpdateNamespace = {
       ...updateNamespace,
       imgUrl: `${
         process.env.DEV_AVATAR_URL
       }/namespace/${namespaceId}/${Date.now()}/avatar`,
     };
 
-    this._ios.of(`${namespaceId}`).emit("updateNamespace", updateNamespace);
+    this._ios.of(`${namespaceId}`).emit("updateNamespace", newUpdateNamespace);
   }
 
   async deleteNamespace(socket: SocketCustom, data: { id: number }) {
-    const { id } = data;
+    const { id: namespaceId } = data;
 
     const userId = socket.request.user?.id;
 
     const checkIfUserIsAdmin = await UserHasNamespace.findOne({
       where: {
-        user_id: userId,
-        namespace_id: id,
+        userId,
+        namespaceId,
         admin: true,
       },
       raw: true,
@@ -278,9 +279,9 @@ class NamespacesManager {
       throw new Error("Tu dois être administrateur pour supprimer le serveur");
     }
 
-    this._ios.of(`${id}`).emit("deleteNamespace", { id });
+    this._ios.of(`${namespaceId}`).emit("deleteNamespace", { namespaceId });
 
-    const namespace = await UserNamespace.findByPk(id, {
+    const namespace = await UserNamespace.findByPk(namespaceId, {
       raw: true,
     });
 
@@ -288,11 +289,11 @@ class NamespacesManager {
 
     await UserNamespace.destroy({
       where: {
-        id,
+        id: namespaceId,
       },
     });
 
-    this._ios._nsps.delete(`/${id}`);
+    this._ios._nsps.delete(`/${namespaceId}`);
   }
 
   public async joinInvitation(
@@ -304,7 +305,7 @@ class NamespacesManager {
     const foundNamespace = (
       await UserNamespace.findOne({
         where: {
-          invite_code: data.inviteCode,
+          inviteCode: data.inviteCode,
         },
       })
     )?.toJSON() as UserNamespace;
@@ -315,8 +316,8 @@ class NamespacesManager {
 
     const checkIfUserAlreadyHasServer = await UserHasNamespace.findOne({
       where: {
-        user_id: userId,
-        namespace_id: namespaceId,
+        userId,
+        namespaceId,
       },
     });
 
@@ -337,8 +338,8 @@ class NamespacesManager {
     }
 
     await UserHasNamespace.create({
-      user_id: userId,
-      namespace_id: namespaceId,
+      userId,
+      namespaceId,
     });
 
     let foundUserNamespaces = (
@@ -354,7 +355,7 @@ class NamespacesManager {
       })
     )?.toJSON();
 
-    const [namespaces] = [...foundUserNamespaces?.namespaces];
+    const [namespaces] = [...foundUserNamespaces?.namespaces!];
 
     const userNamespaces = {
       ...namespaces,
@@ -378,7 +379,7 @@ class NamespacesManager {
       })
     )?.toJSON();
 
-    const [users] = [...foundNamespaceUser?.users];
+    const [users] = [...foundNamespaceUser?.users!];
 
     const user = {
       ...users,
@@ -399,8 +400,8 @@ class NamespacesManager {
 
     await UserHasNamespace.destroy({
       where: {
-        user_id: userId,
-        namespace_id: namespaceId,
+        userId,
+        namespaceId,
       },
     });
 

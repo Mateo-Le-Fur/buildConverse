@@ -23,8 +23,8 @@ class userController {
       },
       {
         where: {
-          user_id: userId,
-          private_room_id: id,
+          userId,
+          privateRoomId: id,
         },
       }
     );

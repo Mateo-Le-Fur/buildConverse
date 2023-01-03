@@ -11,7 +11,6 @@ import { useRoute } from "vue-router";
 const socketStore = useSocket();
 const roomStore = useRoom();
 const route = useRoute();
-
 const addServerPopup = ref<boolean>(false);
 
 function displayTooltip(): void {
@@ -69,7 +68,6 @@ function changeNamespace(namespaceId: number, home: boolean = false) {
 
 <template>
   <nav
-    v-if="socketStore.isNamespacesLoaded"
     class="namespace-container flex-fill d-flex flex-column align-items-center"
   >
     <div class="scroll d-flex flex-column align-items-center">
@@ -112,6 +110,7 @@ function changeNamespace(namespaceId: number, home: boolean = false) {
       </template>
 
       <div
+        v-if="socketStore.isNamespacesLoaded"
         data-tooltip="Ajouter un serveur"
         class="create-namespace align-items-center justify-content-center tooltip"
         @click.stop="addServerPopup = true"

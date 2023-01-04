@@ -57,7 +57,6 @@ export const useNsUser = defineStore("userSocket", {
 
     async updateUser(data: User) {
       const socketStore = useSocket();
-      console.log(data);
       if (
         `/${data.UserHasNamespace.namespaceId}` ===
         socketStore.activeNsSocket?.nsp

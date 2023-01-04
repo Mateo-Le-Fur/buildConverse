@@ -248,6 +248,7 @@ class NamespacesManager {
           model: Room,
           as: "rooms",
         },
+        raw: true,
       })
     )?.toJSON();
 

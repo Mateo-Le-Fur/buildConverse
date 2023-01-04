@@ -106,9 +106,7 @@ class UserManager {
           }
         });
 
-        const result = { ...user };
-
-        this._ios.of(`/${ns}`).emit("updateUser", result);
+        if (user) this._ios.of(`/${ns}`).emit("updateUser", user[0]);
       }
     }
 

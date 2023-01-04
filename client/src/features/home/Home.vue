@@ -5,6 +5,7 @@ import FriendList from "@/features/home/views/FriendList.vue";
 import { useRoute } from "vue-router";
 import { useMe } from "@/features/home/stores/meStore";
 import { onUnmounted } from "vue";
+import Namespace from "@/components/Namespace.vue";
 
 const meStore = useMe();
 
@@ -27,5 +28,4 @@ onUnmounted(() => {
   </div>
 </template>
 
-<style scoped lang="scss">
-</style>
+<style scoped lang="scss"></style>

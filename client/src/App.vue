@@ -32,8 +32,14 @@ watch(
 
 <template>
   <div class="app-container shape d-flex">
-    <Namespace v-if="userStore.isAuthenticated" />
-    <router-view></router-view>
+    <Namespace
+      v-if="userStore.isAuthenticated && socketStore.isNamespacesLoaded"
+    />
+    <router-view v-slot="{ Component, route }">
+      <transition :name="route.meta.transition" mode="out-in">
+        <component :is="Component" />
+      </transition>
+    </router-view>
   </div>
 </template>
 
@@ -43,5 +49,40 @@ watch(
 .app-container {
   height: 100vh;
   background-color: var(--primary-1);
+}
+
+.home-enter-from {
+  opacity: 0;
+  transform: translateY(-100px);
+}
+
+.home-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.home-leave-to {
+  opacity: 0;
+}
+
+.home-leave-active {
+  transition: all 0.3s ease-in;
+}
+
+.server-enter-from {
+  opacity: 0;
+  transform: translateX(-100px);
+}
+
+.server-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.server-leave-to {
+  opacity: 0;
+  transform: translateX(70px);
+}
+
+.server-leave-active {
+  transition: all 0.3s ease-in;
 }
 </style>

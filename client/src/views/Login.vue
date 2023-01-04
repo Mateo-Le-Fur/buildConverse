@@ -41,26 +41,42 @@ const { value: passwordValue, errorMessage: passwordError } =
 </script>
 
 <template>
-  <div class="background"></div>
-  <div class="form-signup-container d-flex flex-column align-items-center">
-    <form @submit.prevent="submit" class="form-signup d-flex flex-column">
-      <h2 class="mb-20">Hello !</h2>
-      <div class="d-flex flex-column mb-10">
-        <label for="email" class="mb-10">Email *</label>
-        <input class="mb-5" v-model="emailValue" id="email" type="text" />
-        <p class="validation-error" v-if="emailError">{{ emailError }}</p>
-      </div>
-      <div class="d-flex flex-column mb-20">
-        <label for="mdp" class="mb-10">Mot de passe *</label>
-        <input class="mb-5" v-model="passwordValue" id="mdp" type="password" />
-        <p class="validation-error" v-if="passwordError">{{ passwordError }}</p>
-      </div>
-      <button class="mb-20">Connexion</button>
-      <div class="d-flex align-items-center">
-        <p class="mr-10">Tu n'as pas encore de compte ?</p>
-        <router-link to="/inscription"> Inscription </router-link>
-      </div>
-    </form>
+  <div>
+    <div class="background"></div>
+    <div class="form-signup-container d-flex flex-column align-items-center">
+      <form @submit.prevent="submit" class="form-signup d-flex flex-column">
+        <h2 class="mb-20">Hello !</h2>
+        <div class="d-flex flex-column mb-10">
+          <label for="email" class="mb-10">Email *</label>
+          <input
+            autocomplete="username"
+            class="mb-5"
+            v-model="emailValue"
+            id="email"
+            type="text"
+          />
+          <p class="validation-error" v-if="emailError">{{ emailError }}</p>
+        </div>
+        <div class="d-flex flex-column mb-20">
+          <label for="mdp" class="mb-10">Mot de passe *</label>
+          <input
+            autocomplete="current-password"
+            class="mb-5"
+            v-model="passwordValue"
+            id="mdp"
+            type="password"
+          />
+          <p class="validation-error" v-if="passwordError">
+            {{ passwordError }}
+          </p>
+        </div>
+        <button class="mb-20">Connexion</button>
+        <div class="d-flex align-items-center">
+          <p class="mr-10">Tu n'as pas encore de compte ?</p>
+          <router-link to="/inscription"> Inscription </router-link>
+        </div>
+      </form>
+    </div>
   </div>
 </template>
 

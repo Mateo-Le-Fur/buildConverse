@@ -66,34 +66,43 @@ const { value: passwordValue, errorMessage: passwordError } = useField(
 </script>
 
 <template>
-  <div class="background"></div>
-  <div class="form-signup-container d-flex flex-column align-items-center">
-    <span class="mb-10 form-error" v-if="socketStore.error">{{
-      socketStore.error
-    }}</span>
-    <form @submit.prevent="submit" class="form-signup">
-      <h2 class="mb-20">Bienvenue !</h2>
-      <div class="d-flex flex-column mb-10">
-        <label for="pseudo" class="mb-10">Pseudo *</label>
-        <input class="mb-5" v-model="pseudoValue" id="pseudo" type="text" />
-        <p class="validation-error" v-if="pseudoError">{{ pseudoError }}</p>
-      </div>
-      <div class="d-flex flex-column mb-10">
-        <label for="email" class="mb-10">Email *</label>
-        <input class="mb-5" v-model="emailValue" id="email" type="text" />
-        <p class="validation-error" v-if="emailError">{{ emailError }}</p>
-      </div>
-      <div class="d-flex flex-column mb-20">
-        <label for="mdp" class="mb-10">Mot de passe *</label>
-        <input class="mb-5" v-model="passwordValue" id="mdp" type="password" />
-        <p class="validation-error" v-if="passwordError">{{ passwordError }}</p>
-      </div>
-      <button class="mb-20">Inscription</button>
-      <div class="d-flex align-items-center">
-        <p class="mr-10">Tu as déjà un compte ?</p>
-        <router-link to="/connexion"> Connexion </router-link>
-      </div>
-    </form>
+  <div>
+    <div class="background"></div>
+    <div class="form-signup-container d-flex flex-column align-items-center">
+      <span class="mb-10 form-error" v-if="socketStore.error">{{
+        socketStore.error
+      }}</span>
+      <form @submit.prevent="submit" class="form-signup">
+        <h2 class="mb-20">Bienvenue !</h2>
+        <div class="d-flex flex-column mb-10">
+          <label for="pseudo" class="mb-10">Pseudo *</label>
+          <input class="mb-5" v-model="pseudoValue" id="pseudo" type="text" />
+          <p class="validation-error" v-if="pseudoError">{{ pseudoError }}</p>
+        </div>
+        <div class="d-flex flex-column mb-10">
+          <label for="email" class="mb-10">Email *</label>
+          <input class="mb-5" v-model="emailValue" id="email" type="text" />
+          <p class="validation-error" v-if="emailError">{{ emailError }}</p>
+        </div>
+        <div class="d-flex flex-column mb-20">
+          <label for="mdp" class="mb-10">Mot de passe *</label>
+          <input
+            class="mb-5"
+            v-model="passwordValue"
+            id="mdp"
+            type="password"
+          />
+          <p class="validation-error" v-if="passwordError">
+            {{ passwordError }}
+          </p>
+        </div>
+        <button class="mb-20">Inscription</button>
+        <div class="d-flex align-items-center">
+          <p class="mr-10">Tu as déjà un compte ?</p>
+          <router-link to="/connexion"> Connexion </router-link>
+        </div>
+      </form>
+    </div>
   </div>
 </template>
 

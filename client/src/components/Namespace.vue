@@ -137,6 +137,7 @@ function changeNamespace(namespaceId: number, home: boolean = false) {
   padding: 10px;
   max-width: 70px;
   background-color: var(--primary-3);
+  z-index: 2;
 
   .scroll {
     overflow-y: auto;

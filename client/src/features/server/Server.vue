@@ -4,11 +4,12 @@ import UserList from "@/features/server/components/UserList.vue";
 import { useRoute } from "vue-router";
 import { useSocket } from "@/shared/stores/socketStore";
 import type { RoomInterface } from "@/shared/interfaces/Room";
-import { watch } from "vue";
+import { onMounted, onUnmounted, watch } from "vue";
 import { useRoom } from "@/features/server/stores/roomStore";
 import { useNsUser } from "@/features/server/stores/userNsStore";
 import ServerOptions from "@/features/server/components/ServerOptions.vue";
 import SearchBar from "@/features/server/components/SearchBar.vue";
+import Namespace from "@/components/Namespace.vue";
 
 const route = useRoute();
 
@@ -33,7 +34,8 @@ watch(
     socketStore.creatingNamespace,
   ],
   () => {
-    if (socketStore.isNamespacesLoaded) {
+    console.log(route.params);
+    if (socketStore.isNamespacesLoaded && route.params.idChannel) {
       joinNamespace();
     }
   },
@@ -99,20 +101,5 @@ function changeRoom(room: RoomInterface) {
   .right-container {
     min-width: 0;
   }
-}
-
-.server-leave-to,
-.server-enter-from {
-  opacity: 0;
-}
-
-.server-leave-from,
-.server-enter-to {
-  opacity: 1;
-}
-
-.server-leave-active,
-.server-enter-active {
-  transition: all 0.3s;
 }
 </style>

@@ -66,12 +66,13 @@ const { value: passwordValue, errorMessage: passwordError } = useField(
 </script>
 
 <template>
+  <div class="background"></div>
   <div class="form-signup-container d-flex flex-column align-items-center">
-    <h2 class="mb-20">Bienvenue !</h2>
     <span class="mb-10 form-error" v-if="socketStore.error">{{
       socketStore.error
     }}</span>
     <form @submit.prevent="submit" class="form-signup">
+      <h2 class="mb-20">Bienvenue !</h2>
       <div class="d-flex flex-column mb-10">
         <label for="pseudo" class="mb-10">Pseudo *</label>
         <input class="mb-5" v-model="pseudoValue" id="pseudo" type="text" />

@@ -34,7 +34,6 @@ watch(
     socketStore.creatingNamespace,
   ],
   () => {
-    console.log(route.params);
     if (socketStore.isNamespacesLoaded && route.params.idChannel) {
       joinNamespace();
     }

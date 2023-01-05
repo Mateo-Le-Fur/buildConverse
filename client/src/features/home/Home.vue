@@ -4,14 +4,13 @@ import PrivateMessage from "@/features/home/components/PrivateMessage.vue";
 import FriendList from "@/features/home/views/FriendList.vue";
 import { useRoute } from "vue-router";
 import { useMe } from "@/features/home/stores/meStore";
-import { onUnmounted } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import Namespace from "@/components/Namespace.vue";
 
 const meStore = useMe();
-
 const route = useRoute();
 
-onUnmounted(() => {
+onBeforeUnmount(() => {
   meStore.currentRecipient = null;
 });
 </script>

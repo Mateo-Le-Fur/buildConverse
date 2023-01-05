@@ -1,13 +1,20 @@
 <script setup lang="ts">
 import Namespace from "@/components/Namespace.vue";
-import { onMounted, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useSocket } from "@/shared/stores/socketStore";
 import { useMe } from "@/features/home/stores/meStore";
 import { useUser } from "@/shared/stores";
+import { useRoute, useRouter } from "vue-router";
+import { object } from "zod";
+
+const route = useRoute();
 
 const socketStore = useSocket();
 const meStore = useMe();
 const userStore = useUser();
+const router = useRouter();
+
+const shouldShowAnimation = ref<boolean>(true);
 
 onMounted(() => {
   window.addEventListener("beforeunload", () => {
@@ -16,6 +23,26 @@ onMounted(() => {
 
     socketStore.ioClient?.emit("leave", { namespaces, friends });
   });
+});
+
+watch(router.currentRoute, (value, oldValue) => {
+  const isNewValueDifferentFromOld =
+    value.fullPath === "/channels/me" &&
+    oldValue.fullPath.includes("/channels/me/");
+
+  const firstCheck = (shouldShowAnimation.value = !(
+    isNewValueDifferentFromOld || value.params.privateRoomId
+  ));
+
+  const regex = /\/channels\/\d+/;
+
+  if (value.fullPath.match(regex)) {
+    const isSameChannel = value.params.idChannel === oldValue.params.idChannel;
+
+    shouldShowAnimation.value = !isSameChannel;
+  } else {
+    shouldShowAnimation.value = firstCheck;
+  }
 });
 
 watch(
@@ -36,10 +63,12 @@ watch(
       v-if="userStore.isAuthenticated && socketStore.isNamespacesLoaded"
     />
     <router-view v-slot="{ Component, route }">
-      <transition :name="route.meta.transition" mode="out-in">
-        <component :is="Component" />
-      </transition>
-    </router-view>
+      <transition
+        :name="shouldShowAnimation === true ? route.meta.transition : 'null'"
+        mode="out-in"
+      >
+        <component :is="Component" :key="route.meta" /> </transition
+    ></router-view>
   </div>
 </template>
 

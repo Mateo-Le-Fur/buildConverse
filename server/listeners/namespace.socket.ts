@@ -242,15 +242,13 @@ class NamespacesManager {
       }
     );
 
-    let updateNamespace = (
-      await UserNamespace.findByPk(namespaceId, {
-        include: {
-          model: Room,
-          as: "rooms",
-        },
-        raw: true,
-      })
-    )?.toJSON();
+    let updateNamespace = await UserNamespace.findByPk(namespaceId, {
+      include: {
+        model: Room,
+        as: "rooms",
+      },
+      raw: true,
+    });
 
     const newUpdateNamespace = {
       ...updateNamespace,

@@ -20,7 +20,7 @@ const validationSchema = toFormValidator(
   })
 );
 
-const { handleSubmit, setErrors } = useForm<MessageInterface>({
+const { handleSubmit, setErrors, resetForm } = useForm<MessageInterface>({
   validationSchema,
 });
 
@@ -34,7 +34,7 @@ const submit = handleSubmit((formValue: MessageInterface) => {
       avatar: userStore.currentUser?.avatarUrl,
     });
 
-    dataValue.value = null;
+    resetForm();
   } catch (e: any) {
     setErrors({
       data: e.data,
@@ -49,15 +49,10 @@ onMounted(() => {
 watch(
   () => roomStore.activeRoom,
   () => {
-    dataValue.value = null;
+    resetForm();
     inputElem.value?.focus();
   }
 );
-
-function resetField(e: Event) {
-  const target = e.target as HTMLInputElement;
-  target.value = "";
-}
 </script>
 
 <template>
@@ -65,7 +60,6 @@ function resetField(e: Event) {
     <div>
       <input
         ref="inputElem"
-        @keyup.enter="resetField($event)"
         v-model="dataValue"
         type="text"
         :placeholder="`Envoyer un message dans ${roomStore.activeRoom?.name}`"

@@ -10,6 +10,10 @@ const chatStore = useChat();
 const socketStore = useSocket();
 const roomStore = useRoom();
 
+const vFocus = {
+  mounted: (el) => el.focus(),
+};
+
 defineProps<{
   params: RouteParams;
 }>();
@@ -116,6 +120,7 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .chat-container {
+  width: 0;
   justify-content: end;
 
   .room-name {

@@ -82,11 +82,10 @@ watch(
 
 .home-enter-from {
   opacity: 0;
-  transform: translateY(-100px);
 }
 
 .home-enter-active {
-  transition: all 0.3s ease-out;
+  transition: all 0.2s ease-out;
 }
 
 .home-leave-to {
@@ -94,24 +93,22 @@ watch(
 }
 
 .home-leave-active {
-  transition: all 0.3s ease-in;
+  transition: all 0.2s ease-in;
 }
 
 .server-enter-from {
   opacity: 0;
-  transform: translateX(-100px);
 }
 
 .server-enter-active {
-  transition: all 0.3s ease-out;
+  transition: all 0.2s ease-out;
 }
 
 .server-leave-to {
   opacity: 0;
-  transform: translateX(70px);
 }
 
 .server-leave-active {
-  transition: all 0.3s ease-in;
+  transition: all 0.2s ease-in;
 }
 </style>

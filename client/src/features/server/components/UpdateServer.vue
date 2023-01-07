@@ -12,6 +12,7 @@ import { useUser } from "@/shared/stores";
 const socketStore = useSocket();
 const userStore = useUser();
 
+const focus = ref<HTMLInputElement | null>();
 const newInviteCode = ref<string | null>(null);
 let avatar = ref<File | null>();
 let src = ref<string | ArrayBuffer | null>();
@@ -85,6 +86,7 @@ const { value: nameValue, errorMessage: nameError } = useField("name");
 const { value: codeValue, errorMessage: codeError } = useField("inviteCode");
 
 onMounted(() => {
+  focus.value?.focus();
   nameValue.value = props.currentNamespace?.name;
   codeValue.value = props.currentNamespace?.inviteCode;
 });
@@ -109,79 +111,83 @@ function previewAvatar(e: Event) {
 </script>
 
 <template>
-  <Teleport to="body">
-    <div
-      v-click-outside="() => emit('closePopup')"
-      class="update-server d-flex flex-column align-items-center p-20"
-    >
-      <label for="file" class="label-file">
-        <img
-          :src="
-            src
-              ? src
-              : currentNamespace.imgUrl
-              ? currentNamespace.imgUrl
-              : uploadImgUrl
-          "
-          style="color: white"
-          alt="server-logo"
-        />
-      </label>
-      <input
-        @change="previewAvatar($event)"
-        id="file"
-        class="input-file"
-        type="file"
+  <div
+    v-click-outside="() => emit('closePopup')"
+    class="update-server d-flex flex-column align-items-center p-20"
+  >
+    <label for="file" class="label-file">
+      <img
+        :src="
+          src
+            ? src
+            : currentNamespace.imgUrl
+            ? currentNamespace.imgUrl
+            : uploadImgUrl
+        "
+        style="color: white"
+        alt="server-logo"
       />
-      <form
-        @submit.prevent="submit"
-        class="d-flex align-items-center flex-column"
-      >
-        <div class="d-flex g-15 mb-20">
-          <div class="d-flex flex-column server-name">
-            <label for="name">Nom du serveur</label>
-            <input class="mb-10" v-model="nameValue" id="name" type="text" />
-            <span class="form-error" v-if="nameError">{{ nameError }}</span>
+    </label>
+    <input
+      @change="previewAvatar($event)"
+      id="file"
+      class="input-file"
+      type="file"
+    />
+    <form
+      @submit.prevent="submit"
+      class="d-flex align-items-center flex-column"
+    >
+      <div class="d-flex g-15 mb-20">
+        <div class="d-flex flex-column server-name">
+          <label for="name">Nom du serveur</label>
+          <input
+            ref="focus"
+            class="mb-10"
+            v-model="nameValue"
+            id="name"
+            type="text"
+          />
+          <span class="form-error" v-if="nameError">{{ nameError }}</span>
+        </div>
+        <div class="d-flex flex-column server-invite-code">
+          <label for="invite_code">Code d'invitation</label>
+          <div class="d-flex align-items-center g-5">
+            <input
+              v-model="codeValue"
+              readonly
+              id="invite_code"
+              class="mb-5"
+              type="text"
+            />
           </div>
-          <div class="d-flex flex-column server-invite-code">
-            <label for="invite_code">Code d'invitation</label>
-            <div class="d-flex align-items-center g-5">
-              <input
-                v-model="codeValue"
-                readonly
-                id="invite_code"
-                class="mb-5"
-                type="text"
-              />
+          <div class="d-flex g-5">
+            <div>
+              <p class="mr-5">Générer un nouveau code</p>
             </div>
-            <div class="d-flex g-5">
-              <div>
-                <p class="mr-5">Générer un nouveau code</p>
-              </div>
-              <div
-                @click="newInviteCode = generateInviteCode()"
-                class="generate-code"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                  <!--! Font Awesome Pro 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
-                  <path
-                    d="M386.3 160H336c-17.7 0-32 14.3-32 32s14.3 32 32 32H464c17.7 0 32-14.3 32-32V64c0-17.7-14.3-32-32-32s-32 14.3-32 32v51.2L414.4 97.6c-87.5-87.5-229.3-87.5-316.8 0s-87.5 229.3 0 316.8s229.3 87.5 316.8 0c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0c-62.5 62.5-163.8 62.5-226.3 0s-62.5-163.8 0-226.3s163.8-62.5 226.3 0L386.3 160z"
-                  />
-                </svg>
-              </div>
+            <div
+              @click="newInviteCode = generateInviteCode()"
+              class="generate-code"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                <!--! Font Awesome Pro 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
+                <path
+                  d="M386.3 160H336c-17.7 0-32 14.3-32 32s14.3 32 32 32H464c17.7 0 32-14.3 32-32V64c0-17.7-14.3-32-32-32s-32 14.3-32 32v51.2L414.4 97.6c-87.5-87.5-229.3-87.5-316.8 0s-87.5 229.3 0 316.8s229.3 87.5 316.8 0c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0c-62.5 62.5-163.8 62.5-226.3 0s-62.5-163.8 0-226.3s163.8-62.5 226.3 0L386.3 160z"
+                />
+              </svg>
             </div>
           </div>
         </div>
-        <div class="submit mb-5">
-          <button>Enregistrer</button>
-        </div>
-        <p class="form-error" v-if="codeError">{{ codeError }}</p>
-        <p class="form-error" v-if="socketStore.error">
-          {{ socketStore.error }}
-        </p>
-      </form>
-    </div>
-  </Teleport>
+      </div>
+      <div class="submit mb-5">
+        <button>Enregistrer</button>
+      </div>
+      <p class="form-error" v-if="codeError">{{ codeError }}</p>
+      <p class="form-error" v-if="socketStore.error">
+        {{ socketStore.error }}
+      </p>
+    </form>
+  </div>
 </template>
 
 <style scoped lang="scss">

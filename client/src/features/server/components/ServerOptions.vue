@@ -21,7 +21,12 @@ watchEffect(() => {
   );
 });
 
+function closePopupOptions() {
+  popupOption.value = false;
+}
+
 function closePopupUpdate() {
+  console.log("close");
   socketStore.error = null;
   popupUpdateServer.value = false;
 }
@@ -54,7 +59,7 @@ function leaveNamespace(namespaceId: number) {
 <template>
   <div class="server-options-container">
     <div
-      @click="popupOption = !popupOption"
+      @click="popupOption = true"
       class="server-name d-flex align-items-center"
     >
       <p>{{ currentNamespace?.name }}</p>
@@ -65,7 +70,8 @@ function leaveNamespace(namespaceId: number) {
       </svg>
     </div>
     <div
-      v-show="popupOption === true"
+      v-if="popupOption"
+      v-click-outside="() => closePopupOptions()"
       class="p-10 server-options-popup d-flex flex-column"
     >
       <ul>
@@ -74,27 +80,20 @@ function leaveNamespace(namespaceId: number) {
         </li>
         <li
           v-if="currentNamespace?.UserHasNamespace.admin"
-          @click="
-            (popupUpdateServer = !popupUpdateServer), (popupOption = false)
-          "
+          @click="(popupUpdateServer = !popupUpdateServer), closePopupOptions()"
           class="mb-5 p-10 update-server justify-content-center"
         >
           Modifier le serveur
-          <UpdateServer
-            @close-popup="closePopupUpdate()"
-            :current-namespace="currentNamespace"
-            v-if="popupUpdateServer"
-          />
         </li>
         <li
-          @click="leaveNamespace(currentNamespace?.id)"
+          @click="leaveNamespace(currentNamespace?.id), closePopupOptions()"
           class="mb-5 p-10 delete-server justify-content-center"
         >
           Quitter le serveur
         </li>
         <li
           v-if="currentNamespace?.UserHasNamespace.admin"
-          @click="deleteNamespace(currentNamespace?.id)"
+          @click="deleteNamespace(currentNamespace?.id), closePopupOptions()"
           class="p-10 delete-server justify-content-center"
         >
           Supprimer le serveur
@@ -102,6 +101,13 @@ function leaveNamespace(namespaceId: number) {
       </ul>
     </div>
   </div>
+  <Teleport to="body">
+    <UpdateServer
+      v-if="popupUpdateServer"
+      @close-popup="closePopupUpdate()"
+      :current-namespace="currentNamespace"
+    />
+  </Teleport>
 </template>
 
 <style scoped lang="scss">

@@ -55,6 +55,7 @@ const { value: pseudoValue, errorMessage: pseudoError } = useField("pseudo");
       <form @submit.prevent="submit" class="d-flex align-items-center">
         <div class="d-flex align-items-center justify-content-space-between">
           <input
+            v-focus
             v-model="pseudoValue"
             type="text"
             placeholder="Entre un pseudo"

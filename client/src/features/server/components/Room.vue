@@ -80,29 +80,21 @@ function deleteRoom(room: RoomInterface) {
   }
 }
 
-async function onEdit() {
-  await nextTick(() => {
-    // @ts-ignore
-    inputElem.value[0].focus();
-  });
-}
-
 async function updateRoom(room: RoomInterface) {
-  await nextTick(() => {
-    const input = toRaw(inputElem.value) as HTMLInputElement[] | null;
+  await nextTick();
+  const input = toRaw(inputElem.value) as HTMLInputElement[] | null;
 
-    if (input && input[0].value !== room.name) {
-      socketStore.activeNsSocket.emit(
-        "updateRoom",
-        {
-          id: room.id,
-          namespaceId: room.namespaceId,
-          name: input[0].value,
-        },
-        (response: { status: string; message: string }) => {}
-      );
-    }
-  });
+  if (input && input[0].value !== room.name) {
+    socketStore.activeNsSocket.emit(
+      "updateRoom",
+      {
+        id: room.id,
+        namespaceId: room.namespaceId,
+        name: input[0].value,
+      },
+      (response: { status: string; message: string }) => {}
+    );
+  }
 }
 </script>
 
@@ -161,10 +153,7 @@ async function updateRoom(room: RoomInterface) {
                   :class="{ hidden: editMode && roomId === room.id }"
                 >
                   <svg
-                    @click.stop.prevent="
-                      editMode = true;
-                      onEdit();
-                    "
+                    @click.stop.prevent="editMode = true"
                     :class="{
                       editButton: roomHover && roomId === room.id,
                     }"
@@ -197,6 +186,7 @@ async function updateRoom(room: RoomInterface) {
                 >
                   <div class="input-container d-flex align-items-center">
                     <input
+                      v-focus
                       ref="inputElem"
                       class="input-edit-room"
                       type="text"

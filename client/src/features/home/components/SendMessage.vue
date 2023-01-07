@@ -23,7 +23,7 @@ const validationSchema = toFormValidator(
   })
 );
 
-const { handleSubmit, setErrors } = useForm<MessageInterface>({
+const { handleSubmit, setErrors, resetForm } = useForm<MessageInterface>({
   validationSchema,
 });
 
@@ -37,25 +37,20 @@ const submit = handleSubmit((formValue: MessageInterface) => {
       recipientId: meStore.currentRecipient?.id,
       data: formValue.data,
     });
-    dataValue.value = null;
+    resetForm();
   } catch (e: any) {
     setErrors({
       data: e.data,
     });
   }
 });
-
-function resetField(e: Event) {
-  const target = e.target as HTMLInputElement;
-  target.value = "";
-}
 </script>
 
 <template>
   <form @submit.prevent="submit" class="form-message">
     <div>
       <input
-        @keyup.enter="resetField($event)"
+        v-focus
         v-model="dataValue"
         type="text"
         :placeholder="`Envoyer un message à ${meStore.currentRecipient?.pseudo}`"

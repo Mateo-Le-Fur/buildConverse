@@ -66,7 +66,12 @@ const { value: nameValue, errorMessage: nameError } = useField("name");
       <form class="d-flex flex-column" @submit.prevent="submit">
         <div>
           <span>#</span>
-          <input v-model="nameValue" type="text" placeholder="Nom du salon" />
+          <input
+            v-focus
+            v-model="nameValue"
+            type="text"
+            placeholder="Nom du salon"
+          />
         </div>
         <span class="form-error" v-if="nameError">{{ nameError }}</span>
         <span class="form-error" v-if="socketStore.error">{{

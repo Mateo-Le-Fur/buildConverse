@@ -10,10 +10,6 @@ const chatStore = useChat();
 const socketStore = useSocket();
 const roomStore = useRoom();
 
-const vFocus = {
-  mounted: (el) => el.focus(),
-};
-
 defineProps<{
   params: RouteParams;
 }>();

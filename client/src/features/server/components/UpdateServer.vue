@@ -12,7 +12,6 @@ import { useUser } from "@/shared/stores";
 const socketStore = useSocket();
 const userStore = useUser();
 
-const focus = ref<HTMLInputElement | null>();
 const newInviteCode = ref<string | null>(null);
 let avatar = ref<File | null>();
 let src = ref<string | ArrayBuffer | null>();
@@ -86,7 +85,6 @@ const { value: nameValue, errorMessage: nameError } = useField("name");
 const { value: codeValue, errorMessage: codeError } = useField("inviteCode");
 
 onMounted(() => {
-  focus.value?.focus();
   nameValue.value = props.currentNamespace?.name;
   codeValue.value = props.currentNamespace?.inviteCode;
 });
@@ -142,7 +140,7 @@ function previewAvatar(e: Event) {
         <div class="d-flex flex-column server-name">
           <label for="name">Nom du serveur</label>
           <input
-            ref="focus"
+            v-focus
             class="mb-10"
             v-model="nameValue"
             id="name"

@@ -1,6 +1,6 @@
 import { createApp, markRaw, watch } from "vue";
 import { createPinia } from "pinia";
-import clickOutside from "./directives/clickOutside";
+import { clickOutside, focusElem } from "./directives";
 // @ts-ignore
 import VueVirtualScroller from "vue-virtual-scroller";
 
@@ -16,6 +16,7 @@ const pinia = createPinia();
 pinia.use(({ store }) => (store.router = markRaw(router)));
 
 app.use(clickOutside);
+app.use(focusElem);
 app.use(pinia);
 app.use(router);
 

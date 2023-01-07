@@ -12,8 +12,6 @@ const socketStore = useSocket();
 const roomStore = useRoom();
 const userStore = useUser();
 
-const inputElem = ref<HTMLInputElement | null>(null);
-
 const validationSchema = toFormValidator(
   z.object({
     data: z.string().max(500).optional(),
@@ -42,15 +40,10 @@ const submit = handleSubmit((formValue: MessageInterface) => {
   }
 });
 
-onMounted(() => {
-  inputElem.value?.focus();
-});
-
 watch(
   () => roomStore.activeRoom,
   () => {
     resetForm();
-    inputElem.value?.focus();
   }
 );
 </script>
@@ -60,6 +53,7 @@ watch(
     <div>
       <input
         ref="inputElem"
+        v-focus
         v-model="dataValue"
         type="text"
         :placeholder="`Envoyer un message dans ${roomStore.activeRoom?.name}`"

@@ -12,38 +12,30 @@
 <img alt="JWT" src="https://img.shields.io/badge/json%20web%20tokens-323330?style=for-the-badge&logo=json-web-tokens&logoColor=pink"  style="margin: 0 5px"/>
 <img alt="Socket.io" src="https://img.shields.io/badge/Socket.io-black?style=for-the-badge&logo=socket.io&badgeColor=010101"  style="margin: 0 5px"/>
 
-# Fonctionnalités actuelles :
+# Fonctionnalités de l'application
+## Fonctionnalités actuelles
+- Gestion du compte utilisateur :
+	- Création/Modification/Suppression du compte
+	- Ajout/Modification de la photo de profil
+- Gestion des amis :
+	- Envoi de demandes d'amis
+	- Acceptation/Refus de demandes d'amis
+	- Envoi de messages à un ami
+	- Affichage de l'état de connexion des amis (connecté/déconnecté)
+- Gestion des serveurs :
+	- Création/Modification/Suppression de serveurs
+	- Affichage de l'état de connexion des membres d'un serveur
+	- Rejoindre un serveur via un code d'invitation
+	- Ajout/Modification de l'avatar d'un serveur
+- Gestion des salons :
+	- Création/Modification/Suppression de salons
+	- Envoi de messages dans les différents serveurs et salons
 
- - Créer/Modifie/Supprimer son compte 
- 
- - Ajouter/Modifier une photo de profil
-   
- - Envoyer des demandes d'amis 
- 
- - Accepter/Refuser des demandes d'amis   
- 
- - Envoyer des messages à un ami
- 
- - Affichage des amis connectés/déconnectés
- 
- - Créer/Modifier/Supprimer des serveurs
-
- - Affichage des membres connecté/déconnecté d'un serveur
- 
- - Rejoindre un serveur via un code d'invitation
- 
- - Ajouter/Modifier l'avatar d'un serveur
- 
- - Créer/Modifier/Supprimer des salons
- 
- - Envoyer des messages dans les différents serveurs et salons
-
-# Fonctionnalités restantes à développer :
-
--  Modifier/Supprimer un message
--  Salons vocaux
--  Partage d'images et de fichiers dans le chat
--  Corrections de tout problème potentiel lié à la sécurité
+## Fonctionnalités à venir
+- Modification/Suppression de messages
+- Mise en place de salons vocaux
+- Partage d'images et de fichiers dans le chat
+- Corrections de tout problème potentiel lié à la sécurité
 
 
 

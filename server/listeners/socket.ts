@@ -1,24 +1,29 @@
-import type { NamespaceInterface } from "../interfaces/Namespace";
-import type { SocketCustom } from "../interfaces/SocketCustom";
 import { Server } from "socket.io";
 import { server } from "../app";
 import { ensureAuthenticatedOnSocketHandshake } from "../config/security.config";
 import cookieParser from "cookie";
-import { NamespacesManager } from "./namespace.socket";
-import { UserManager } from "./user.socket";
+import {
+  SecurityManager,
+  FriendsManager,
+  MessageManager,
+  UserManager,
+  RoomsManager,
+  NamespacesManager,
+} from "./index";
+import {
+  UpdateUserInterface,
+  RoomInterface,
+  MessageInterface,
+  UpdateNamespaceInterface,
+  DeleteUserInterface,
+  FriendsInterface,
+  PrivateMessageInterface,
+  NamespaceInterface,
+  SocketCustom,
+} from "../interfaces";
 import authProtect from "../config/jwt.config";
-import { UpdateUserInterface } from "../interfaces/UpdateUserInterface";
 import { ExtendedError } from "socket.io/dist/namespace";
 import { UserHasNamespace, Room } from "../models";
-import { RoomsManager } from "./room.socket";
-import { RoomInterface } from "../interfaces/Room";
-import { MessageInterface } from "../interfaces/Message";
-import { MessageManager } from "./message.socket";
-import { UpdateNamespaceInterface } from "../interfaces/UpdateNamespaceInterface";
-import { DeleteUserInterface } from "../interfaces/DeleteUserInterface";
-import { FriendsManager } from "./friend.socket";
-import { FriendsInterface } from "../interfaces/FriendsInterface";
-import { PrivateMessageInterface } from "../interfaces/PrivateMessageInterface";
 import namespaceValidator from "../validation/schema/namespace.schema";
 import roomValidator from "../validation/schema/room.schema";
 import joinNamespaceValidator from "../validation/schema/joinNamespace.schema";
@@ -32,6 +37,7 @@ class SocketManager {
   private _usersManager: UserManager;
   private _messagesManager: MessageManager;
   private _friendsManager: FriendsManager;
+  private _securityManager: SecurityManager;
 
   constructor() {
     this._ios = new Server(server, {
@@ -45,6 +51,7 @@ class SocketManager {
     this._usersManager = new UserManager(this._ios, this._clients);
     this._messagesManager = new MessageManager(this._ios);
     this._friendsManager = new FriendsManager(this._ios, this._clients);
+    this._securityManager = new SecurityManager(this._ios);
   }
 
   public init() {
@@ -272,7 +279,7 @@ class SocketManager {
 
   private initNamespace() {
     try {
-      const ns = this._ios.of(/^\/\w+$/);
+      const ns = this._ios.of(/^\/\d+$/);
 
       ns.use(
         async (
@@ -282,14 +289,14 @@ class SocketManager {
           const userId = socket.request.user?.id;
           const namespaceId = socket.nsp.name.substring(1);
 
-          const isAuthorize = await UserHasNamespace.findOne({
+          const isUserHaveAccessToTheServer = await UserHasNamespace.findOne({
             where: {
               userId,
               namespaceId,
             },
           });
 
-          if (isAuthorize) {
+          if (isUserHaveAccessToTheServer) {
             next();
           } else {
             next(new Error("Tu n'as pas accès à ce serveur "));
@@ -313,6 +320,10 @@ class SocketManager {
           "updateNamespace",
           async (data: UpdateNamespaceInterface, callback) => {
             try {
+              await this._securityManager.checkIfUserIsAdminOfNamespace(
+                nsSocket,
+                data.namespaceId
+              );
               await namespaceValidator.validateAsync(data);
               await this._namespacesManager.updateNamespace(nsSocket, data);
               callback({
@@ -333,6 +344,10 @@ class SocketManager {
           "deleteNamespace",
           async (data: NamespaceInterface, callback) => {
             try {
+              await this._securityManager.checkIfUserIsAdminOfNamespace(
+                nsSocket,
+                data.id
+              );
               await this._namespacesManager.deleteNamespace(nsSocket, data);
               callback({
                 status: "ok",
@@ -400,6 +415,10 @@ class SocketManager {
 
         nsSocket.on("createRoom", async (data: RoomInterface, callback) => {
           try {
+            await this._securityManager.checkIfUserIsAdminOfNamespace(
+              nsSocket,
+              data.namespaceId
+            );
             await roomValidator.validateAsync(data);
             await this._roomsManager.createRoom(data);
             callback({
@@ -417,6 +436,10 @@ class SocketManager {
 
         nsSocket.on("updateRoom", async (data: RoomInterface, callback) => {
           try {
+            await this._securityManager.checkIfUserIsAdminOfNamespace(
+              nsSocket,
+              data.namespaceId
+            );
             await roomValidator.validateAsync(data);
             await this._roomsManager.updateRoom(nsSocket, data);
             callback({
@@ -433,8 +456,22 @@ class SocketManager {
           }
         });
 
-        nsSocket.on("deleteRoom", async (data: RoomInterface) => {
-          await this._roomsManager.deleteRoom(nsSocket, data);
+        nsSocket.on("deleteRoom", async (data: RoomInterface, callback) => {
+          try {
+            await this._securityManager.checkIfUserIsAdminOfNamespace(
+              nsSocket,
+              data.namespaceId
+            );
+            await this._roomsManager.deleteRoom(nsSocket, data);
+          } catch (e) {
+            if (e instanceof Error) {
+              if (typeof callback === "function")
+                callback({
+                  status: "error",
+                  message: e.message,
+                });
+            }
+          }
         });
 
         nsSocket.on("message", async (data: MessageInterface) => {

@@ -200,19 +200,6 @@ class NamespacesManager {
 
     const userId = socket.request.user?.id;
 
-    const checkIfUserIsAdmin = await UserHasNamespace.findOne({
-      where: {
-        userId,
-        namespaceId,
-        admin: true,
-      },
-      raw: true,
-    });
-
-    if (!checkIfUserIsAdmin) {
-      throw new Error("Tu dois être administrateur pour modifier le serveur");
-    }
-
     const avatarName = imgBuffer ? Date.now() : null;
 
     if (imgBuffer) {
@@ -264,19 +251,6 @@ class NamespacesManager {
     const { id: namespaceId } = data;
 
     const userId = socket.request.user?.id;
-
-    const checkIfUserIsAdmin = await UserHasNamespace.findOne({
-      where: {
-        userId,
-        namespaceId,
-        admin: true,
-      },
-      raw: true,
-    });
-
-    if (!checkIfUserIsAdmin) {
-      throw new Error("Tu dois être administrateur pour supprimer le serveur");
-    }
 
     this._ios
       .of(`/${namespaceId}`)

@@ -13,7 +13,12 @@ class authProtect {
       expiresIn: 3600 + "s",
     });
 
-    res.cookie("jwt", jwtToken);
+    res.cookie("jwt", jwtToken, {
+      expires: new Date(Date.now() + (3600 * 1000 * 24 * 180 * 1)),
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
     return jwtToken;
   }
 

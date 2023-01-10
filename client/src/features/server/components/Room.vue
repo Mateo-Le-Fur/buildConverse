@@ -27,7 +27,6 @@ onUnmounted(() => {
 
 // Je récupère l'id de mon serveur dans le paramètre de ma route
 const props = defineProps<{
-  rooms: RoomInterface[];
   params: RouteParams;
   activeRoomId?: number;
 }>();
@@ -41,6 +40,8 @@ const roomHover = ref<boolean>(false);
 const roomId = ref<number | null>(null);
 const editMode = ref<boolean>(false);
 const inputElem = ref<HTMLInputElement | null>(null);
+const targetDragRoomIndex = ref<number | null>(null);
+const draggingRoomIndex = ref<number | null>(null);
 
 function hiddenPopup(data: boolean): void {
   createRoomPopup.value = data;
@@ -55,6 +56,34 @@ function onHover(id: number) {
 
 function onLeave() {
   roomHover.value = false;
+}
+
+function startDrag(event: DragEvent, room: RoomInterface) {
+  draggingRoomIndex.value = room.index;
+}
+
+function enterDrag(event: DragEvent, room: RoomInterface) {
+  if (room.index !== draggingRoomIndex.value) {
+    targetDragRoomIndex.value = room.index;
+  }
+}
+
+function onDrop() {
+  if (draggingRoomIndex.value && targetDragRoomIndex.value) {
+    switchIndex(draggingRoomIndex.value, targetDragRoomIndex.value);
+    draggingRoomIndex.value = null;
+    targetDragRoomIndex.value = null;
+  }
+}
+
+function switchIndex(firstRoomIndex: number, secondRoomIndex: number) {
+  const firstRoom = roomStore.findRoomByIndex(firstRoomIndex);
+  const secondRoom = roomStore.findRoomByIndex(secondRoomIndex);
+
+  if (firstRoom && secondRoom) {
+    updateRoom(firstRoom, secondRoomIndex);
+    updateRoom(secondRoom, firstRoomIndex);
+  }
 }
 
 function deleteRoom(room: RoomInterface) {
@@ -80,17 +109,18 @@ function deleteRoom(room: RoomInterface) {
   }
 }
 
-async function updateRoom(room: RoomInterface) {
+async function updateRoom(room: RoomInterface, updateIndex?: number) {
   await nextTick();
   const input = toRaw(inputElem.value) as HTMLInputElement[] | null;
 
-  if (input && input[0].value !== room.name) {
+  if ((input && input[0]?.value !== room.name) || updateIndex) {
     socketStore.activeNsSocket.emit(
       "updateRoom",
       {
         id: room.id,
+        index: updateIndex ? updateIndex : room.index,
         namespaceId: room.namespaceId,
-        name: input[0].value,
+        name: updateIndex ? room.name : input![0]?.value,
       },
       (response: { status: string; message: string }) => {}
     );
@@ -123,7 +153,7 @@ async function updateRoom(room: RoomInterface) {
         @room-popup="hiddenPopup"
       />
 
-      <div class="room-container d-flex flex-column">
+      <div class="room-container drag-zone d-flex flex-column">
         <template
           v-for="room of roomStore.getRooms(params.idChannel)"
           :key="room.id"
@@ -132,6 +162,12 @@ async function updateRoom(room: RoomInterface) {
             @mouseover="onHover(room.id)"
             @mouseout="onLeave()"
             :to="{ name: 'room', params: { idRoom: room.id } }"
+            draggable="true"
+            @dragstart="startDrag($event, room)"
+            @dragenter="enterDrag($event, room)"
+            @drop="onDrop($event)"
+            @dragenter.prevent
+            @dragover.prevent
           >
             <div
               @click="emit('changeRoom', room)"

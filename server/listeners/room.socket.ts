@@ -2,7 +2,6 @@ import { Server, Socket } from "socket.io";
 import { MessageInterface } from "../interfaces/Message";
 import { RoomInterface } from "../interfaces/Room";
 import { Namespace } from "socket.io/dist/namespace";
-
 import { Room, Message, UserHasNamespace } from "../models";
 import { getNumberOfRooms } from "../query/room.query";
 import { SocketCustom } from "../interfaces/SocketCustom";
@@ -108,23 +107,19 @@ class RoomsManager {
   public async createRoom(data: RoomInterface) {
     const room = await Room.create({
       name: `# ${data.name}`,
-      index: data.index,
       namespaceId: data.namespaceId,
     });
 
     this._ios.of(`/${data.namespaceId}`).emit("createRoom", room);
   }
 
-  public async updateRoom(data: {
-    id: number;
-    namespaceId: number;
-    name: string;
-  }) {
-    const { id, namespaceId, name } = data;
+  public async updateRoom(nsSocket: SocketCustom, data: RoomInterface) {
+    const { id, namespaceId, name, index } = data;
 
     await Room.update(
       {
         name,
+        index,
       },
       {
         where: {

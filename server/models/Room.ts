@@ -13,7 +13,7 @@ import sequelize from "../config/sequelize";
 class Room extends Model<InferAttributes<Room>, InferCreationAttributes<Room>> {
   declare id: CreationOptional<ForeignKey<number>>;
   declare name: string;
-  declare index: number;
+  declare index: CreationOptional<number>;
   declare namespaceId: ForeignKey<Namespace["id"]>;
 }
 

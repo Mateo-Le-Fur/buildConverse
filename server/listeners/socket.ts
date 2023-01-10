@@ -418,12 +418,13 @@ class SocketManager {
         nsSocket.on("updateRoom", async (data: RoomInterface, callback) => {
           try {
             await roomValidator.validateAsync(data);
-            await this._roomsManager.updateRoom(data);
+            await this._roomsManager.updateRoom(nsSocket, data);
             callback({
               status: "ok",
             });
           } catch (e) {
             if (e instanceof Error) {
+              console.error(e);
               callback({
                 status: "error",
                 message: e.message,

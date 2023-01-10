@@ -35,7 +35,6 @@ const submit = handleSubmit((formValue: Namespace) => {
       "createRoom",
       {
         name: formValue.name,
-        index: 1,
         namespaceId: props.params.idChannel,
       },
       (response: { status: string; message: string }) => {

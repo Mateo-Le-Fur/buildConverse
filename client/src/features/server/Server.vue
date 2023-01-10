@@ -70,7 +70,6 @@ function changeRoom(room: RoomInterface) {
       <ServerOptions :route-params="route.params" />
       <Room
         @change-room="changeRoom"
-        :rooms="roomStore.getRooms(route.params.idChannel?.toString())"
         :active-room-id="roomStore.activeRoom?.id"
         :params="route.params"
       />

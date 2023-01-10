@@ -16,6 +16,7 @@ DROP TABLE
 DROP TYPE data_type;
 
 CREATE TYPE data_type AS ENUM ('text', 'image', 'file', 'invitation');
+CREATE SEQUENCE room_index START WITH 1 INCREMENT BY 1;
 
 CREATE TABLE "user" (
     "id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -41,7 +42,7 @@ CREATE TABLE "namespace" (
 CREATE TABLE "room" (
     "id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     "name" TEXT NOT NULL,
-    "index" INT,
+    "index" INT NOT NULL DEFAULT nextval('room_index'),
     "namespace_id" INT NOT NULL REFERENCES "namespace"("id") ON DELETE CASCADE,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     "updated_at" TIMESTAMPTZ

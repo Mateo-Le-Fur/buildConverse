@@ -304,7 +304,7 @@ export const useSocket = defineStore("socket", {
 
       this.activeNsSocket = nsSocket;
 
-      const room = roomStore.findRoom(roomId);
+      const room = roomStore.findRoom(Number(roomId));
 
       roomStore.joinRoom(room, Number(namespaceId));
 

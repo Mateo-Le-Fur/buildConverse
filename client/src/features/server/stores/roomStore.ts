@@ -17,9 +17,14 @@ export const useRoom = defineStore("room", {
   }),
 
   getters: {
-    findRoom(state): (roomId: string) => RoomInterface | undefined {
-      return (roomId: string) =>
-        state.rooms.find((room: RoomInterface) => room.id === Number(roomId));
+    findRoom(state): (roomId: number) => RoomInterface | undefined {
+      return (roomId: number) =>
+        state.rooms.find((room: RoomInterface) => room.id === roomId);
+    },
+
+    findRoomByIndex(state): (roomIndex: number) => RoomInterface | undefined {
+      return (roomIndex: number) =>
+        state.rooms.find((room: RoomInterface) => room.index === roomIndex);
     },
   },
 
@@ -33,9 +38,12 @@ export const useRoom = defineStore("room", {
     },
 
     updateRoom(data: RoomInterface) {
+      console.log(data);
       const room = this.rooms.findIndex((room) => room.id === data.id);
 
       this.rooms[room].name = data.name;
+
+      if (data.index) this.rooms[room].index = data.index;
     },
 
     async deleteRoom(data: RoomInterface) {
@@ -71,9 +79,11 @@ export const useRoom = defineStore("room", {
     },
 
     getRooms(namespaceId: string): RoomInterface[] {
-      return this.rooms.filter(
-        (room: RoomInterface) => room.namespaceId.toString() === namespaceId
-      );
+      return this.rooms
+        .filter(
+          (room: RoomInterface) => room.namespaceId.toString() === namespaceId
+        )
+        .sort((a, b) => a.index - b.index);
     },
 
     getFirstRoom(namespaceId: number): number | void {

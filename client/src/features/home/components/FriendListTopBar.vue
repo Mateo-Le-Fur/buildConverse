@@ -79,13 +79,14 @@ const selectedItem = ref<{ text: string; status: string }>(items.value[0]);
 
   .separator {
     margin: 0 15px 0 10px;
-    width: 1px;
+    min-width: 1px;
     height: 100%;
     background-color: #44484fff;
   }
 
   nav {
     cursor: pointer;
+    flex: none;
     ul {
       color: #f4f4f4;
 

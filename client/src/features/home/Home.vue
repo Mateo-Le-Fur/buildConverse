@@ -16,13 +16,11 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="d-flex flex-fill">
+  <div class="d-flex w-100">
     <PrivateMessage />
-    <div class="w-100 d-flex">
-      <div class="d-flex flex-column flex-fill">
-        <FriendList v-if="!route.params.privateRoomId" />
-        <router-view v-else></router-view>
-      </div>
+    <div class="d-flex w-100 flex-column">
+      <FriendList v-if="!route.params.privateRoomId" />
+      <router-view v-else></router-view>
     </div>
   </div>
 </template>

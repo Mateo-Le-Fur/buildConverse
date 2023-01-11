@@ -46,69 +46,87 @@ const { value: pseudoValue, errorMessage: pseudoError } = useField("pseudo");
 </script>
 
 <template>
-  <div class="add-friend-container d-flex flex-column p-30">
-    <div class="mb-20">
+  <form
+    @submit.prevent="submit"
+    class="add-friend-container d-flex flex-column p-20"
+  >
+    <div class="title-container mb-20">
       <h4 class="mb-10">AJOUTER</h4>
       <p>Tu peux ajouter un ami grâce à son pseudo</p>
     </div>
-    <div class="form-container d-flex align-items-center mb-10">
-      <form @submit.prevent="submit" class="d-flex align-items-center">
-        <div class="d-flex align-items-center justify-content-space-between">
-          <input
-            v-focus
-            v-model="pseudoValue"
-            type="text"
-            placeholder="Entre un pseudo"
-          />
-          <button>Envoyer une demande d'ami</button>
-        </div>
-      </form>
+    <div class="input-container d-flex align-items-center">
+      <input
+        v-focus
+        v-model="pseudoValue"
+        type="text"
+        placeholder="Entre un pseudo"
+      />
+      <button>
+        <div>Envoyer une demande d'ami</div>
+      </button>
     </div>
     <p class="form-error" v-if="pseudoError">{{ pseudoError }}</p>
     <p class="send-request-ok" v-if="isRequestSend">Demande d'ami envoyé</p>
-  </div>
+  </form>
 </template>
 
 <style scoped lang="scss">
 .add-friend-container {
   width: 70%;
+  flex-wrap: wrap;
+  border-radius: 4px;
+  margin-left: 15px;
+  overflow: hidden;
 
-  p {
-    font-size: 0.8rem;
+  .title-container {
+    flex: 1;
+    p {
+      font-size: 0.8rem;
+    }
   }
 
-  .form-container {
+  .input-container {
+    width: 100%;
+    justify-content: center;
+    padding: 8px;
     min-height: 50px;
+    max-height: 50px;
     background-color: var(--primary-3);
     border-radius: 8px;
-    padding: 5px 15px 5px 0;
 
-    form {
-      width: 100%;
+    input {
+      flex: 1;
+      padding: 0;
+      border: none;
+      outline: none;
+      background-color: var(--primary-3);
+    }
+    button {
+      flex: 1;
+      min-width: 60px;
+      max-width: 200px;
+      cursor: pointer;
+      border: none;
+      padding: 8px;
+      background-color: #236cab;
+      border-radius: 3px;
 
       div {
-        width: inherit;
-
-        input {
-          border: none;
-          outline: none;
-          background-color: var(--primary-3);
-          flex: 1 1 auto;
-        }
-
-        button {
-          cursor: pointer;
-          border: none;
-          padding: 8px;
-          background-color: #236cab;
-          border-radius: 3px;
-        }
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
       }
     }
   }
 
   .send-request-ok {
     color: #2ecc71;
+  }
+}
+
+@media (max-width: 800px) {
+  input {
+    width: 100%;
   }
 }
 </style>

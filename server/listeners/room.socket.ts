@@ -1,27 +1,14 @@
 import { Server, Socket } from "socket.io";
-import { MessageInterface } from "../interfaces/Message";
-import { RoomInterface } from "../interfaces/Room";
+import { MessageInterface, RoomInterface, SocketCustom } from "../interfaces";
 import { Namespace } from "socket.io/dist/namespace";
 import { Room, Message, UserHasNamespace } from "../models";
 import { getNumberOfRooms } from "../query/room.query";
-import { SocketCustom } from "../interfaces/SocketCustom";
 
 class RoomsManager {
   private _ios: Server;
 
   constructor(ios: Server) {
     this._ios = ios;
-  }
-
-  public async getAllRooms(nsSocket: Socket, namespaceId: string) {
-    const getRooms = await Room.findAll({
-      where: {
-        namespaceId: namespaceId,
-      },
-      order: [["created_at", "asc"]],
-    });
-
-    nsSocket.emit("rooms", getRooms);
   }
 
   public async joinRoom(nsSocket: SocketCustom, data: RoomInterface) {
@@ -55,14 +42,18 @@ class RoomsManager {
     nsSocket.leave(`/${roomId}`);
   }
 
-  public async getMessages(nsSocket: Socket, roomId: number) {
+  public async getMessages(
+    nsSocket: Socket,
+    roomId: number,
+    isBeginningConversation?: boolean
+  ) {
     let messages = (
       await Message.findAll({
         where: {
           roomId: roomId,
         },
         order: [["id", "desc"]],
-        limit: 50,
+        limit: 100,
       })
     ).map((el: Message) => el.toJSON());
 
@@ -75,12 +66,34 @@ class RoomsManager {
       };
     });
 
+    if (isBeginningConversation) return messages;
+
     nsSocket.emit("history", messages);
   }
   public async loadMoreMessage(
     socket: SocketCustom,
-    data: { id: number; messagesArrayLength: number }
+    data: {
+      id: number;
+      messagesArrayLength: number;
+      isBeginningConversation: boolean;
+    }
   ) {
+    console.log(data);
+
+    if (data.messagesArrayLength < 0) return;
+
+    if (data.isBeginningConversation) {
+      const messages = await this.getMessages(
+        socket,
+        data.id,
+        data.isBeginningConversation
+      );
+
+      socket.emit("loadMoreMessages", messages);
+
+      return;
+    }
+
     let messages = (
       await Message.findAll({
         where: {
@@ -116,6 +129,8 @@ class RoomsManager {
   public async updateRoom(nsSocket: SocketCustom, data: RoomInterface) {
     const { id, namespaceId, name, index } = data;
 
+    const t0 = performance.now();
+
     await Room.update(
       {
         name,
@@ -127,6 +142,10 @@ class RoomsManager {
         },
       }
     );
+
+    const t1 = performance.now();
+
+    console.log(t1 - t0 + " switch");
 
     this._ios.of(`/${namespaceId}`).emit("updateRoom", data);
   }

@@ -51,7 +51,7 @@ const { value: pseudoValue, errorMessage: pseudoError } = useField("pseudo");
     class="add-friend-container d-flex flex-column p-20"
   >
     <div class="title-container mb-20">
-      <h4 class="mb-10">AJOUTER</h4>
+      <h3 class="mb-10">AJOUTER UN AMI</h3>
       <p>Tu peux ajouter un ami grâce à son pseudo</p>
     </div>
     <div class="input-container d-flex align-items-center">
@@ -81,7 +81,7 @@ const { value: pseudoValue, errorMessage: pseudoError } = useField("pseudo");
   .title-container {
     flex: 1;
     p {
-      font-size: 0.8rem;
+      font-size: 0.9rem;
     }
   }
 
@@ -95,11 +95,17 @@ const { value: pseudoValue, errorMessage: pseudoError } = useField("pseudo");
     border-radius: 8px;
 
     input {
+      font-size: 1rem;
       flex: 1;
       padding: 0;
       border: none;
       outline: none;
       background-color: var(--primary-3);
+
+      &::placeholder {
+        font-size: 0.9rem;
+        letter-spacing: 1px;
+      }
     }
     button {
       flex: 1;
@@ -117,6 +123,11 @@ const { value: pseudoValue, errorMessage: pseudoError } = useField("pseudo");
         overflow: hidden;
       }
     }
+  }
+
+  .form-error {
+    margin-top: 0.2rem;
+    text-align: left;
   }
 
   .send-request-ok {

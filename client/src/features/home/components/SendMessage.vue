@@ -19,7 +19,7 @@ const emit = defineEmits<{
 
 const validationSchema = toFormValidator(
   z.object({
-    data: z.string().max(500).optional(),
+    data: z.string().trim().min(1).max(500),
   })
 );
 
@@ -31,7 +31,6 @@ const { value: dataValue, errorMessage: dataError } = useField("data");
 
 const submit = handleSubmit((formValue: MessageInterface) => {
   try {
-    // sendPrivateMessage
     socketStore.ioClient?.emit("sendPrivateMessage", {
       privateRoomId: meStore.currentRecipient?.privateRoomId,
       recipientId: meStore.currentRecipient?.id,

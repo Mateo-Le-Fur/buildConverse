@@ -16,14 +16,12 @@ import { useSocket } from "@/shared/stores/socketStore";
 import { useNsUser } from "@/features/server/stores/userNsStore";
 import { useRoom } from "@/features/server/stores/roomStore";
 import botAvatar from "@/assets/images/bot.png";
+import { useMessage } from "@/features/server/stores/messageStore";
 
 const socketStore = useSocket();
 const userNsStore = useNsUser();
 const roomStore = useRoom();
-
-onUnmounted(() => {
-  socketStore.messages = [];
-});
+const messageStore = useMessage();
 
 // Je récupère l'id de mon serveur dans le paramètre de ma route
 const props = defineProps<{
@@ -77,8 +75,14 @@ function onDrop() {
 }
 
 function switchIndex(firstRoomIndex: number, secondRoomIndex: number) {
-  const firstRoom = roomStore.findRoomByIndex(firstRoomIndex);
-  const secondRoom = roomStore.findRoomByIndex(secondRoomIndex);
+  const firstRoom = roomStore.findRoomByIndex(
+    firstRoomIndex,
+    Number(props.params.idChannel)
+  );
+  const secondRoom = roomStore.findRoomByIndex(
+    secondRoomIndex,
+    Number(props.params.idChannel)
+  );
 
   if (firstRoom && secondRoom) {
     updateRoom(firstRoom, secondRoomIndex);
@@ -90,12 +94,12 @@ function deleteRoom(room: RoomInterface) {
   const rooms = roomStore.getRooms(room.namespaceId.toString());
 
   if (rooms.length > 1) {
-    socketStore.activeNsSocket.emit("deleteRoom", {
+    socketStore.activeNsSocket?.emit("deleteRoom", {
       namespaceId: Number(props.params.idChannel),
       id: room.id,
     });
   } else {
-    socketStore.messages.push({
+    messageStore.messages.push({
       data: "Tu ne peux pas supprimer ce salon",
       dataType: "text",
       authorName: "Chat Bot",
@@ -114,7 +118,7 @@ async function updateRoom(room: RoomInterface, updateIndex?: number) {
   const input = toRaw(inputElem.value) as HTMLInputElement[] | null;
 
   if ((input && input[0]?.value !== room.name) || updateIndex) {
-    socketStore.activeNsSocket.emit(
+    socketStore.activeNsSocket?.emit(
       "updateRoom",
       {
         id: room.id,

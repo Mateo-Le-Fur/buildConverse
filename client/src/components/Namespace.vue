@@ -7,8 +7,10 @@ import { nextTick, ref, watch } from "vue";
 import { useRoom } from "@/features/server/stores/roomStore";
 import AddServerPopup from "@/components/AddServerPopup.vue";
 import { useRoute } from "vue-router";
+import { useNamespace } from "@/features/server/stores/namespaceStore";
 
 const socketStore = useSocket();
+const namespaceStore = useNamespace();
 const roomStore = useRoom();
 const route = useRoute();
 const addServerPopup = ref<boolean>(false);
@@ -32,7 +34,7 @@ function displayTooltip(): void {
 }
 
 watch(
-  () => socketStore.isNamespacesLoaded,
+  () => namespaceStore.isNamespacesLoaded,
   async (newValue) => {
     if (newValue) {
       await nextTick();
@@ -42,12 +44,11 @@ watch(
 );
 
 watch(
-  () => socketStore.creatingNamespace,
+  () => namespaceStore.creatingNamespace,
   async (newValue) => {
-    if (newValue === false) {
+    if (!newValue) {
       await nextTick();
       addServerPopup.value = false;
-      displayTooltip();
     }
   }
 );
@@ -61,7 +62,6 @@ function changeNamespace(namespaceId: number, home: boolean = false) {
   }
   if (home) {
     socketStore.activeNsSocket = null;
-    socketStore.isMessagesLoaded = false;
   }
 }
 </script>
@@ -80,14 +80,21 @@ function changeNamespace(namespaceId: number, home: boolean = false) {
           class="private-message tooltip"
           :class="{ active: !socketStore.activeNsSocket }"
         >
-          <!--          <img src="@/assets/images/chat.svg" alt="logo" />-->
-          <img src="@/assets/images/chat.svg" alt="logo" />
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
+            <!--! Font Awesome Pro 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
+            <path
+              d="M575.8 255.5c0 18-15 32.1-32 32.1h-32l.7 160.2c0 2.7-.2 5.4-.5 8.1V472c0 22.1-17.9 40-40 40H456c-1.1 0-2.2 0-3.3-.1c-1.4 .1-2.8 .1-4.2 .1H416 392c-22.1 0-40-17.9-40-40V448 384c0-17.7-14.3-32-32-32H256c-17.7 0-32 14.3-32 32v64 24c0 22.1-17.9 40-40 40H160 128.1c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2H104c-22.1 0-40-17.9-40-40V360c0-.9 0-1.9 .1-2.8V287.6H32c-18 0-32-14-32-32.1c0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7L564.8 231.5c8 7 12 15 11 24z"
+            />
+          </svg>
 
           <div class="border-bottom"></div>
         </div>
       </router-link>
 
-      <template v-for="namespace of socketStore.namespaces" :key="namespace.id">
+      <template
+        v-for="namespace of namespaceStore.namespaces"
+        :key="namespace.id"
+      >
         <router-link
           :data-tooltip="namespace.name"
           class="tooltip"
@@ -104,13 +111,14 @@ function changeNamespace(namespaceId: number, home: boolean = false) {
               }"
               :src="namespace.imgUrl"
               :alt="namespace.name"
+              loading="lazy"
             />
           </div>
         </router-link>
       </template>
 
       <div
-        v-if="socketStore.isNamespacesLoaded"
+        v-if="namespaceStore.isNamespacesLoaded"
         data-tooltip="Ajouter un serveur"
         class="create-namespace align-items-center justify-content-center tooltip"
         @click.stop="addServerPopup = true"
@@ -157,6 +165,10 @@ function changeNamespace(namespaceId: number, home: boolean = false) {
     background-color: var(--primary-2);
     border: 8px solid var(--primary-2);
     border-radius: 50%;
+
+    svg {
+      fill: #f4f4f4;
+    }
 
     &:hover {
       border-radius: 40%;

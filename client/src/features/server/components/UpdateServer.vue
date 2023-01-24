@@ -8,8 +8,10 @@ import { z } from "zod";
 import { useField, useForm } from "vee-validate";
 import { useSocket } from "@/shared/stores/socketStore";
 import { useUser } from "@/shared/stores";
+import { useNamespace } from "@/features/server/stores/namespaceStore";
 
 const socketStore = useSocket();
+const namespaceStore = useNamespace();
 const userStore = useUser();
 
 const newInviteCode = ref<string | null>(null);
@@ -58,7 +60,7 @@ const submit = handleSubmit(async (formValue: Partial<Namespace>) => {
       formValue.inviteCode !== props.currentNamespace?.inviteCode ||
       avatar.value
     ) {
-      socketStore.activeNsSocket.emit(
+      socketStore.activeNsSocket?.emit(
         "updateNamespace",
         {
           ...formValue,
@@ -73,7 +75,7 @@ const submit = handleSubmit(async (formValue: Partial<Namespace>) => {
           }
         }
       );
-      socketStore.isNamespaceUpdated = false;
+      namespaceStore.isNamespaceUpdated = false;
     }
   } catch (e: string | any) {
     console.error(e);

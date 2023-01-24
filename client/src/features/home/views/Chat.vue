@@ -2,7 +2,15 @@
 import SendMessage from "@/features/home/components/SendMessage.vue";
 import { useMe } from "@/features/home/stores/meStore";
 import ChatTopBar from "@/features/home/components/ChatTopBar.vue";
-import { nextTick, onMounted, onUnmounted, onUpdated, ref, watch } from "vue";
+import {
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  onUnmounted,
+  onUpdated,
+  ref,
+  watch,
+} from "vue";
 import { useChat } from "@/shared/stores/chatStore";
 
 const meStore = useMe();
@@ -38,86 +46,86 @@ watch(
   async (value) => {
     if (value) {
       await nextTick();
-
       chatStore.newMessagesLoaded();
-
       meStore.isMoreMessagesLoaded = false;
     }
   }
 );
-
-onUnmounted(() => {
-  chatStore.$reset();
-});
 </script>
-
 <template>
-  <div class="d-flex flex-column flex-fill overflow-auto">
-    <ChatTopBar />
-    <div class="chat-container d-flex flex-column flex-fill">
-      <div
-        @scroll="
-          chatStore.loadMoreMessages(
-            $event,
-            'loadMorePrivateMessages',
-            meStore.messages.length,
-            meStore.currentRecipient?.privateRoomId
-          )
-        "
-        v-if="meStore.isMessagesLoaded"
-        class="message-container"
+  <div class="chat-container d-flex flex-column flex-fill">
+    <div
+      @scroll="
+        chatStore.loadMoreMessages(
+          $event,
+          'loadMoreMessages',
+          meStore.messages.length,
+          meStore.currentRecipient?.privateRoomId
+        )
+      "
+      class="message-container"
+    >
+      <h2 v-if="meStore.isBeginningConversation" class="room-name">
+        Ceci est le début de la conversation avec
+        {{ meStore.currentRecipient?.pseudo }}
+      </h2>
+      <template
+        v-for="message of chatStore.filteredMessages(meStore.messages)"
+        :key="message.id"
       >
-        <h2 v-if="meStore.isBeginningConversation" class="room-name">
-          Ceci est le début de la conversation avec
-          {{ meStore.currentRecipient?.pseudo }}
-        </h2>
+        <div v-if="message.separator" class="separator">
+          <span>{{
+            new Date(message.created_at).toLocaleDateString("fr-FR")
+          }}</span>
+        </div>
         <div
-          v-for="message of chatStore.filteredMessages(meStore.messages)"
-          :key="message.id"
+          v-if="message.avatarAuthor"
           class="d-flex message"
-          :class="{ groupMessage: !message.avatarAuthor }"
+          :data-id="message.id"
         >
-          <div class="d-flex g-15">
-            <div class="avatar" v-if="message.avatarAuthor">
-              <img
-                :src="message.avatarAuthor"
-                alt="user avatar"
-                class="mr-10"
-              />
+          <div>
+            <img class="mr-10" :src="message.avatarAuthor" />
+          </div>
+          <div class="d-flex flex-column w-100">
+            <div class="d-flex align-items-center mb-5">
+              <p class="author">
+                {{ message.authorName
+                }}<span v-if="message.id !== -1">{{
+                  new Date(message.created_at).toLocaleString("fr-FR")
+                }}</span>
+              </p>
             </div>
-            <div class="d-flex flex-column w-100">
-              <div
-                v-if="message.avatarAuthor"
-                class="d-flex align-items-center mb-5"
-              >
-                <p class="author">
-                  {{ message.authorName }}
-                  <span>{{
-                    new Date(message.created_at).toLocaleString("fr-FR")
-                  }}</span>
-                </p>
-              </div>
-              <div class="d-flex w-100">
-                <p
-                  :class="{ indent: !message.avatarAuthor }"
-                  class="message-color"
-                >
-                  {{ message.data }}
-                </p>
-              </div>
+            <div class="d-flex w-100">
+              <p class="message-color" :class="{ red: message.id === -1 }">
+                {{ message.data }}
+              </p>
             </div>
           </div>
         </div>
-      </div>
-      <SendMessage @scroll-to-bottom="chatStore.scrollToBottom()" />
+        <div
+          v-else
+          class="d-flex message"
+          :class="{ groupMessage: !message.avatarAuthor }"
+          :data-id="message.id"
+        >
+          <div class="d-flex w-100">
+            <p
+              class="message-color"
+              :class="{ red: message.id === -1, indent: !message.avatarAuthor }"
+            >
+              {{ message.data }}
+            </p>
+          </div>
+        </div>
+      </template>
     </div>
+    <SendMessage />
   </div>
 </template>
 
 <style scoped lang="scss">
 .chat-container {
   justify-content: end;
-  overflow-y: auto;
 
   .room-name {
     padding: 10px 20px 10px 20px;
@@ -129,14 +137,33 @@ onUnmounted(() => {
     overflow-y: auto;
   }
 
+  .separator {
+    margin: 0.5rem 1rem 0 1rem;
+    position: relative;
+    text-align: center;
+    border-bottom: 1px solid #4a4a55;
+
+    span {
+      font-size: 0.8rem;
+      color: #bbb;
+      background: var(--primary-1);
+      z-index: 1;
+      padding: 0 0.6rem;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+  }
+
   .message-container::-webkit-scrollbar {
-    width: 10px;
+    width: 12px;
   }
 
   .message-container::-webkit-scrollbar-track {
-    box-shadow: inset 0 0 10px 10px var(--primary-2);
+    box-shadow: inset 0 0 12px 12px var(--primary-2);
     border: solid 2px transparent;
-    border-radius: 10px;
+    border-radius: 12px;
   }
 
   .message-container::-webkit-scrollbar-thumb {
@@ -160,20 +187,14 @@ onUnmounted(() => {
       background-color: #32353bff;
     }
 
-    .avatar {
+    img {
       width: 40px;
       height: 40px;
-      img {
-        width: 40px;
-        min-width: 40px;
-        height: 40px;
-        min-height: 40px;
-        border-radius: 50%;
-      }
+      border-radius: 50%;
     }
 
     .message-color {
-      color: #edeaea;
+      color: #d2d1d1;
     }
 
     p {
@@ -194,7 +215,7 @@ onUnmounted(() => {
 }
 
 .indent {
-  padding-left: 55px;
+  padding-left: 58px;
 }
 
 .groupMessage {

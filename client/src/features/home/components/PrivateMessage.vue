@@ -33,9 +33,10 @@ async function disableConversation(privateRoomId: number) {
 
   meStore.disableConversation(id);
 
+  await router.push("/channels/me");
+
   if (meStore.currentRecipient) {
     meStore.currentRecipient = null;
-    await router.push("/channels/me");
   }
 }
 
@@ -43,19 +44,13 @@ watch(
   () => route.params.privateRoomId,
   (value) => {
     if (value) {
-      (meStore.isMessagesLoaded = false),
-        meStore.getCurrentConversation(Number(value));
-      socketStore.ioClient?.emit("getPrivateMessagesHistory", value);
+      meStore.isBeginningConversation = false;
+      meStore.messages = [];
+      meStore.getCurrentConversation(Number(value));
     }
   },
   { immediate: true }
 );
-
-const state = reactive<{
-  elementActive: string;
-}>({
-  elementActive: "friends",
-});
 </script>
 
 <template>

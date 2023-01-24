@@ -40,10 +40,12 @@ export const useNsUser = defineStore("userSocket", {
     },
 
     getUsersNamespace(namespaceId: string) {
-      return this.userList.filter(
-        (user: User) =>
-          user.UserHasNamespace.namespaceId.toString() === namespaceId
-      );
+      return this.userList
+        .sort((a, b) => b.status!.localeCompare(a.status))
+        .filter(
+          (user: User) =>
+            user.UserHasNamespace.namespaceId.toString() === namespaceId
+        );
     },
 
     loadMoreUser(data: User[]) {
@@ -87,19 +89,25 @@ export const useNsUser = defineStore("userSocket", {
       }
     },
 
-    userConnect(data: { id: number }) {
-      const user = this.userList.find((user) => user.id === data.id);
+    userConnect(data: User[]) {
+      const [userData] = [...data];
 
-      if (user) {
-        user!.status = "online";
+      const index = this.userList.findIndex((user) => user.id === userData.id);
+
+      if (index !== -1) {
+        this.userList[index].status = "online";
+
+        return;
       }
+
+      this.userList.push(userData);
     },
 
     userDisconnect(data: { id: number }) {
-      const user = this.userList.find((user) => user.id === data.id);
+      const index = this.userList.findIndex((user) => user.id === data.id);
 
-      if (user) {
-        user!.status = "offline";
+      if (index !== -1) {
+        this.userList[index].status = "offline";
       }
     },
   },

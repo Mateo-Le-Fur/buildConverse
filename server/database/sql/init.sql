@@ -14,16 +14,19 @@ DROP TABLE
     "user_has_namespace";
 
 DROP TYPE data_type;
+DROP SEQUENCE room_index;
 
 CREATE TYPE data_type AS ENUM ('text', 'image', 'file', 'invitation');
 CREATE SEQUENCE room_index START WITH 1 INCREMENT BY 1;
+GRANT USAGE, SELECT ON SEQUENCE room_index TO chat;
+
 
 CREATE TABLE "user" (
     "id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     "pseudo" TEXT NOT NULL,
     "email" TEXT NOT NULL UNIQUE,
     "password" TEXT,
-    "status" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'offline',
     "avatar_url" TEXT,
     "description" TEXT,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),

@@ -6,8 +6,10 @@ import { useRoute } from "vue-router";
 import { useMe } from "@/features/home/stores/meStore";
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import Namespace from "@/components/Namespace.vue";
+import { useNamespace } from "@/features/server/stores/namespaceStore";
 
 const meStore = useMe();
+const namespaceStore = useNamespace();
 const route = useRoute();
 
 onBeforeUnmount(() => {
@@ -16,7 +18,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="d-flex w-100">
+  <div v-if="namespaceStore.isNamespacesLoaded" class="d-flex w-100">
     <PrivateMessage />
     <div class="d-flex w-100 flex-column">
       <FriendList v-if="!route.params.privateRoomId" />

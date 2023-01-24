@@ -10,9 +10,11 @@ import { useField, useForm } from "vee-validate";
 import { deleteUser, fetchCurrentUser } from "@/shared/services";
 import { getActivePinia } from "pinia";
 import { useMe } from "@/features/home/stores/meStore";
+import { useNamespace } from "@/features/server/stores/namespaceStore";
 
 const userStore = useUser();
 const socketStore = useSocket();
+const namespaceStore = useNamespace();
 const meStore = useMe();
 const router = useRouter();
 
@@ -41,7 +43,9 @@ function previewAvatar(e: Event) {
 }
 
 async function deleteAccount() {
-  const namespacesId = socketStore.namespaces.map((namespace) => namespace.id);
+  const namespacesId = namespaceStore.namespaces.map(
+    (namespace) => namespace.id
+  );
   const privateRoomsId = meStore.recipients.map(
     (recipient) => recipient.privateRoomId
   );
@@ -55,7 +59,7 @@ async function deleteAccount() {
   });
 
   socketStore.ioClient?.disconnect();
-  socketStore.namespaceSockets.forEach((nsSocket: any) => {
+  namespaceStore.namespaceSockets.forEach((nsSocket: any) => {
     nsSocket.disconnect();
   });
 
@@ -93,7 +97,7 @@ const { handleSubmit, setErrors } = useForm<User>({
   validationSchema,
 });
 
-const submit = handleSubmit(async (formValue: User) => {
+const submit = handleSubmit(async (formValue: User, ctx) => {
   try {
     const description = document.getElementById(
       "description"
@@ -105,7 +109,7 @@ const submit = handleSubmit(async (formValue: User) => {
       description.value !== userStore.currentUser?.description ||
       avatar.value
     ) {
-      const namespaces = socketStore.namespaces.map((ns) => ns.id);
+      const namespaces = namespaceStore.namespaces.map((ns) => ns.id);
       const friends = meStore.friends?.map((friend) => friend.id);
 
       socketStore.ioClient?.emit(
@@ -123,6 +127,7 @@ const submit = handleSubmit(async (formValue: User) => {
             await userStore.fetchCurrentUser();
             state.isProfilOpen = false;
             avatar.value = null;
+            src.value = null;
           } else {
             socketStore.setError(response.message);
           }

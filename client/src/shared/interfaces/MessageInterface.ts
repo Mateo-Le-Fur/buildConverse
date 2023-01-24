@@ -3,7 +3,7 @@ export interface MessageInterface {
   data: string;
   dataType: "text" | "file" | "image";
   authorName: string;
-  avatarAuthor: string;
+  avatarAuthor: string | null;
   userId: number;
   roomId: number;
   createdAt: string;

@@ -22,15 +22,20 @@ export const useRoom = defineStore("room", {
         state.rooms.find((room: RoomInterface) => room.id === roomId);
     },
 
-    findRoomByIndex(state): (roomIndex: number) => RoomInterface | undefined {
-      return (roomIndex: number) =>
-        state.rooms.find((room: RoomInterface) => room.index === roomIndex);
+    findRoomByIndex(
+      state
+    ): (roomIndex: number, namespaceId: number) => RoomInterface | undefined {
+      return (roomIndex: number, namespaceId: number) =>
+        state.rooms.find(
+          (room: RoomInterface) =>
+            room.index === roomIndex && room.namespaceId === namespaceId
+        );
     },
   },
 
   actions: {
-    getRoomsData(data: RoomInterface[]) {
-      this.rooms.push(...data);
+    getRoomsData(data: RoomInterface) {
+      this.rooms.push(data);
     },
 
     createRoom(data: RoomInterface) {
@@ -38,7 +43,6 @@ export const useRoom = defineStore("room", {
     },
 
     updateRoom(data: RoomInterface) {
-      console.log(data);
       const room = this.rooms.findIndex((room) => room.id === data.id);
 
       this.rooms[room].name = data.name;
@@ -56,7 +60,7 @@ export const useRoom = defineStore("room", {
       );
 
       if (this.activeRoom?.id === data.id) {
-        socketStore.activeNsSocket.emit("leaveRoom", data.id);
+        socketStore.activeNsSocket?.emit("leaveRoom", data.id);
       }
 
       //@ts-ignore
@@ -70,7 +74,7 @@ export const useRoom = defineStore("room", {
     joinRoom(room: RoomInterface | undefined, namespaceId: number) {
       const socketStore = useSocket();
 
-      socketStore.activeNsSocket.emit("joinRoom", {
+      socketStore.activeNsSocket?.emit("joinRoom", {
         roomId: room?.id,
         namespaceId,
       });

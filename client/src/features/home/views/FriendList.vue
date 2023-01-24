@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import FriendListTopBar from "@/features/home/components/FriendListTopBar.vue";
-import { ref, watch } from "vue";
+import { ref, watch, watchEffect } from "vue";
 import { useMe } from "@/features/home/stores/meStore";
 import type { FriendsInterface } from "@/shared/interfaces/FriendsInterface";
 import AddFriend from "@/features/home/components/AddFriend.vue";
 import { useSocket } from "@/shared/stores/socketStore";
 import DeleteFriend from "@/features/home/components/DeleteFriend.vue";
+import PendingFriendRequest from "@/features/home/components/PendingFriendRequest.vue";
 
 const addFriend = ref<boolean>(false);
 const confirmDelete = ref<boolean>(false);
@@ -27,32 +28,22 @@ function setAddFriend(value: boolean) {
   addFriend.value = value;
 }
 
-watch(selectedItem, (value) => {
-  filterFriends(value);
-});
-
-watch(
-  () => meStore.friends!,
-  () => {
-    switch (selectedItem.value) {
-      case "online":
-        filterFriends("online");
-        break;
-      case "all":
-        filterFriends("all");
-        break;
-      case "pending":
-        filterFriends("pending");
-        break;
-      case "add":
-        filterFriends("add");
-        break;
-    }
-  },
-  {
-    deep: true,
+watchEffect(() => {
+  switch (selectedItem.value) {
+    case "online":
+      filterFriends("online");
+      break;
+    case "all":
+      filterFriends("all");
+      break;
+    case "pending":
+      filterFriends("pending");
+      break;
+    case "add":
+      filterFriends("add");
+      break;
   }
-);
+});
 
 function filterFriends(status: string) {
   if (status === "all") {
@@ -60,18 +51,6 @@ function filterFriends(status: string) {
     return;
   }
   filter.value = meStore.friends?.filter((friend) => friend.status === status);
-}
-
-function acceptFriendRequest(senderId: number) {
-  socketStore.ioClient?.emit(
-    "acceptFriendRequest",
-    senderId,
-    (response: { status: string; message: string }) => {
-      if (response.status === "ok") {
-        console.log("ok");
-      }
-    }
-  );
 }
 
 function getConversationWithAFriend(friendId: number) {
@@ -83,10 +62,6 @@ function getConversationWithAFriend(friendId: number) {
     friendId,
     privateRoomId: foundConversation?.privateRoomId,
   });
-}
-
-function declineFriendRequest(senderId: number) {
-  socketStore.ioClient?.emit("declineFriendRequest", senderId);
 }
 
 function deleteFriend(friendId: number) {
@@ -163,14 +138,10 @@ function deleteFriend(friendId: number) {
             </svg>
           </div>
         </div>
-        <div class="d-flex" v-else>
-          <p @click.stop="acceptFriendRequest(friend.id)" class="accept">
-            Accepter
-          </p>
-          <p @click.stop="declineFriendRequest(friend.id)" class="decline">
-            Refuser
-          </p>
-        </div>
+        <PendingFriendRequest
+          v-if="friend.status === 'pending'"
+          :friends-id="friend.id"
+        />
       </div>
       <Teleport to="body">
         <DeleteFriend
@@ -188,11 +159,11 @@ function deleteFriend(friendId: number) {
 .friends {
   cursor: pointer;
   width: 70%;
-  border-top: 1px solid #4a4949;
+  border-top: 1px solid #4a4a55;
   padding: 12px;
 
   &:hover {
-    background-color: #44484f;
+    background-color: #4a4a55;
     border-radius: 5px;
   }
 
@@ -236,12 +207,10 @@ function deleteFriend(friendId: number) {
 
   .accept {
     cursor: pointer;
-    color: #2ecc71;
   }
 
   .decline {
     cursor: pointer;
-    color: #eb4144;
   }
 
   .svg-icon {

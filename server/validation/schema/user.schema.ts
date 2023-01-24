@@ -5,8 +5,8 @@ export = Joi.object({
     .max(50)
     .pattern(/^[a-zA-Z\u00C0-\u00FF\s]*$/)
     .messages({
-      "string.max": "Le prénom ne peut dépasser 50 caractères",
-      "string.pattern.base": "prenom: format invalide",
+      "string.max": "pseudo ne peut dépasser 50 caractères",
+      "string.pattern.base": "pseudo : format invalide",
     }),
 
   email: Joi.string().optional().email().messages({

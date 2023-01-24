@@ -1,7 +1,7 @@
 const { faker } = require("@faker-js/faker");
 const { Sequelize } = require("sequelize");
 
-const client = new Sequelize("", {
+const client = new Sequelize("postgres://chat:MuvzH6712Hg@@localhost/chat", {
   define: {
     createdAt: "created_at",
     updatedAt: "updated_at",
@@ -21,8 +21,17 @@ const client = new Sequelize("", {
 //   }
 // }
 //
+const nbUsers = 100000;
+const nbNamespaces = 100;
+const nbRooms = nbNamespaces;
+const nbMessages = 100000;
+const nbUserHasNamespace = nbUsers;
 
-const names = ["mateo", "jean"];
+function generateNames(nb) {
+  for (let i = 0; i < nb; i++) {
+    names.push(faker.internet.userName());
+  }
+}
 
 function getRandomIntInclusive(min, max) {
   min = Math.ceil(min);
@@ -42,10 +51,14 @@ function pgQuoteEscape(row) {
   return newRow;
 }
 
+const names = [];
+const namespaces = [];
 const users = [];
+const rooms = [];
 const namespaceUsers = [];
+const messages = [];
 const privateMessages = [];
-
+const friends = [];
 function generateUsers(userNb) {
   for (let i = 0; i < userNb; i++) {
     // const random = Math.floor(Math.random() * images.length);
@@ -54,8 +67,8 @@ function generateUsers(userNb) {
       pseudo: faker.name.firstName(),
       email: faker.random.alphaNumeric(20),
       password: faker.name.middleName(),
-      status: faker.name.firstName(),
-      avatar_url: `/images/1-1670100468740`,
+      status: "offline",
+      avatar_url: `/images/1-1671104971815`,
     };
 
     users.push(user);
@@ -96,13 +109,93 @@ async function insertUsers(users) {
   return result.rows;
 }
 
+function generateNamespaces(nb) {
+  for (let i = 0; i < nb; i++) {
+    // const random = Math.floor(Math.random() * images.length);
+
+    const namespace = {
+      name: faker.name.firstName(),
+      invite_code: faker.random.alphaNumeric(8),
+      img_url: `/images/1-1671104971815`,
+    };
+
+    namespaces.push(namespace);
+  }
+  return namespaces;
+}
+
+async function insertNamespaces(namespaces) {
+  // await client.query('TRUNCATE TABLE "user" RESTART IDENTITY CASCADE');
+
+  const values = namespaces.map((namespace) => {
+    const newNamespace = pgQuoteEscape(namespace);
+    return `(
+          '${newNamespace.name}',
+          '${newNamespace.invite_code}',
+          '${newNamespace.img_url}'
+      )`;
+  });
+
+  const queryStr = `
+           INSERT INTO "namespace"
+           (
+            "name",
+            "invite_code",
+            "img_url"
+           )
+           VALUES
+           ${values}
+           RETURNING id
+   `;
+  const result = await client.query(queryStr);
+  return result.rows;
+}
+
+function generateRooms(nb) {
+  for (let i = 0; i < nb; i++) {
+    // const random = Math.floor(Math.random() * images.length);
+
+    const room = {
+      name: faker.name.firstName(),
+      namespace_id: getRandomIntInclusive(1, nbNamespaces),
+    };
+
+    rooms.push(room);
+  }
+  return rooms;
+}
+
+async function insertRooms(rooms) {
+  // await client.query('TRUNCATE TABLE "user" RESTART IDENTITY CASCADE');
+
+  const values = rooms.map((user) => {
+    const newRoom = pgQuoteEscape(user);
+    return `(
+          '${newRoom.name}',
+          '${newRoom.namespace_id}'
+      )`;
+  });
+
+  const queryStr = `
+           INSERT INTO "room"
+           (
+            "name",
+            "namespace_id"
+           )
+           VALUES
+           ${values}
+           RETURNING id
+   `;
+  const result = await client.query(queryStr);
+  return result.rows;
+}
+
 function generateUserHasNamespace(nb) {
   for (let i = 1; i < nb; i++) {
     const user = {
       user_id: i + 1,
-      namespace_id: getRandomIntInclusive(1, 1),
+      namespace_id: getRandomIntInclusive(1, nbNamespaces),
       admin: false,
-      ban: false,
     };
 
     namespaceUsers.push(user);
@@ -116,8 +209,7 @@ async function insertUserHasNamespace(namespaceUsers) {
     return `(
           '${newUser.user_id}',
           '${newUser.namespace_id}',
-          '${newUser.admin}',
-          '${newUser.ban}'
+          '${newUser.admin}'
       )`;
   });
 
@@ -126,8 +218,7 @@ async function insertUserHasNamespace(namespaceUsers) {
            (
             "user_id",
             "namespace_id",
-            "admin",
-            "ban"
+            "admin"
            )
            VALUES
            ${userValues}
@@ -137,62 +228,171 @@ async function insertUserHasNamespace(namespaceUsers) {
   return result.rows;
 }
 
-function generatePrivateMessages(nb) {
+function generateMessages(nb) {
   for (let i = 1; i < nb; i++) {
-    randomName = names[getRandomIntInclusive(0, 1)];
-
-    const messages = {
-      data: faker.random.words(30),
+    const message = {
+      user_id: i + 1,
+      room_id: getRandomIntInclusive(1, nbRooms),
+      data: faker.random.words(getRandomIntInclusive(20, 100)),
       data_type: "text",
-      private_room_id: 7,
-      user_id: getRandomIntInclusive(1, 2),
-      author_name: randomName,
-      avatar_author: "a",
+      author_name: faker.name.firstName(),
+      avatar_author: `/images/1-1671104971815`,
     };
 
-    privateMessages.push(messages);
+    messages.push(message);
   }
-  return privateMessages;
+  return messages;
 }
 
-async function insertPrivateMessages(privateMessages) {
-  const privateMessagesValues = privateMessages.map((message) => {
-    const newPrivateMessages = pgQuoteEscape(message);
+async function inserMessages(messages) {
+  const values = messages.map((message) => {
+    const newUser = pgQuoteEscape(message);
     return `(
-          '${newPrivateMessages.data}',
-          '${newPrivateMessages.data_type}',
-          '${newPrivateMessages.private_room_id}',
-          '${newPrivateMessages.user_id}',
-          '${newPrivateMessages.author_name}',
-          '${newPrivateMessages.avatar_author}'
+          '${newUser.user_id}',
+          '${newUser.room_id}',
+          '${newUser.data}',
+          '${newUser.data_type}',
+          '${newUser.author_name}',
+          '${newUser.avatar_author}'
       )`;
   });
 
   const queryStr = `
-           INSERT INTO "private_message"
+           INSERT INTO "message"
            (
+            "user_id",
+            "room_id",
             "data",
             "data_type",
-            "private_room_id",
-            "user_id",
             "author_name",
             "avatar_author"
            )
            VALUES
-           ${privateMessagesValues}
+           ${values}
            RETURNING id
    `;
   const result = await client.query(queryStr);
   return result.rows;
 }
 
+function generateFriends(nb) {
+  for (let i = 1; i < nb; i++) {
+    const friend = {
+      user1_id: getRandomIntInclusive(1, nb),
+      user2_id: getRandomIntInclusive(1, nb),
+    };
+
+    friends.push(friend);
+  }
+  return friends;
+}
+
+async function insertFriends(friends) {
+  const friendValues = friends.map((friend) => {
+    const newFriends = pgQuoteEscape(friend);
+    return `(
+          '${newFriends.user1_id}',
+          '${newFriends.user2_id}'
+      )`;
+  });
+
+  const queryStr = `
+           INSERT INTO "friend"
+           (
+            "user1_id",
+            "user2_id"
+           )
+           VALUES
+           ${friendValues}
+           RETURNING id
+   `;
+  const result = await client.query(queryStr);
+  return result.rows;
+}
+
+// function generatePrivateMessages(nb) {
+//   for (let i = 1; i < nb; i++) {
+//     randomName = names[getRandomIntInclusive(0, names.length)];
+//     const messages = {
+//       data: faker.random.words(30),
+//       data_type: "text",
+//       private_room_id: getRandomIntInclusive(1, nbPrivateRoom),
+//       user_id: getRandomIntInclusive(1, 2),
+//       author_name: randomName,
+//       avatar_author: "a",
+//     };
+//
+//     privateMessages.push(messages);
+//   }
+//   return privateMessages;
+// }
+
+// async function insertPrivateMessages(privateMessages) {
+//   const privateMessagesValues = privateMessages.map((message) => {
+//     const newPrivateMessages = pgQuoteEscape(message);
+//     return `(
+//           '${newPrivateMessages.data}',
+//           '${newPrivateMessages.data_type}',
+//           '${newPrivateMessages.private_room_id}',
+//           '${newPrivateMessages.user_id}',
+//           '${newPrivateMessages.author_name}',
+//           '${newPrivateMessages.avatar_author}'
+//       )`;
+//   });
+//
+//   const queryStr = `
+//            INSERT INTO "private_message"
+//            (
+//             "data",
+//             "data_type",
+//             "private_room_id",
+//             "user_id",
+//             "author_name",
+//             "avatar_author"
+//            )
+//            VALUES
+//            ${privateMessagesValues}
+//            RETURNING id
+//    `;
+//   const result = await client.query(queryStr);
+//   return result.rows;
+// }
+
 (async () => {
-  // generateUsers(1000);
-  // const userData = await insertUsers(users);
+  generateNames(nbUsers);
+  console.log("1");
+  generateUsers(nbUsers);
+  console.log("2");
 
-  generatePrivateMessages(1000);
-  const privateMessagesData = await insertPrivateMessages(privateMessages);
+  // generateFriends(nbUsers);
+  generateNamespaces(nbNamespaces);
+  console.log("3");
 
-  // generateUserHasNamespace(2000);
-  // const userDataTwo = await insertUserHasNamespace(namespaceUsers);
+  generateRooms(nbRooms);
+  console.log("4");
+
+  generateMessages(nbMessages);
+  console.log("5");
+
+  generateUserHasNamespace(nbUserHasNamespace);
+  console.log("6");
+
+  // const friendData = await insertFriends(friends);
+  const userData = await insertUsers(users);
+  console.log("7");
+
+  const namespaceData = await insertNamespaces(namespaces);
+  console.log("8");
+
+  const roomData = await insertRooms(rooms);
+  console.log("9");
+
+  const userNsData = await insertUserHasNamespace(namespaceUsers);
+  console.log("10");
+
+  const messageData = await inserMessages(messages);
+  console.log("11");
+
+  // generatePrivateMessages(nbMessages);
+  // const privateMessagesData = await insertPrivateMessages(privateMessages);
 })();

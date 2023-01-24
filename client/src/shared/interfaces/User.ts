@@ -7,7 +7,7 @@ export interface User {
   password: string;
   description: string;
   admin: boolean;
-  status: string | null;
+  status: string;
   avatarUrl: string;
   statusCode?: number;
   loadMore: boolean;

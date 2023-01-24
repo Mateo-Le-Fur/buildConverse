@@ -4,6 +4,7 @@ import type { LoginForm } from "@/shared/interfaces/LoginForm";
 import { fetchCurrentUser, login, logout } from "@/shared/services";
 import { useSocket } from "@/shared/stores/socketStore";
 import { useMe } from "@/features/home/stores/meStore";
+import { useNamespace } from "@/features/server/stores/namespaceStore";
 
 interface AuthState {
   currentUser: User | null;
@@ -42,13 +43,10 @@ export const useUser = defineStore("user", {
 
     async logout() {
       const socketStore = useSocket();
-      const meStore = useMe();
-      const namespaces = socketStore.namespaces.map((ns) => ns.id);
-      const friends = meStore.friends?.map((friend) => friend.id);
-      socketStore.ioClient?.emit("leave", { namespaces, friends });
+      const namespaceStore = useNamespace();
       await logout();
       socketStore.ioClient?.disconnect();
-      socketStore.namespaceSockets.forEach((nsSocket: any) => {
+      namespaceStore.namespaceSockets.forEach((nsSocket: any) => {
         nsSocket.disconnect();
       });
 

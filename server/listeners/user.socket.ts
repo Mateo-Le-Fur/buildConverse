@@ -1,6 +1,7 @@
 import {
   PrivateRoom,
   User,
+  UserHasNamespace,
   UserHasPrivateRoom,
   UserNamespace,
 } from "../models";
@@ -67,47 +68,90 @@ class UserManager {
     }
 
     if (data.namespaces.length) {
-      for await (const ns of data.namespaces) {
-        let namespace = (
-          await UserNamespace.findByPk(ns, {
-            attributes: {
-              exclude: [
-                "name",
-                "invite_code",
-                "img_url",
-                "created_at",
-                "updated_at",
-              ],
-            },
-            include: [
-              {
-                model: User,
-                as: "users",
-                attributes: {
-                  exclude: ["password", "email", "created_at", "updated_at"],
-                },
-                where: {
-                  id: userId,
-                },
+      await Promise.all(
+        data.namespaces.map(async (ns) => {
+          let namespace = (
+            await UserNamespace.findByPk(ns, {
+              attributes: {
+                exclude: [
+                  "name",
+                  "invite_code",
+                  "img_url",
+                  "created_at",
+                  "updated_at",
+                ],
               },
-            ],
-          })
-        )?.toJSON();
+              include: [
+                {
+                  model: User,
+                  as: "users",
+                  attributes: {
+                    exclude: ["password", "email", "created_at", "updated_at"],
+                  },
+                  where: {
+                    id: userId,
+                  },
+                },
+              ],
+            })
+          )?.toJSON();
 
-        const user = namespace?.users?.map((element: UserInterface) => {
-          if (element) {
-            return {
-              ...element,
-              avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
-                element.id
-              }/${Date.now()}/avatar`,
-              status: "online",
-            };
-          }
-        });
+          const user = namespace?.users?.map((element: UserInterface) => {
+            if (element) {
+              return {
+                ...element,
+                avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
+                  element.id
+                }/${Date.now()}/avatar`,
+              };
+            }
+          });
 
-        if (user) this._ios.of(`/${ns}`).emit("updateUser", user[0]);
-      }
+          if (user) this._ios.of(`/${ns}`).emit("updateUser", user[0]);
+        })
+      );
+
+      // for await (const ns of data.namespaces) {
+      //   let namespace = (
+      //     await UserNamespace.findByPk(ns, {
+      //       attributes: {
+      //         exclude: [
+      //           "name",
+      //           "invite_code",
+      //           "img_url",
+      //           "created_at",
+      //           "updated_at",
+      //         ],
+      //       },
+      //       include: [
+      //         {
+      //           model: User,
+      //           as: "users",
+      //           attributes: {
+      //             exclude: ["password", "email", "created_at", "updated_at"],
+      //           },
+      //           where: {
+      //             id: userId,
+      //           },
+      //         },
+      //       ],
+      //     })
+      //   )?.toJSON();
+      //
+      //   const user = namespace?.users?.map((element: UserInterface) => {
+      //     if (element) {
+      //       return {
+      //         ...element,
+      //         avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
+      //           element.id
+      //         }/${Date.now()}/avatar`,
+      //         status: "online",
+      //       };
+      //     }
+      //   });
+      //
+      //   if (user) this._ios.of(`/${ns}`).emit("updateUser", user[0]);
+      // }
     }
 
     if (data.friends.length) {
@@ -118,7 +162,6 @@ class UserManager {
 
       const user = {
         ...getUserUpdated,
-        status: "online",
         avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
           getUserUpdated?.id
         }/${Date.now()}/avatar`,
@@ -175,49 +218,65 @@ class UserManager {
     }
   }
 
-  public connectUser(
+  public async connectUser(
     socket: SocketCustom,
-    data: { namespaces: number[]; friends: number[] }
+    friends: number[] | undefined
   ) {
-    const { namespaces, friends } = data;
-    const { id } = socket.request.user!;
+    const userId = socket.request.user?.id;
 
-    if (namespaces.length) {
-      namespaces.forEach((ns) => {
-        this._ios.of(`/${ns}`).emit("userConnect", { id });
-      });
-    }
+    await User.update(
+      {
+        status: "online",
+      },
+      {
+        where: {
+          id: userId,
+        },
+      }
+    );
 
-    if (friends.length) {
-      friends.forEach((friend) => {
-        const socketId = this._clients.get(friend);
+    if (friends?.length) {
+      friends.forEach((friendId) => {
+        const socketId = this._clients.get(friendId);
 
         if (socketId) {
-          this._ios.to(socketId).emit("userConnect", { id });
+          this._ios.to(socketId).emit("userConnect", { id: userId });
         }
       });
     }
   }
 
-  public disconnectUser(
-    socket: SocketCustom,
-    data: { namespaces: number[]; friends: number[] }
-  ) {
-    const { namespaces, friends } = data;
-    const { id } = socket.request.user!;
+  public async disconnectUser(socket: SocketCustom) {
+    const userId = socket.request.user?.id;
 
-    if (namespaces.length) {
-      namespaces.forEach((ns) => {
-        this._ios.of(`/${ns}`).emit("userDisconnect", { id });
-      });
-    }
+    await User.update(
+      {
+        status: "offline",
+      },
+      {
+        where: {
+          id: userId,
+        },
+      }
+    );
 
-    if (friends.length) {
-      friends.forEach((friend) => {
-        const socketId = this._clients.get(friend);
+    const user = await User.findByPk(userId, {
+      attributes: [],
+      include: [
+        {
+          model: User,
+          as: "friends",
+          attributes: ["id"],
+        },
+      ],
+    });
+
+    if (user?.friends?.length) {
+      user.friends.forEach((friend) => {
+        const socketId = this._clients.get(friend.id);
 
         if (socketId) {
-          this._ios.to(socketId).emit("userDisconnect", { id });
+          this._ios.to(socketId).emit("userDisconnect", { id: userId });
         }
       });
     }

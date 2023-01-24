@@ -8,6 +8,7 @@ import App from "./App.vue";
 import { router } from "@/routes";
 import { useSocket } from "@/shared/stores/socketStore";
 import { useUser } from "@/shared/stores";
+import { useMessage } from "@/features/server/stores/messageStore";
 
 const app = createApp(App);
 

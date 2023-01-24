@@ -1,54 +1,48 @@
 <script setup lang="ts">
 import { useSocket } from "@/shared/stores/socketStore";
 import SendMessage from "../components/SendMessage.vue";
-import { nextTick, onUnmounted, watch } from "vue";
+import { nextTick, onBeforeUnmount, watch, watchEffect } from "vue";
 import { useRoom } from "@/features/server/stores/roomStore";
-import type { RouteParams } from "vue-router";
 import { useChat } from "@/shared/stores/chatStore";
+import { useMessage } from "@/features/server/stores/messageStore";
 
 const chatStore = useChat();
-const socketStore = useSocket();
 const roomStore = useRoom();
+const messageStore = useMessage();
 
-defineProps<{
-  params: RouteParams;
-}>();
-
-watch(
-  () => socketStore.isMessagesLoaded,
-  async () => {
+watchEffect(async () => {
+  if (messageStore.isMessagesLoaded) {
     await nextTick();
     chatStore.init(document.querySelector(".message-container"));
     chatStore.scrollToBottomOnMounted();
-  },
-  {
-    immediate: true,
   }
-);
+});
 
 watch(
-  () => socketStore.isMessagePushInArray,
+  () => messageStore.isMessagePushInArray,
   async (value) => {
-    if (value) {
+    if (value && chatStore.page <= 1) {
       await nextTick();
       chatStore.scrollToBottom();
-      socketStore.isMessagePushInArray = false;
+      messageStore.isMessagePushInArray = false;
     }
   }
 );
 
 watch(
-  () => socketStore.isMoreMessagesLoaded,
+  () => messageStore.isMoreMessagesLoaded,
   async (value) => {
     if (value) {
       await nextTick();
       chatStore.newMessagesLoaded();
-      socketStore.isMoreMessagesLoaded = false;
+      messageStore.isMoreMessagesLoaded = false;
     }
   }
 );
 
-onUnmounted(() => {
+onBeforeUnmount(() => {
+  console.log("unmount");
+  messageStore.messages = [];
   chatStore.$reset();
 });
 </script>
@@ -60,23 +54,35 @@ onUnmounted(() => {
         chatStore.loadMoreMessages(
           $event,
           'loadMoreMessages',
-          socketStore.messages.length,
+          messageStore.messages.length,
           roomStore.activeRoom?.id
         )
       "
-      v-if="roomStore.activeRoom && socketStore.isMessagesLoaded"
       class="message-container"
     >
-      <h2 v-if="socketStore.isBeginningConversation" class="room-name">
+      <h2 v-if="messageStore.isBeginningConversation" class="room-name">
         Bienvenue dans le salon {{ roomStore.activeRoom?.name }}
       </h2>
       <template
-        v-for="message of chatStore.filteredMessages(socketStore.messages)"
+        v-for="message of chatStore.filteredMessages(messageStore.messages)"
         :key="message.id"
       >
-        <div v-if="message.avatarAuthor" class="d-flex message">
+        <div v-if="message.separator" class="separator">
+          <span>{{
+            new Date(message.created_at).toLocaleDateString("fr-FR")
+          }}</span>
+        </div>
+        <div
+          v-if="message.avatarAuthor"
+          class="d-flex message"
+          :data-id="message.id"
+        >
           <div>
-            <img class="mr-10" :src="message.avatarAuthor" />
+            <img
+              class="mr-10"
+              :src="message.avatarAuthor"
+              :alt="message.authorName"
+            />
           </div>
           <div class="d-flex flex-column w-100">
             <div class="d-flex align-items-center mb-5">
@@ -98,6 +104,7 @@ onUnmounted(() => {
           v-else
           class="d-flex message"
           :class="{ groupMessage: !message.avatarAuthor }"
+          :data-id="message.id"
         >
           <div class="d-flex w-100">
             <p
@@ -129,14 +136,33 @@ onUnmounted(() => {
     overflow-y: auto;
   }
 
+  .separator {
+    margin: 0.5rem 1rem 0 1rem;
+    position: relative;
+    text-align: center;
+    border-bottom: 1px solid #4a4a55;
+
+    span {
+      font-size: 0.8rem;
+      color: #bbb;
+      background: var(--primary-1);
+      z-index: 1;
+      padding: 0 0.6rem;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+  }
+
   .message-container::-webkit-scrollbar {
-    width: 10px;
+    width: 12px;
   }
 
   .message-container::-webkit-scrollbar-track {
-    box-shadow: inset 0 0 10px 10px var(--primary-2);
+    box-shadow: inset 0 0 12px 12px var(--primary-2);
     border: solid 2px transparent;
-    border-radius: 10px;
+    border-radius: 12px;
   }
 
   .message-container::-webkit-scrollbar-thumb {
@@ -167,7 +193,7 @@ onUnmounted(() => {
     }
 
     .message-color {
-      color: #edeaea;
+      color: #d2d1d1;
     }
 
     p {

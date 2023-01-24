@@ -31,7 +31,7 @@ const { handleSubmit, setErrors } = useForm<Namespace>({
 
 const submit = handleSubmit((formValue: Namespace) => {
   try {
-    socketStore.activeNsSocket.emit(
+    socketStore.activeNsSocket?.emit(
       "createRoom",
       {
         name: formValue.name,

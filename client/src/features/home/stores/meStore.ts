@@ -1,24 +1,15 @@
 import { defineStore } from "pinia";
 import type { FriendsInterface } from "@/shared/interfaces/FriendsInterface";
 import type { RecipientInterface } from "@/shared/interfaces/RecipientInterface";
-import type { MessageInterface } from "@/shared/interfaces/MessageInterface";
 import type { PrivateMessageInterface } from "@/shared/interfaces/PrivateMessageInterface";
-
-interface meState {
-  friends: FriendsInterface[] | any[];
-  recipients: RecipientInterface[];
-  currentRecipient: RecipientInterface | null;
-  isConversationLoaded: boolean;
-  messages: MessageInterface[];
-  isMessagePushInArray: boolean;
-  isMessagesLoaded: boolean;
-  isMoreMessagesLoaded: boolean;
-  isBeginningConversation: boolean;
-  error: null | string;
-}
+import { useSocket } from "@/shared/stores/socketStore";
+import type { MeState } from "@/shared/interfaces/meState";
+import { useMessage } from "@/features/server/stores/messageStore";
+import { useGetMessage } from "@/composables/useGetMessage";
+import { useLoadMoreMessage } from "@/composables/useLoadMoreMessage";
 
 export const useMe = defineStore("me", {
-  state: (): meState => ({
+  state: (): MeState => ({
     friends: [],
     recipients: [],
     currentRecipient: null,
@@ -26,6 +17,7 @@ export const useMe = defineStore("me", {
     isMessagesLoaded: false,
     isMoreMessagesLoaded: false,
     messages: [],
+    previousMessages: [],
     isMessagePushInArray: false,
     isBeginningConversation: false,
     error: null,
@@ -37,10 +29,13 @@ export const useMe = defineStore("me", {
     },
 
     getCurrentConversation(id: number) {
+      const socketStore = useSocket();
       this.currentRecipient =
         this.recipients.find(
           (conversation) => conversation.privateRoomId === id
         ) ?? null;
+
+      socketStore.ioClient?.emit("getPrivateMessagesHistory", id);
     },
 
     getAllConversations(data: RecipientInterface[]) {
@@ -60,25 +55,18 @@ export const useMe = defineStore("me", {
     },
 
     getPrivateMessageHistory(data: PrivateMessageInterface[]) {
+      this.isMessagesLoaded = false;
       this.isBeginningConversation = data.length < 50;
       this.messages = data;
       this.isMessagesLoaded = true;
     },
 
     loadMorePrivateMessages(data: PrivateMessageInterface[]) {
-      this.isBeginningConversation =
-        data.length < 50 || this.messages.length < 50;
-
-      this.messages.push(...data);
-
-      if (data.length) this.isMoreMessagesLoaded = true;
+      useLoadMoreMessage(data, this);
     },
 
     privateMessage(data: PrivateMessageInterface) {
-      if (this.currentRecipient?.privateRoomId === data.privateRoomId) {
-        this.messages.push(data);
-        this.isMessagePushInArray = true;
-      }
+      useGetMessage(data, this);
     },
 
     getConversationWithAFriend(data: RecipientInterface) {

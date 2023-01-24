@@ -6,8 +6,12 @@ import { z } from "zod";
 import { generateInviteCode } from "@/utils/generateInviteCode";
 import { useSocket } from "@/shared/stores/socketStore";
 import Spinner from "@/components/Spinner.vue";
+import { ref } from "vue";
+import { useNamespace } from "@/features/server/stores/namespaceStore";
 
 const socketStore = useSocket();
+const namespaceStore = useNamespace();
+const error = ref<boolean>(false);
 
 const props = defineProps<{
   namespaceImage: File | undefined;
@@ -28,7 +32,7 @@ const { handleSubmit, setErrors } = useForm<Namespace>({
 });
 
 function createNamespace(formValue: Namespace) {
-  socketStore.creatingNamespace = true;
+  namespaceStore.creatingNamespace = true;
   socketStore.ioClient?.emit(
     "createNamespace",
     {
@@ -41,6 +45,8 @@ function createNamespace(formValue: Namespace) {
         setErrors({
           name: response.message,
         });
+
+        namespaceStore.creatingNamespace = false;
       }
     }
   );

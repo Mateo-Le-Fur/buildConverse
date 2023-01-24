@@ -4,28 +4,21 @@ import type { Namespace } from "@/shared/interfaces/Namespace";
 import type { RoomInterface } from "@/shared/interfaces/Room";
 import type { MessageInterface } from "@/shared/interfaces/MessageInterface";
 import type { User } from "@/shared/interfaces/User";
+import type { RecipientInterface } from "@/shared/interfaces/RecipientInterface";
+import type { PrivateMessageInterface } from "@/shared/interfaces/PrivateMessageInterface";
+import type { FriendsInterface } from "@/shared/interfaces/FriendsInterface";
 import { useRoom } from "@/features/server/stores/roomStore";
 import { useNsUser } from "@/features/server/stores/userNsStore";
 import { useUser } from "@/shared/stores/authStore";
-import type { FriendsInterface } from "@/shared/interfaces/FriendsInterface";
 import { useMe } from "@/features/home/stores/meStore";
-import type { RecipientInterface } from "@/shared/interfaces/RecipientInterface";
+import { useNamespace } from "@/features/server/stores/namespaceStore";
+import { useMessage } from "@/features/server/stores/messageStore";
 
 interface SocketState {
   ioClient: Socket | null;
   opts: Partial<ManagerOptions>;
-  activeNsSocket: any;
-  namespaces: Namespace[];
-  namespaceSockets: [] | any;
-  messages: MessageInterface[];
-  isMoreMessagesLoaded: boolean;
-  isBeginningConversation: boolean;
-  isMessagePushInArray: boolean;
-  isNamespacesLoaded: boolean;
-  creatingNamespace: boolean | null;
-  isNamespaceUpdated: boolean;
-  isMessagesLoaded: boolean;
-  countLoadedNamespace: number;
+  activeNsSocket: Socket | null;
+  numberOfLoadedNamespaces: number;
   error: any;
 }
 
@@ -33,27 +26,15 @@ export const useSocket = defineStore("socket", {
   state: (): SocketState => ({
     ioClient: null,
     activeNsSocket: null,
-    namespaceSockets: [],
-    namespaces: [],
-    messages: [],
-    isMoreMessagesLoaded: false,
-    isMessagePushInArray: false,
-    isBeginningConversation: false,
-    isNamespacesLoaded: false,
-    creatingNamespace: false,
-    isNamespaceUpdated: false,
-    isMessagesLoaded: false,
-    countLoadedNamespace: 0,
+    numberOfLoadedNamespaces: 0,
     error: null,
-    opts: { reconnection: false, forceNew: false, transports: ["websocket"] },
-  }),
-
-  getters: {
-    currentNamespace(state): (namespaceId: string) => Namespace | undefined {
-      return (namespaceId: string) =>
-        state.namespaces.find((ns: Namespace) => ns.id === Number(namespaceId));
+    opts: {
+      reconnection: false,
+      forceNew: false,
+      transports: ["websocket"],
+      withCredentials: true,
     },
-  },
+  }),
 
   actions: {
     init() {
@@ -92,19 +73,19 @@ export const useSocket = defineStore("socket", {
 
       this.ioClient?.on(
         "getPrivateMessagesHistory",
-        (data: MessageInterface[]) => {
+        (data: PrivateMessageInterface[]) => {
           meStore.getPrivateMessageHistory(data);
         }
       );
 
       this.ioClient?.on(
         "loadMorePrivateMessages",
-        (data: MessageInterface[]) => {
+        (data: PrivateMessageInterface[]) => {
           meStore.loadMorePrivateMessages(data);
         }
       );
 
-      this.ioClient?.on("privateMessage", (data: MessageInterface) => {
+      this.ioClient?.on("privateMessage", (data: PrivateMessageInterface) => {
         meStore.privateMessage(data);
       });
 
@@ -161,39 +142,23 @@ export const useSocket = defineStore("socket", {
     },
 
     initNamespaces() {
+      const messageStore = useMessage();
+      const namespaceStore = useNamespace();
+      const roomStore = useRoom();
+
       this.ioClient?.on("namespaces", (data: Namespace[]) => {
-        if (!data.length) this.isNamespacesLoaded = true;
-
-        this.namespaces.push(...data);
-
-        for (const ns of this.namespaces) {
-          const nsSocket = io(`/${ns.id}`);
-
-          this.initNamespaceData(nsSocket, data.length, () => {
-            this.isNamespacesLoaded = true;
-          });
-
-          this.namespaceSockets.push(nsSocket);
-        }
+        namespaceStore.init(data);
       });
 
       this.ioClient?.on("createdNamespace", async (data: Namespace[]) => {
-        const roomStore = useRoom();
-
         const ns = data[0];
 
         const nsSocket = io(`/${ns.id}`);
 
         this.initNamespaceData(nsSocket, data.length, async () => {
-          this.namespaces.push(...data);
+          namespaceStore.createNamespace(data, nsSocket);
 
-          this.namespaceSockets.push(nsSocket);
-
-          if (this.activeNsSocket) {
-            this.activeNsSocket.emit("leaveRoom", roomStore.activeRoom?.id);
-          }
-
-          this.creatingNamespace = false;
+          this.activeNsSocket?.emit("leaveRoom", roomStore.activeRoom?.id);
 
           // @ts-ignore
           await this.router.push(`/channels/${ns.id}/${ns.rooms[0].id}`);
@@ -201,28 +166,26 @@ export const useSocket = defineStore("socket", {
       });
 
       this.ioClient?.on("loadMoreMessages", (data: MessageInterface[]) => {
-        this.loadMoreMessages(data);
+        messageStore.loadMoreMessages(data);
       });
     },
 
     initNamespaceData(
       nsSocket: any,
-      numberOfnamespace: number,
+      numberOfNamespaces: number,
       callback: () => void
     ) {
+      const namespaceStore = useNamespace();
       const roomStore = useRoom();
       const userNsStore = useNsUser();
+      const messageStore = useMessage();
 
-      nsSocket.on("rooms", (data: RoomInterface[]) => {
-        roomStore.getRoomsData(data);
+      this.numberOfLoadedNamespaces++;
 
-        this.countLoadedNamespace++;
-
-        if (this.countLoadedNamespace === numberOfnamespace) {
-          callback();
-          this.countLoadedNamespace = 0;
-        }
-      });
+      if (this.numberOfLoadedNamespaces === numberOfNamespaces) {
+        callback();
+        this.numberOfLoadedNamespaces = 0;
+      }
 
       nsSocket.on(
         "userList",
@@ -243,14 +206,11 @@ export const useSocket = defineStore("socket", {
         userNsStore.deleteUser(data);
       });
 
-      nsSocket.on("userConnect", async (data: { id: number }) => {
-        const userNsStore = useNsUser();
+      nsSocket.on("userConnect", async (data: User[]) => {
         userNsStore.userConnect(data);
       });
 
       nsSocket.on("userDisconnect", async (data: { id: number }) => {
-        const userNsStore = useNsUser();
-
         userNsStore.userDisconnect(data);
       });
 
@@ -259,18 +219,15 @@ export const useSocket = defineStore("socket", {
       });
 
       nsSocket.on("userLeaveNamespace", async (data: { id: number }) => {
-        await this.userLeaveNamespace(data);
+        namespaceStore.userLeaveNamespace(data);
       });
 
-      nsSocket.on("history", (data: MessageInterface[]) => {
-        this.isBeginningConversation = data.length < 50;
-        this.messages = data;
-        this.isMessagesLoaded = true;
+      nsSocket.on("history", async (data: MessageInterface[]) => {
+        messageStore.getHistory(data);
       });
 
       nsSocket.on("message", (data: MessageInterface) => {
-        this.messages.push(data);
-        this.isMessagePushInArray = true;
+        messageStore.getMessage(data);
       });
 
       nsSocket.on("createRoom", async (data: RoomInterface) => {
@@ -286,106 +243,16 @@ export const useSocket = defineStore("socket", {
       });
 
       nsSocket.on("updateNamespace", async (data: Namespace) => {
-        await this.updateNamespace(data);
+        await namespaceStore.updateNamespace(data);
       });
 
       nsSocket.on("deleteNamespace", async (data: { id: number }) => {
-        await this.deleteNamespace(data);
+        await namespaceStore.deleteNamespace(data);
       });
 
       nsSocket.on("connect_error", (err: Error) => {
         console.error(err);
       });
-    },
-
-    joinNamespace(nsSocket: any, roomId: string, namespaceId: string) {
-      const roomStore = useRoom();
-      const userNsStore = useNsUser();
-
-      this.activeNsSocket = nsSocket;
-
-      const room = roomStore.findRoom(Number(roomId));
-
-      roomStore.joinRoom(room, Number(namespaceId));
-
-      userNsStore.isUsersLoaded = false;
-
-      this.activeNsSocket.emit("getNamespaceUsers", namespaceId);
-    },
-
-    async userLeaveNamespace(data: { id: number }) {
-      const userNsStore = useNsUser();
-      userNsStore.userList = userNsStore.userList.filter(
-        (user) => user.id !== data.id
-      );
-
-      userNsStore.numberOfUsers--;
-    },
-
-    async deleteNamespace(data: { id: number }) {
-      const roomStore = useRoom();
-      const userNsStore = useNsUser();
-
-      roomStore.activeRoom = null;
-
-      roomStore.rooms = roomStore.rooms.filter(
-        (room) => room.namespaceId !== data.id
-      );
-
-      userNsStore.userList = userNsStore.userList.filter(
-        (user) => user.UserHasNamespace.namespaceId !== data.id
-      );
-
-      const namespaceIndex = this.namespaces.findIndex(
-        (ns) => ns.id === data.id
-      );
-
-      const namespaceSocketIndex = this.namespaceSockets.findIndex(
-        (ns: any) => ns.nsp === `/${data.id}`
-      );
-
-      const namespaceSocket = this.namespaceSockets.find(
-        (nsSocket: any) => nsSocket.nsp === `/${data.id}`
-      );
-
-      namespaceSocket.disconnect();
-
-      if (namespaceIndex !== -1) {
-        this.namespaces.splice(namespaceIndex, 1);
-      }
-
-      if (namespaceSocketIndex !== -1) {
-        this.namespaceSockets.splice(namespaceSocketIndex, 1);
-      }
-
-      this.activeNsSocket = null;
-      // @ts-ignore
-      await this.router.push("/channels/me");
-    },
-
-    async updateNamespace(data: Namespace) {
-      this.isNamespaceUpdated = true;
-
-      const { UserHasNamespace } = this.namespaces.find(
-        (ns) => ns.id === data.id
-      )!;
-
-      const namespaceIndex = this.namespaces.findIndex(
-        (ns) => ns.id === data.id
-      );
-
-      this.namespaces[namespaceIndex] = data;
-
-      this.namespaces[namespaceIndex].UserHasNamespace = UserHasNamespace;
-    },
-
-    loadMoreMessages(data: MessageInterface[]) {
-      this.isBeginningConversation =
-        data.length < 50 || this.messages.length < 50;
-
-      this.messages.push(...data);
-
-      if (data.length) this.isMoreMessagesLoaded = true;
     },
 
     setError(message: string) {

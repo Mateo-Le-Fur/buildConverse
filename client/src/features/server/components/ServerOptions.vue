@@ -4,8 +4,10 @@ import type { RouteParams } from "vue-router";
 import { useSocket } from "@/shared/stores/socketStore";
 import { ref, watchEffect } from "vue";
 import UpdateServer from "./UpdateServer.vue";
+import { useNamespace } from "@/features/server/stores/namespaceStore";
 
 const socketStore = useSocket();
+const namespaceStore = useNamespace();
 
 const props = defineProps<{
   routeParams: RouteParams;
@@ -16,7 +18,7 @@ const popupUpdateServer = ref<boolean>(false);
 const currentNamespace = ref<Namespace | undefined>();
 
 watchEffect(() => {
-  currentNamespace.value = socketStore.currentNamespace(
+  currentNamespace.value = namespaceStore.currentNamespace(
     props.routeParams.idChannel as string
   );
 });
@@ -26,13 +28,12 @@ function closePopupOptions() {
 }
 
 function closePopupUpdate() {
-  console.log("close");
   socketStore.error = null;
   popupUpdateServer.value = false;
 }
 
 function deleteNamespace(namespaceId: number) {
-  socketStore.activeNsSocket.emit(
+  socketStore.activeNsSocket?.emit(
     "deleteNamespace",
     { id: namespaceId },
     (response: { status: string; message?: string }) => {
@@ -49,7 +50,7 @@ function leaveNamespace(namespaceId: number) {
     { id: namespaceId },
     (response: { status: string; message: string }) => {
       if (response.status === "ok") {
-        socketStore.deleteNamespace({ id: namespaceId });
+        namespaceStore.deleteNamespace({ id: namespaceId });
       }
     }
   );

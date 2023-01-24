@@ -24,7 +24,9 @@ class FriendsManager {
     this._clients = clients;
   }
 
-  public async getUserFriends(socket: SocketCustom) {
+  public async getUserFriends(
+    socket: SocketCustom
+  ): Promise<number[] | undefined> {
     const userId = socket.request.user?.id;
 
     const foundUserFriends = (
@@ -77,7 +79,11 @@ class FriendsManager {
       ...friendsRequest,
     ];
 
+    const friendsId = friends?.map((friend) => friend.id);
+
     socket.emit("friends", merge);
+
+    return friendsId;
   }
 
   public async friendRequest(socket: SocketCustom, data: FriendsInterface) {
@@ -122,6 +128,7 @@ class FriendsManager {
     await FriendRequest.destroy({
       where: {
         senderId: senderId,
+        recipientId: userId,
       },
     });
 

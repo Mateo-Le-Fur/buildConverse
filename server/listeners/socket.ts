@@ -23,7 +23,7 @@ import {
 } from "../interfaces";
 import authProtect from "../config/jwt.config";
 import { ExtendedError } from "socket.io/dist/namespace";
-import { UserHasNamespace, Room } from "../models";
+import { UserHasNamespace, Room, UserNamespace, User } from "../models";
 import namespaceValidator from "../validation/schema/namespace.schema";
 import roomValidator from "../validation/schema/room.schema";
 import joinNamespaceValidator from "../validation/schema/joinNamespace.schema";
@@ -62,9 +62,10 @@ class SocketManager {
       if (id) this._clients.set(id, socket.id);
 
       try {
-        await this._friendsManager.getUserFriends(socket);
+        const friends = await this._friendsManager.getUserFriends(socket);
         await this._friendsManager.getAllConversations(socket);
         await this._namespacesManager.getUserNamespaces(socket);
+        await this._usersManager.connectUser(socket, friends);
       } catch (e) {
         console.error(e);
       }
@@ -137,6 +138,7 @@ class SocketManager {
 
       socket.on("getPrivateMessagesHistory", async (privateRoomId: number) => {
         try {
+          console.log(privateRoomId);
           await this._friendsManager.getPrivateMessages(socket, privateRoomId);
         } catch (e) {
           console.error(e);
@@ -166,6 +168,11 @@ class SocketManager {
         "createNamespace",
         async (data: NamespaceInterface, callback) => {
           try {
+            const userId = socket.request.user?.id;
+            await this._securityManager.checkUserNamespacesLimit(
+              userId,
+              this._namespacesManager.userNamespacesLimit
+            );
             await namespaceValidator.validateAsync(data);
             await this._namespacesManager.createNamespace(socket, data);
             callback({
@@ -187,13 +194,36 @@ class SocketManager {
         "userJoinNamespace",
         async (data: NamespaceInterface, callback) => {
           try {
-            await joinNamespaceValidator.validateAsync(data);
-            await this._namespacesManager.joinInvitation(socket, data);
+            const userId = socket.request.user?.id;
+
+            const namespace = await UserNamespace.findOne({
+              where: { inviteCode: data.inviteCode },
+              raw: true,
+            });
+
+            if (namespace) {
+              await joinNamespaceValidator.validateAsync(data);
+              await this._securityManager.checkIfUserAlreadyHasTheServer(
+                userId,
+                namespace.id
+              );
+              await this._securityManager.checkUserNamespacesLimit(
+                userId,
+                this._namespacesManager.userLimit
+              );
+              await this._securityManager.checkIfServerIsFull(
+                namespace.id,
+                this._namespacesManager.userLimit
+              );
+              await this._namespacesManager.joinInvitation(socket, data);
+            }
+
             callback({
               status: "ok",
             });
           } catch (e) {
             if (e instanceof Error) {
+              console.error(e);
               callback({
                 status: "error",
                 message: e.message,
@@ -205,8 +235,16 @@ class SocketManager {
 
       socket.on(
         "loadMoreMessages",
-        async (data: { id: number; messagesArrayLength: number }) => {
-          await this._roomsManager.loadMoreMessage(socket, data);
+        async (data: {
+          id: number;
+          messagesArrayLength: number;
+          isBeginningConversation: boolean;
+        }) => {
+          try {
+            await this._roomsManager.loadMoreMessage(socket, data);
+          } catch (e) {
+            console.error(e);
+          }
         }
       );
 
@@ -235,21 +273,6 @@ class SocketManager {
         }
       });
 
-      socket.on(
-        "join",
-        async (data: { namespaces: number[]; friends: number[] }) => {
-          this._usersManager.connectUser(socket, data);
-        }
-      );
-
-      socket.on(
-        "leave",
-        async (data: { namespaces: number[]; friends: number[] }) => {
-          this._usersManager.disconnectUser(socket, data);
-          socket.disconnect(true);
-        }
-      );
-
       socket.on("jwt_expire", (data: string) => {
         if (data) {
           try {
@@ -265,10 +288,12 @@ class SocketManager {
         }
       });
 
-      socket.on("disconnect", () => {
+      socket.on("disconnect", async () => {
         const { id } = socket.request.user!;
 
         if (id) this._clients.delete(id);
+
+        await this._usersManager.disconnectUser(socket);
 
         console.log("disconnect home");
       });
@@ -278,149 +303,48 @@ class SocketManager {
   }
 
   private initNamespace() {
-    try {
-      const ns = this._ios.of(/^\/\d+$/);
+    const ns = this._ios.of(/^\/\d+$/);
 
-      ns.use(
-        async (
-          socket: SocketCustom,
-          next: (err?: ExtendedError | undefined) => void
-        ) => {
-          const userId = socket.request.user?.id;
-          const namespaceId = socket.nsp.name.substring(1);
+    ns.use(
+      async (
+        socket: SocketCustom,
+        next: (err?: ExtendedError | undefined) => void
+      ) => {
+        try {
+          const namespaceId = Number(socket.nsp.name.substring(1));
 
-          const isUserHaveAccessToTheServer = await UserHasNamespace.findOne({
-            where: {
-              userId,
-              namespaceId,
-            },
-          });
+          const foundUserNamespace =
+            await this._securityManager.checkIfUserHasNamespace(
+              socket,
+              namespaceId
+            );
 
-          if (isUserHaveAccessToTheServer) {
+          if (foundUserNamespace) {
+            this._ios
+              .of(`/${namespaceId}`)
+              .emit("userConnect", foundUserNamespace?.users);
+
             next();
           } else {
             next(new Error("Tu n'as pas accès à ce serveur "));
           }
-        }
-      );
-
-      ns.on("connect", async (nsSocket: SocketCustom) => {
-        console.log(
-          `L'utilisateur : ${nsSocket.request.user?.pseudo} est connecté sur le serveur ${nsSocket.nsp.name}`
-        );
-
-        try {
-          const namespaceId = nsSocket.nsp.name.slice(1);
-          await this._roomsManager.getAllRooms(nsSocket, namespaceId);
         } catch (e) {
           console.error(e);
         }
+      }
+    );
 
-        nsSocket.on(
-          "updateNamespace",
-          async (data: UpdateNamespaceInterface, callback) => {
-            try {
-              await this._securityManager.checkIfUserIsAdminOfNamespace(
-                nsSocket,
-                data.namespaceId
-              );
-              await namespaceValidator.validateAsync(data);
-              await this._namespacesManager.updateNamespace(nsSocket, data);
-              callback({
-                status: "ok",
-              });
-            } catch (e) {
-              if (e instanceof Error) {
-                callback({
-                  status: "error",
-                  message: e.message,
-                });
-              }
-            }
-          }
-        );
-
-        nsSocket.on(
-          "deleteNamespace",
-          async (data: NamespaceInterface, callback) => {
-            try {
-              await this._securityManager.checkIfUserIsAdminOfNamespace(
-                nsSocket,
-                data.id
-              );
-              await this._namespacesManager.deleteNamespace(nsSocket, data);
-              callback({
-                status: "ok",
-              });
-            } catch (e) {
-              if (e instanceof Error) {
-                callback({
-                  status: "error",
-                  message: e.message,
-                });
-              }
-            }
-          }
-        );
-
-        nsSocket.on(
-          "userLeaveNamespace",
-          async (data: NamespaceInterface, callback) => {
-            try {
-              await this._namespacesManager.leaveNamespace(nsSocket, data);
-              callback({
-                status: "ok",
-              });
-            } catch (e) {
-              if (e instanceof Error) {
-                callback({
-                  status: "error",
-                  message: e.message,
-                });
-              }
-            }
-          }
-        );
-
-        nsSocket.on("getNamespaceUsers", async (data: number) => {
-          try {
-            await this._namespacesManager.getNamespaceUsers(nsSocket, data);
-          } catch (e) {
-            console.error(e);
-          }
-        });
-
-        nsSocket.on(
-          "loadMoreUser",
-          async (data: { currentArrayLength: number; namespaceId: number }) => {
-            try {
-              await this._namespacesManager.loadMoreUser(nsSocket, data);
-            } catch (e) {
-              console.error(e);
-            }
-          }
-        );
-
-        nsSocket.on("joinRoom", async (data) => {
-          try {
-            await this._roomsManager.joinRoom(nsSocket, data);
-          } catch (e) {
-            console.error(e);
-          }
-        });
-
-        nsSocket.on("leaveRoom", (roomId: number) => {
-          this._roomsManager.leaveRoom(nsSocket, roomId);
-        });
-
-        nsSocket.on("createRoom", async (data: RoomInterface, callback) => {
+    ns.on("connect", async (nsSocket: SocketCustom) => {
+      nsSocket.on(
+        "updateNamespace",
+        async (data: UpdateNamespaceInterface, callback) => {
           try {
             await this._securityManager.checkIfUserIsAdminOfNamespace(
               nsSocket,
               data.namespaceId
             );
-            await roomValidator.validateAsync(data);
-            await this._roomsManager.createRoom(data);
+            await namespaceValidator.validateAsync(data);
+            await this._namespacesManager.updateNamespace(nsSocket, data);
             callback({
               status: "ok",
             });
@@ -432,64 +356,158 @@ class SocketManager {
               });
             }
           }
-        });
+        }
+      );
 
-        nsSocket.on("updateRoom", async (data: RoomInterface, callback) => {
+      nsSocket.on(
+        "deleteNamespace",
+        async (data: NamespaceInterface, callback) => {
           try {
             await this._securityManager.checkIfUserIsAdminOfNamespace(
               nsSocket,
-              data.namespaceId
+              data.id
             );
-            await roomValidator.validateAsync(data);
-            await this._roomsManager.updateRoom(nsSocket, data);
+            await this._namespacesManager.deleteNamespace(nsSocket, data);
             callback({
               status: "ok",
             });
           } catch (e) {
             if (e instanceof Error) {
-              console.error(e);
               callback({
                 status: "error",
                 message: e.message,
               });
             }
           }
-        });
+        }
+      );
 
-        nsSocket.on("deleteRoom", async (data: RoomInterface, callback) => {
+      nsSocket.on(
+        "userLeaveNamespace",
+        async (data: NamespaceInterface, callback) => {
           try {
-            await this._securityManager.checkIfUserIsAdminOfNamespace(
-              nsSocket,
-              data.namespaceId
-            );
-            await this._roomsManager.deleteRoom(nsSocket, data);
+            await this._namespacesManager.leaveNamespace(nsSocket, data);
+            callback({
+              status: "ok",
+            });
           } catch (e) {
             if (e instanceof Error) {
-              if (typeof callback === "function")
-                callback({
-                  status: "error",
-                  message: e.message,
-                });
+              callback({
+                status: "error",
+                message: e.message,
+              });
             }
           }
-        });
+        }
+      );
 
-        nsSocket.on("message", async (data: MessageInterface) => {
-          try {
-            await this._messagesManager.sendMessage(ns, nsSocket, data);
-          } catch (e) {
-            console.error(e);
-          }
-        });
-
-        nsSocket.on("disconnect", () => {
-          nsSocket.disconnect();
-          console.log("disconnect");
-        });
+      nsSocket.on("getNamespaceUsers", async (data: number) => {
+        try {
+          await this._namespacesManager.getNamespaceUsers(nsSocket, data);
+        } catch (e) {
+          console.error(e);
+        }
       });
-    } catch (e) {
-      throw e;
-    }
+
+      nsSocket.on(
+        "loadMoreUser",
+        async (data: { currentArrayLength: number; namespaceId: number }) => {
+          try {
+            await this._namespacesManager.loadMoreUser(nsSocket, data);
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      );
+
+      nsSocket.on("joinRoom", async (data) => {
+        try {
+          await this._roomsManager.joinRoom(nsSocket, data);
+        } catch (e) {
+          console.error(e);
+        }
+      });
+
+      nsSocket.on("leaveRoom", (roomId: number) => {
+        this._roomsManager.leaveRoom(nsSocket, roomId);
+      });
+
+      nsSocket.on("createRoom", async (data: RoomInterface, callback) => {
+        try {
+          await this._securityManager.checkIfUserIsAdminOfNamespace(
+            nsSocket,
+            data.namespaceId
+          );
+          await roomValidator.validateAsync(data);
+          await this._roomsManager.createRoom(data);
+          callback({
+            status: "ok",
+          });
+        } catch (e) {
+          if (e instanceof Error) {
+            callback({
+              status: "error",
+              message: e.message,
+            });
+          }
+        }
+      });
+
+      nsSocket.on("updateRoom", async (data: RoomInterface, callback) => {
+        try {
+          await this._securityManager.checkIfUserIsAdminOfNamespace(
+            nsSocket,
+            data.namespaceId
+          );
+          await roomValidator.validateAsync(data);
+          await this._roomsManager.updateRoom(nsSocket, data);
+          callback({
+            status: "ok",
+          });
+        } catch (e) {
+          if (e instanceof Error) {
+            console.error(e);
+            callback({
+              status: "error",
+              message: e.message,
+            });
+          }
+        }
+      });
+
+      nsSocket.on("deleteRoom", async (data: RoomInterface, callback) => {
+        try {
+          await this._securityManager.checkIfUserIsAdminOfNamespace(
+            nsSocket,
+            data.namespaceId
+          );
+          await this._roomsManager.deleteRoom(nsSocket, data);
+        } catch (e) {
+          if (e instanceof Error) {
+            if (typeof callback === "function")
+              callback({
+                status: "error",
+                message: e.message,
+              });
+          }
+        }
+      });
+
+      nsSocket.on("message", async (data: MessageInterface) => {
+        try {
+          await this._messagesManager.sendMessage(ns, nsSocket, data);
+        } catch (e) {
+          console.error(e);
+        }
+      });
+
+      nsSocket.on("disconnect", () => {
+        const namespaceId = nsSocket.nsp.name;
+        const userId = nsSocket.request.user?.id;
+        this._ios.of(namespaceId).emit("userDisconnect", { id: userId });
+        nsSocket.disconnect();
+      });
+    });
   }
 }
 

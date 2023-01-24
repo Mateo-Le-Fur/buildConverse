@@ -6,24 +6,17 @@ import { useMe } from "@/features/home/stores/meStore";
 import { useUser } from "@/shared/stores";
 import { useRoute, useRouter } from "vue-router";
 import { object } from "zod";
+import { useNamespace } from "@/features/server/stores/namespaceStore";
 
 const route = useRoute();
 
 const socketStore = useSocket();
+const namespaceStore = useNamespace();
 const meStore = useMe();
 const userStore = useUser();
 const router = useRouter();
 
 const shouldShowAnimation = ref<boolean>(true);
-
-onMounted(() => {
-  window.addEventListener("beforeunload", () => {
-    const namespaces = socketStore.namespaces.map((ns) => ns.id);
-    const friends = meStore.friends?.map((friend) => friend.id);
-
-    socketStore.ioClient?.emit("leave", { namespaces, friends });
-  });
-});
 
 watch(router.currentRoute, (value, oldValue) => {
   const isNewValueDifferentFromOld =
@@ -44,31 +37,14 @@ watch(router.currentRoute, (value, oldValue) => {
     shouldShowAnimation.value = firstCheck;
   }
 });
-
-watch(
-  () => socketStore.isNamespacesLoaded,
-  () => {
-    if (socketStore.isNamespacesLoaded) {
-      const namespaces = socketStore.namespaces.map((ns) => ns.id);
-      const friends = meStore.friends?.map((friend) => friend.id);
-      socketStore.ioClient?.emit("join", { namespaces, friends });
-    }
-  }
-);
 </script>
 
 <template>
   <div class="app-container shape d-flex">
-    <Namespace
-      v-if="userStore.isAuthenticated && socketStore.isNamespacesLoaded"
-    />
-    <router-view v-slot="{ Component, route }">
-      <transition
-        :name="shouldShowAnimation === true ? route.meta.transition : 'null'"
-        mode="out-in"
-      >
-        <component :is="Component" :key="route.meta" /> </transition
-    ></router-view>
+    <Namespace v-if="userStore.isAuthenticated" />
+    <router-view v-slot="{ Component }">
+      <component :is="Component" />
+    </router-view>
   </div>
 </template>
 

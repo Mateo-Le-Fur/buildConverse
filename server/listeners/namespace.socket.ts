@@ -3,17 +3,14 @@ import { Server, Socket } from "socket.io";
 import { User, UserNamespace, Room, UserHasNamespace } from "../models";
 import path from "path";
 import sharp from "sharp";
-import {
-  getNumberOfUsers,
-  getNumberOfUserNamespaces,
-} from "../query/namespace.query";
+import { getNumberOfUsers } from "../query/namespace.query";
 import { getRandomImage } from "../utils/getRandomImage";
-import { SocketCustom } from "../interfaces/SocketCustom";
-import { UpdateNamespaceInterface } from "../interfaces/UpdateNamespaceInterface";
-import runService from "../services/runService";
-import { workerData } from "worker_threads";
-import { Op } from "sequelize";
-import { UserInterface } from "../interfaces/User";
+import {
+  UpdateNamespaceInterface,
+  UserInterface,
+  SocketCustom,
+} from "../interfaces";
+import { SecurityManager } from "./security.socket";
 
 const { unlinkImage } = require("../utils/unlinckImage");
 
@@ -22,12 +19,22 @@ class NamespacesManager {
   private _clients: Map<number, string>;
   private readonly _userLimit: number;
   private readonly _userNamespacesLimit: number;
+  private _securityManager: SecurityManager;
 
   constructor(ios: Server, clients: Map<number, string>) {
     this._ios = ios;
     this._clients = clients;
     this._userLimit = 3000;
-    this._userNamespacesLimit = 25;
+    this._userNamespacesLimit = 150;
+    this._securityManager = new SecurityManager(this._ios);
+  }
+
+  public get userLimit() {
+    return this._userLimit;
+  }
+
+  public get userNamespacesLimit() {
+    return this._userNamespacesLimit;
   }
 
   public async getUserNamespaces(socket: SocketCustom) {
@@ -63,22 +70,20 @@ class NamespacesManager {
     const nbUsers = await getNumberOfUsers(namespaceId);
 
     let users = await foundNamespace?.getUsers({
-      attributes: { exclude: ["password"] },
+      attributes: { exclude: ["password", "email"] },
       limit: 50,
       offset: 0,
       raw: true,
       nest: true,
+      order: [["status", "desc"]],
     });
 
     const updateUser = users?.map((element: UserInterface) => {
-      const checkIfUserConnected = this._clients.get(element.id);
-
       return {
         ...element,
         avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
           element.id
         }/${Date.now()}/avatar`,
-        status: checkIfUserConnected ? "online" : "offline",
       };
     });
 
@@ -94,8 +99,6 @@ class NamespacesManager {
   ) {
     const { currentArrayLength, namespaceId } = data;
 
-    const t0 = performance.now();
-
     let namespace = await UserNamespace.findByPk(namespaceId);
 
     const foundUser = await namespace?.getUsers({
@@ -104,17 +107,15 @@ class NamespacesManager {
       offset: currentArrayLength,
       raw: true,
       nest: true,
+      order: [["status", "desc"]],
     });
 
     const updateUser = foundUser?.map((element) => {
-      const checkIfUserConnected = this._clients.get(element.id);
-
       return {
         ...element,
         avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
           element.id
         }/${Date.now()}/avatar`,
-        status: checkIfUserConnected ? "online" : "offline",
       };
     });
 
@@ -125,14 +126,6 @@ class NamespacesManager {
     console.time("create");
 
     const userId = socket.request.user?.id;
-
-    const { count } = await getNumberOfUserNamespaces(userId);
-
-    if (count >= this._userNamespacesLimit) {
-      throw new Error(
-        `Tu ne peut pas créer/rejoindre plus de ${this._userNamespacesLimit} serveur`
-      );
-    }
 
     const imgName = data.imgBuffer ? Date.now() : null;
 
@@ -289,29 +282,6 @@ class NamespacesManager {
 
     const { id: namespaceId } = foundNamespace;
 
-    const checkIfUserAlreadyHasServer = await UserHasNamespace.findOne({
-      where: {
-        userId,
-        namespaceId,
-      },
-    });
-
-    let { count } = await getNumberOfUsers(namespaceId);
-    const checkIfServerIsFull = count >= this._userLimit;
-
-    if (checkIfUserAlreadyHasServer)
-      throw new Error("Tu as déjà rejoint ce serveur");
-
-    if (checkIfServerIsFull) throw new Error("Le serveur est plein");
-
-    const { count: namespacesLimit } = await getNumberOfUserNamespaces(userId);
-
-    if (namespacesLimit >= this._userNamespacesLimit) {
-      throw new Error(
-        `Tu ne peut pas créer/rejoindre plus de ${this._userNamespacesLimit} serveur`
-      );
-    }
-
     await UserHasNamespace.create({
       userId,
       namespaceId,
@@ -361,11 +331,13 @@ class NamespacesManager {
       avatarUrl: `${
         process.env.DEV_AVATAR_URL
       }/user/${userId}/${Date.now()}/avatar`,
-      status: "online",
     };
 
     socket.emit("createdNamespace", [userNamespaces]);
-    this._ios.of(`/${namespaceId}`).emit("userJoinNamespace", [user]);
+
+    if (this._securityManager.checkIfNamespaceIsInit(namespaceId)) {
+      this._ios.of(`/${namespaceId}`).emit("userJoinNamespace", [user]);
+    }
   }
 
   async leaveNamespace(socket: SocketCustom, data: { id: number }) {

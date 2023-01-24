@@ -14,7 +14,7 @@ const userStore = useUser();
 
 const validationSchema = toFormValidator(
   z.object({
-    data: z.string().max(500).optional(),
+    data: z.string().trim().min(1).max(500),
   })
 );
 
@@ -26,7 +26,7 @@ const { value: dataValue, errorMessage: dataError } = useField("data");
 
 const submit = handleSubmit((formValue: MessageInterface) => {
   try {
-    socketStore.activeNsSocket.emit("message", {
+    socketStore.activeNsSocket?.emit("message", {
       data: formValue.data,
       roomId: roomStore.activeRoom?.id,
       avatar: userStore.currentUser?.avatarUrl,
@@ -34,18 +34,12 @@ const submit = handleSubmit((formValue: MessageInterface) => {
 
     resetForm();
   } catch (e: any) {
+    console.error(e);
     setErrors({
       data: e.data,
     });
   }
 });
-
-watch(
-  () => roomStore.activeRoom,
-  () => {
-    resetForm();
-  }
-);
 </script>
 
 <template>

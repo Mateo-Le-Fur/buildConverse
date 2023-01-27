@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { useSocket } from "@/shared/stores/socketStore";
 import PrivateMessage from "@/features/home/components/PrivateMessage.vue";
 import FriendList from "@/features/home/views/FriendList.vue";
 import { useRoute } from "vue-router";
 import { useMe } from "@/features/home/stores/meStore";
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import Namespace from "@/components/Namespace.vue";
+import { onBeforeUnmount } from "vue";
 import { useNamespace } from "@/features/server/stores/namespaceStore";
+import ProfilMobile from "@/features/home/components/mobile/ProfilMobile.vue";
 
 const meStore = useMe();
 const namespaceStore = useNamespace();
@@ -18,8 +17,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="namespaceStore.isNamespacesLoaded" class="d-flex w-100">
+  <div
+    v-if="namespaceStore.isNamespacesLoaded"
+    class="home-container d-flex w-100"
+  >
     <PrivateMessage />
+    <ProfilMobile />
     <div class="d-flex w-100 flex-column">
       <FriendList v-if="!route.params.privateRoomId" />
       <router-view v-else></router-view>
@@ -27,4 +30,11 @@ onBeforeUnmount(() => {
   </div>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+@use "@/assets/mixins.scss";
+.home-container {
+  @include mixins.xs {
+    position: relative;
+  }
+}
+</style>

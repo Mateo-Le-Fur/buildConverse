@@ -45,6 +45,8 @@ const selectedItem = ref<{ text: string; status: string }>(items.value[0]);
           "
           :class="{
             selected: item === selectedItem && !addFriend,
+            online: item.status === 'online',
+            all: item.status === 'all',
             pending: item.status === 'pending',
             add: item.status === 'add',
           }"
@@ -64,16 +66,31 @@ const selectedItem = ref<{ text: string; status: string }>(items.value[0]);
 </template>
 
 <style scoped lang="scss">
+@use "@/assets/mixins.scss";
 .top-bar-container {
-  padding: 15px 20px;
+  padding: 15px 50px;
   box-shadow: 0 4px 6px -6px #111;
   max-height: 50px;
+
+  @include mixins.md {
+    justify-content: center;
+  }
 
   .friend {
     svg {
       width: 25px;
       height: 25px;
       fill: #f4f4f4;
+    }
+
+    p {
+      @include mixins.xs {
+        display: none;
+      }
+    }
+
+    @include mixins.xs {
+      margin-left: 35px;
     }
   }
 
@@ -82,6 +99,10 @@ const selectedItem = ref<{ text: string; status: string }>(items.value[0]);
     min-width: 1px;
     height: 100%;
     background-color: #44484fff;
+
+    @include mixins.xs {
+      margin: 0 7px 0 5px;
+    }
   }
 
   nav {
@@ -99,8 +120,15 @@ const selectedItem = ref<{ text: string; status: string }>(items.value[0]);
         background-color: #44484fff;
       }
 
+      .online {
+      }
+
       .pending {
         position: relative;
+
+        @include mixins.md {
+          display: none;
+        }
       }
 
       .request-count {

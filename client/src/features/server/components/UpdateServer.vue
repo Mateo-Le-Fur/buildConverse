@@ -191,6 +191,8 @@ function previewAvatar(e: Event) {
 </template>
 
 <style scoped lang="scss">
+@use "@/assets/mixins.scss";
+
 .update-server {
   position: absolute;
   top: 40%;
@@ -200,10 +202,20 @@ function previewAvatar(e: Event) {
   box-shadow: 3px 0px 10px 4px rgba(0, 0, 0, 0.5);
   width: 50%;
 
+  @include mixins.xl {
+    transform: translate(calc(50% + 155px), -50%);
+  }
+
   img {
     width: 150px;
     height: 150px;
     border-radius: 50%;
+  }
+
+  form > div:first-child {
+    @include mixins.xl {
+      flex-direction: column;
+    }
   }
 
   label {

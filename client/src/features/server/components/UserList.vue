@@ -24,37 +24,6 @@ function loadMoreUser(e: Event) {
   }
 }
 </script>
-<!--<template>-->
-<!--  <div class="user-container d-flex flex-column">-->
-<!--    <p>Membres: {{ socketStore.numberOfUsers }}</p>-->
-<!--    <RecycleScroller-->
-<!--        @scroll="onScrollToBottom"-->
-<!--        v-if="socketStore.isUsersLoaded"-->
-<!--        :items="userList"-->
-<!--        :min-item-size="1"-->
-<!--        v-slot="{ item }"-->
-<!--        class="scroller"-->
-<!--    >-->
-<!--      <template v-slot="{ item, index, active }">-->
-<!--        <DynamicScrollerItem :item="item" :active="active" :data-index="index">-->
-<!--          <img :src="'data:image/jpeg;base64,' + item.avatar_url" />-->
-<!--          <p :class="{ admin: item.UserHasNamespace?.admin }">-->
-<!--            {{ item.pseudo }}-->
-<!--          </p>-->
-<!--          <div-->
-<!--              :class="{-->
-<!--              online: item.status === 'online',-->
-<!--              offline: item.status === 'offline',-->
-<!--            }"-->
-<!--          ></div>-->
-<!--        </DynamicScrollerItem>-->
-<!--      </template>-->
-<!--    </RecycleScroller>-->
-<!--    <UserLoading v-else />-->
-<!--  </div>-->
-<!--</template>-->
-
-<!--<img :src="'data:image/jpeg;base64,' + item.avatar_url" />-->
 
 <template>
   <div class="user-container d-flex flex-column">
@@ -84,9 +53,7 @@ function loadMoreUser(e: Event) {
 </template>
 
 <style scoped lang="scss">
-.scroller {
-  height: 100%;
-}
+@use "@/assets/mixins.scss";
 
 .user-container {
   padding: 15px 2px 15px 15px;
@@ -94,6 +61,14 @@ function loadMoreUser(e: Event) {
   width: 240px;
   min-width: 240px;
   background-color: var(--primary-2);
+
+  @include mixins.xl {
+    display: none;
+  }
+
+  .scroller {
+    height: 100%;
+  }
 
   .user {
     gap: 15px;

@@ -128,8 +128,13 @@ watch(
 </template>
 
 <style scoped lang="scss">
+@use "@/assets/mixins.scss";
+
 .container {
   background-color: var(--primary-2);
+  @include mixins.md {
+    display: none;
+  }
 
   .nav-container {
     width: 240px;

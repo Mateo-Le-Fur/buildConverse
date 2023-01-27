@@ -83,7 +83,7 @@ function deleteFriend(friendId: number) {
     @selected-item="setItem"
   />
   <template v-if="!addFriend">
-    <div class="d-flex flex-column p-30">
+    <div class="friends-container d-flex flex-column p-30">
       <div
         @click="getConversationWithAFriend(friend.id)"
         class="friends d-flex align-items-center justify-content-space-between"
@@ -156,80 +156,91 @@ function deleteFriend(friendId: number) {
 </template>
 
 <style scoped lang="scss">
-.friends {
-  cursor: pointer;
-  width: 70%;
-  border-top: 1px solid #4a4a55;
-  padding: 12px;
-
-  &:hover {
-    background-color: #4a4a55;
-    border-radius: 5px;
+@use "@/assets/mixins.scss";
+.friends-container {
+  @include mixins.md {
+    align-items: center;
   }
 
-  .pseudo {
-    font-size: 1.1rem;
-  }
+  .friends {
+    cursor: pointer;
+    width: 70%;
+    border-top: 1px solid #4a4a55;
+    padding: 12px;
 
-  .img-container {
-    position: relative;
-    width: 40px;
-    height: 40px;
+    @include mixins.md {
+      width: 95%;
+    }
 
-    img {
+    &:hover {
+      background-color: #4a4a55;
+      border-radius: 5px;
+    }
+
+    .pseudo {
+      font-size: 1.1rem;
+    }
+
+    .img-container {
+      position: relative;
       width: 40px;
       height: 40px;
+
+      img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+      }
+
+      .online {
+        position: absolute;
+        bottom: 0;
+        left: 25px;
+        background-color: green;
+        height: 17px;
+        width: 17px;
+        border-radius: 100%;
+        border: 3px solid var(--primary-2);
+      }
+
+      .offline {
+        position: absolute;
+        bottom: 0;
+        left: 25px;
+        background-color: #6d6d6d;
+        height: 17px;
+        width: 17px;
+        border-radius: 100%;
+        border: 3px solid var(--primary-2);
+      }
+    }
+
+    .accept {
+      cursor: pointer;
+    }
+
+    .decline {
+      cursor: pointer;
+    }
+
+    .svg-icon {
+      cursor: pointer;
+      background-color: var(--primary-2);
       border-radius: 50%;
-    }
+      height: 35px;
+      width: 35px;
 
-    .online {
-      position: absolute;
-      bottom: 0;
-      left: 25px;
-      background-color: green;
-      height: 17px;
-      width: 17px;
-      border-radius: 100%;
-      border: 3px solid var(--primary-2);
-    }
+      .chat {
+        fill: #dddddd;
+        height: 15px;
+        width: 15px;
+      }
 
-    .offline {
-      position: absolute;
-      bottom: 0;
-      left: 25px;
-      background-color: #6d6d6d;
-      height: 17px;
-      width: 17px;
-      border-radius: 100%;
-      border: 3px solid var(--primary-2);
-    }
-  }
-
-  .accept {
-    cursor: pointer;
-  }
-
-  .decline {
-    cursor: pointer;
-  }
-
-  .svg-icon {
-    cursor: pointer;
-    background-color: var(--primary-2);
-    border-radius: 50%;
-    height: 35px;
-    width: 35px;
-
-    .chat {
-      fill: #dddddd;
-      height: 15px;
-      width: 15px;
-    }
-
-    .delete {
-      fill: #eb4144ff;
-      height: 18px;
-      width: 18px;
+      .delete {
+        fill: #eb4144ff;
+        height: 18px;
+        width: 18px;
+      }
     }
   }
 }

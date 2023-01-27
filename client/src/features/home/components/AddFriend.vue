@@ -71,12 +71,20 @@ const { value: pseudoValue, errorMessage: pseudoError } = useField("pseudo");
 </template>
 
 <style scoped lang="scss">
+@use "@/assets/mixins.scss";
 .add-friend-container {
   width: 70%;
   flex-wrap: wrap;
   border-radius: 4px;
   margin-left: 15px;
   overflow: hidden;
+  @include mixins.md {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    margin: 0;
+    width: 100%;
+  }
 
   .title-container {
     flex: 1;
@@ -94,6 +102,14 @@ const { value: pseudoValue, errorMessage: pseudoError } = useField("pseudo");
     background-color: var(--primary-3);
     border-radius: 8px;
 
+    @include mixins.md {
+      align-items: center;
+      min-height: 100px;
+      max-height: 100px;
+      flex-direction: column;
+      background-color: var(--primary-1);
+    }
+
     input {
       font-size: 1rem;
       flex: 1;
@@ -106,6 +122,12 @@ const { value: pseudoValue, errorMessage: pseudoError } = useField("pseudo");
         font-size: 0.9rem;
         letter-spacing: 1px;
       }
+
+      @include mixins.md {
+        height: 30px;
+        margin-bottom: 20px;
+        padding: 25px 8px;
+      }
     }
     button {
       flex: 1;
@@ -116,6 +138,12 @@ const { value: pseudoValue, errorMessage: pseudoError } = useField("pseudo");
       padding: 8px;
       background-color: #236cab;
       border-radius: 3px;
+
+      @include mixins.md {
+        min-height: 45px;
+        min-width: 200px;
+        max-width: 250px;
+      }
 
       div {
         white-space: nowrap;
@@ -128,6 +156,10 @@ const { value: pseudoValue, errorMessage: pseudoError } = useField("pseudo");
   .form-error {
     margin-top: 0.2rem;
     text-align: left;
+
+    @include mixins.md {
+      margin-top: 1rem;
+    }
   }
 
   .send-request-ok {

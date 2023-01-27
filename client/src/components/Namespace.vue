@@ -8,12 +8,16 @@ import { useRoom } from "@/features/server/stores/roomStore";
 import AddServerPopup from "@/components/AddServerPopup.vue";
 import { useRoute } from "vue-router";
 import { useNamespace } from "@/features/server/stores/namespaceStore";
+import Burger from "@/components/Burger.vue";
 
 const socketStore = useSocket();
 const namespaceStore = useNamespace();
 const roomStore = useRoom();
 const route = useRoute();
 const addServerPopup = ref<boolean>(false);
+
+const isOpen = ref<boolean>(false);
+const isMobile = ref<boolean>(!matchMedia("(min-width: 575px)").matches);
 
 function displayTooltip(): void {
   const anchorElem = [
@@ -33,6 +37,37 @@ function displayTooltip(): void {
   }
 }
 
+function changeNamespace(namespaceId: number, home: boolean = false) {
+  if (
+    socketStore.activeNsSocket &&
+    namespaceId !== Number(route.params.idChannel)
+  ) {
+    socketStore.activeNsSocket.emit("leaveRoom", roomStore.activeRoom?.id);
+  }
+  if (home) {
+    socketStore.activeNsSocket = null;
+  }
+}
+
+function displayNav() {
+  const namespaceElem = document.querySelector(".namespace-container");
+
+  namespaceElem?.classList.remove("hide");
+
+  namespaceElem?.classList.add("display");
+
+  isOpen.value = true;
+}
+
+function hideNav() {
+  const namespaceElem = document.querySelector(".namespace-container");
+
+  namespaceElem?.classList.remove("display");
+
+  namespaceElem?.classList.add("hide");
+
+  isOpen.value = false;
+}
 watch(
   () => namespaceStore.isNamespacesLoaded,
   async (newValue) => {
@@ -52,24 +87,18 @@ watch(
     }
   }
 );
-
-function changeNamespace(namespaceId: number, home: boolean = false) {
-  if (
-    socketStore.activeNsSocket &&
-    namespaceId !== Number(route.params.idChannel)
-  ) {
-    socketStore.activeNsSocket.emit("leaveRoom", roomStore.activeRoom?.id);
-  }
-  if (home) {
-    socketStore.activeNsSocket = null;
-  }
-}
 </script>
 
 <template>
   <nav
     class="namespace-container flex-fill d-flex flex-column align-items-center"
   >
+    <Burger
+      v-if="isMobile"
+      :is-open="isOpen"
+      @display="displayNav()"
+      @hide="hideNav()"
+    />
     <div class="scroll d-flex flex-column align-items-center">
       <router-link
         @click="socketStore.activeNsSocket ? changeNamespace(null, true) : ''"
@@ -141,11 +170,19 @@ function changeNamespace(namespaceId: number, home: boolean = false) {
 </template>
 
 <style scoped lang="scss">
+@use "@/assets/mixins.scss";
 .namespace-container {
+  height: 100%;
   padding: 10px;
   max-width: 70px;
   background-color: var(--primary-3);
   z-index: 2;
+
+  @include mixins.xs {
+    display: none;
+    position: absolute;
+    z-index: 8;
+  }
 
   .scroll {
     overflow-y: auto;
@@ -223,5 +260,13 @@ function changeNamespace(namespaceId: number, home: boolean = false) {
   .active {
     border-radius: 40%;
   }
+}
+
+.display {
+  display: flex;
+}
+
+.hide {
+  display: none;
 }
 </style>

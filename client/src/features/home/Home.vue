@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import PrivateMessage from "@/features/home/components/PrivateMessage.vue";
+import PrivateMessage from "@/features/home/components/message/PrivateMessage.vue";
 import FriendList from "@/features/home/views/FriendList.vue";
 import { useRoute } from "vue-router";
 import { useMe } from "@/features/home/stores/meStore";

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Namespace from "@/components/Namespace.vue";
+import Namespace from "@/components/namespace/Namespace.vue";
 import { onMounted, ref, watch } from "vue";
 import { useSocket } from "@/shared/stores/socketStore";
 import { useMe } from "@/features/home/stores/meStore";

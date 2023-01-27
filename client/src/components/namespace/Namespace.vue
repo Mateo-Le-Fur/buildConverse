@@ -5,10 +5,10 @@ import "tippy.js/dist/svg-arrow.css";
 import { useSocket } from "@/shared/stores/socketStore";
 import { nextTick, ref, watch } from "vue";
 import { useRoom } from "@/features/server/stores/roomStore";
-import AddServerPopup from "@/components/AddServerPopup.vue";
+import AddServerPopup from "@/components/namespace/AddServerPopup.vue";
 import { useRoute } from "vue-router";
 import { useNamespace } from "@/features/server/stores/namespaceStore";
-import Burger from "@/components/Burger.vue";
+import Burger from "@/components/mobile/Burger.vue";
 
 const socketStore = useSocket();
 const namespaceStore = useNamespace();

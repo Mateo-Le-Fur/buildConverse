@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import Profil from "@/components/Profil.vue";
-import SearchBar from "@/features/home/components/SearchBar.vue";
+import Profil from "@/components/profil/Profil.vue";
+import SearchBar from "@/features/home/components/search/SearchBar.vue";
 import { onMounted, reactive, ref, watch } from "vue";
 import { useMe } from "@/features/home/stores/meStore";
 import { useRoute } from "vue-router";

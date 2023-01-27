@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import SendMessage from "@/features/home/components/SendMessage.vue";
+import SendMessage from "@/features/home/components/message/SendMessage.vue";
 import { useMe } from "@/features/home/stores/meStore";
-import ChatTopBar from "@/features/home/components/ChatTopBar.vue";
+import ChatTopBar from "@/features/home/components/chat/ChatTopBar.vue";
 import {
   nextTick,
   onBeforeUnmount,

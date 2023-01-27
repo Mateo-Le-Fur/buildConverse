@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import uploadImgUrl from "@/assets/images/upload.svg";
-import CreateServer from "@/components/CreateServer.vue";
-import JoinServer from "@/components/JoinServer.vue";
+import CreateServer from "@/components/namespace/CreateServer.vue";
+import JoinServer from "@/components/namespace/JoinServer.vue";
 
 let namespaceImage = ref<File>();
 let src = ref<string | ArrayBuffer | null>();

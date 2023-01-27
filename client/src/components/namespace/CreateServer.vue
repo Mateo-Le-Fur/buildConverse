@@ -5,7 +5,7 @@ import { toFormValidator } from "@vee-validate/zod";
 import { z } from "zod";
 import { generateInviteCode } from "@/utils/generateInviteCode";
 import { useSocket } from "@/shared/stores/socketStore";
-import Spinner from "@/components/Spinner.vue";
+import Spinner from "@/components/laoder/Spinner.vue";
 import { ref } from "vue";
 import { useNamespace } from "@/features/server/stores/namespaceStore";
 

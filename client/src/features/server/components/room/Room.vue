@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Profil from "@/components/Profil.vue";
+import Profil from "@/components/profil/Profil.vue";
 import type { RouteParams } from "vue-router";
 import type { RoomInterface } from "@/shared/interfaces/Room";
 import {

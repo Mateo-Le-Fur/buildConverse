@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import ProfilPopup from "@/components/ProfilPopup.vue";
+import ProfilPopup from "@/components/profil/ProfilPopup.vue";
 
 const openProfil = ref<boolean>(false);
 </script>

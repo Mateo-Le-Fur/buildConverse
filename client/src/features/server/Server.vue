@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import Room from "@/features/server/components/Room.vue";
-import UserList from "@/features/server/components/UserList.vue";
+import Room from "@/features/server/components/room/Room.vue";
+import UserList from "@/features/server/components/user/UserList.vue";
 import { useRoute } from "vue-router";
 import { useSocket } from "@/shared/stores/socketStore";
 import type { RoomInterface } from "@/shared/interfaces/Room";
 import { nextTick, onMounted, onUnmounted, watch, watchEffect } from "vue";
 import { useRoom } from "@/features/server/stores/roomStore";
 import { useNsUser } from "@/features/server/stores/userNsStore";
-import ServerOptions from "@/features/server/components/ServerOptions.vue";
-import SearchBar from "@/features/server/components/SearchBar.vue";
-import Namespace from "@/components/Namespace.vue";
+import ServerOptions from "@/features/server/components/namespace/ServerOptions.vue";
+import SearchBar from "@/features/server/components/search/SearchBar.vue";
+import Namespace from "@/components/namespace/Namespace.vue";
 import { useNamespace } from "@/features/server/stores/namespaceStore";
 
 const route = useRoute();

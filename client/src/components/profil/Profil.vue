@@ -2,7 +2,7 @@
 import { reactive } from "vue";
 import { useUser } from "@/shared/stores";
 
-import ProfilPopup from "@/components/ProfilPopup.vue";
+import ProfilPopup from "@/components/profil/ProfilPopup.vue";
 
 const userStore = useUser();
 

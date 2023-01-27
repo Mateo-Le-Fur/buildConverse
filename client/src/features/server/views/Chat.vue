@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useSocket } from "@/shared/stores/socketStore";
-import SendMessage from "../components/SendMessage.vue";
+import SendMessage from "../components/message/SendMessage.vue";
 import { nextTick, onBeforeUnmount, watch, watchEffect } from "vue";
 import { useRoom } from "@/features/server/stores/roomStore";
 import { useChat } from "@/shared/stores/chatStore";

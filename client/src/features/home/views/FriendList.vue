@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import FriendListTopBar from "@/features/home/components/FriendListTopBar.vue";
+import FriendListTopBar from "@/features/home/components/friend/FriendListTopBar.vue";
 import { ref, watch, watchEffect } from "vue";
 import { useMe } from "@/features/home/stores/meStore";
 import type { FriendsInterface } from "@/shared/interfaces/FriendsInterface";
-import AddFriend from "@/features/home/components/AddFriend.vue";
+import AddFriend from "@/features/home/components/friend/AddFriend.vue";
 import { useSocket } from "@/shared/stores/socketStore";
-import DeleteFriend from "@/features/home/components/DeleteFriend.vue";
-import PendingFriendRequest from "@/features/home/components/PendingFriendRequest.vue";
+import DeleteFriend from "@/features/home/components/friend/DeleteFriend.vue";
+import PendingFriendRequest from "@/features/home/components/friend/PendingFriendRequest.vue";
 
 const addFriend = ref<boolean>(false);
 const confirmDelete = ref<boolean>(false);

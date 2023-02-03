@@ -12,11 +12,9 @@ export function useGetMessage<
 
   if (store.messages.length >= 100) store.messages.pop();
 
-  if (chatStore.page === 1) {
+  if (chatStore.page <= 1) {
     store.messages.push(message);
     store.messages.sort((a, b) => b.id - a.id);
-  } else if (chatStore.page === 0) {
-    store.messages.push(message);
   }
 
   store.isMessagePushInArray = true;

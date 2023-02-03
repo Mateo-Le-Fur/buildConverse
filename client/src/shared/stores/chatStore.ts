@@ -17,6 +17,38 @@ interface ChatState {
   direction: string | null;
 }
 
+function shouldShowAvatar<Type extends MessageInterface>(
+  previous: Type,
+  message: Type
+): boolean {
+  if (!previous) return true;
+
+  const differentUser = message.authorName !== previous.authorName;
+
+  /* On doit aussi vérifier que la date n'a pas changé, si c'est le cas il faut afficher de nouveau
+   * l'avatar peu importe l'utilisateur */
+
+  return differentUser || dateSeparator(previous, message);
+}
+
+function dateSeparator<Type extends MessageInterface>(
+  previous: Type,
+  message: Type
+): boolean {
+  const messageStore = useMessage();
+  if (previous) {
+    const previousDate = new Date(previous.created_at).getDay();
+    const date = new Date(message.created_at).getDay();
+
+    return previousDate !== date;
+  }
+
+  /* Si le premier message est undefined "const previous = values[index - 1] ==> undefined",
+   * et que l'on a atteint le début de la conversation alors il faut
+   * afficher un séparateur */
+  return !previous && messageStore.isBeginningConversation;
+}
+
 export const useChat = defineStore("chat", {
   state: (): ChatState => ({
     element: ref(null),
@@ -28,7 +60,33 @@ export const useChat = defineStore("chat", {
     direction: null,
   }),
 
-  getters: {},
+  getters: {
+    filteredMessages() {
+      return <T extends PrivateMessageInterface | MessageInterface>(
+        messages: T[]
+      ): T[] => {
+        // On s'assure qu'il n'y a pas de valeurs dupliquées
+        const key = "id";
+        const values = [
+          ...new Map(messages.map((item) => [item[key], item])).values(),
+        ];
+        // On trie les messages par id, et on vérifie s'il est nécessaire d'afficher l'avatar ou un séparateur de date
+        return values
+          .sort((a, b) => a.id - b.id)
+          .map((message, index) => {
+            const previous = values[index - 1];
+            const showAvatar = shouldShowAvatar(previous, message);
+            const separator = dateSeparator(previous, message);
+
+            return {
+              ...message,
+              avatarAuthor: showAvatar ? message.avatarAuthor : null,
+              separator,
+            };
+          });
+      };
+    },
+  },
 
   actions: {
     init(scrollDiv: HTMLDivElement | null) {
@@ -128,63 +186,6 @@ export const useChat = defineStore("chat", {
           }
         });
       }
-    },
-
-    filteredMessages<Type extends PrivateMessageInterface | MessageInterface>(
-      messages: Type[]
-    ): Type[] {
-      // On s'assure qu'il n'y a pas de valeurs dupliquées
-      const key = "id";
-      const values = [
-        ...new Map(messages.map((item) => [item[key], item])).values(),
-      ];
-
-      // On trie les messages par id, et on vérifie s'il est nécessaire d'afficher l'avatar ou un séparateur de date
-      return values
-        .sort((a, b) => a.id - b.id)
-        .map((message, index) => {
-          const previous = values[index - 1];
-          const showAvatar = this.shouldShowAvatar(previous, message);
-          const separator = this.dateSeparator(previous, message);
-
-          return {
-            ...message,
-            avatarAuthor: showAvatar ? message.avatarAuthor : null,
-            separator,
-          };
-        });
-    },
-
-    shouldShowAvatar<Type extends MessageInterface>(
-      previous: Type,
-      message: Type
-    ): boolean {
-      if (!previous) return true;
-
-      const differentUser = message.authorName !== previous.authorName;
-
-      /* On doit aussi vérifier que la date n'a pas changé, si c'est le cas il faut afficher de nouveau
-       * l'avatar peu importe l'utilisateur */
-
-      return differentUser || this.dateSeparator(previous, message);
-    },
-
-    dateSeparator<Type extends MessageInterface>(
-      previous: Type,
-      message: Type
-    ): boolean {
-      const messageStore = useMessage();
-      if (previous) {
-        const previousDate = new Date(previous.created_at).getDay();
-        const date = new Date(message.created_at).getDay();
-
-        return previousDate !== date;
-      }
-
-      /* Si le premier message est undefined "const previous = values[index - 1] ==> undefined",
-       * et que l'on a atteint le début de la conversation alors il faut
-       * afficher un séparateur */
-      return !previous && messageStore.isBeginningConversation;
     },
 
     resetChat() {

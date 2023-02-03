@@ -45,8 +45,6 @@ function createNamespace(formValue: Namespace) {
         setErrors({
           name: response.message,
         });
-
-        namespaceStore.creatingNamespace = false;
       }
     }
   );
@@ -87,7 +85,7 @@ const { value: nameValue, errorMessage: nameError } = useField(
       <p class="form-error" v-if="nameError">{{ nameError }}</p>
 
       <div class="send-form d-flex flex-column mb-20">
-        <button v-if="!socketStore.creatingNamespace">C'est partie !</button>
+        <button v-if="!namespaceStore.creatingNamespace">C'est partie !</button>
         <div v-else class="d-flex align-items-center justify-content-center">
           <Spinner />
         </div>

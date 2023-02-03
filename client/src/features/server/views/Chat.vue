@@ -24,8 +24,8 @@ watch(
     if (value && chatStore.page <= 1) {
       await nextTick();
       chatStore.scrollToBottom();
-      messageStore.isMessagePushInArray = false;
     }
+    messageStore.isMessagePushInArray = false;
   }
 );
 

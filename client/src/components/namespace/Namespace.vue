@@ -204,7 +204,7 @@ watch(
     border-radius: 50%;
 
     svg {
-      fill: #f4f4f4;
+      fill: var(--yellow);
     }
 
     &:hover {
@@ -232,11 +232,11 @@ watch(
     height: 50px;
     border-radius: 50%;
     background-color: var(--primary-1);
-    color: #f4f4f4;
+    color: var(--yellow);
 
     &:hover {
       border-radius: 40%;
-      background-color: #f4f4f4;
+      background-color: var(--yellow);
       color: var(--primary-1) !important;
     }
 

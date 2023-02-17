@@ -40,23 +40,8 @@ export const useSocket = defineStore("socket", {
     init() {
       this.ioClient = io(this.opts);
 
-      let checkInterval: number;
-      this.ioClient.on("connect", () => {
-        checkInterval = setInterval(() => {
-          this.ioClient?.emit("jwt_expire", () => "check");
-        }, 1000 * 60);
-      });
-
       this.ioClient?.on("connect_error", (err) => {
         console.log(err.message);
-      });
-
-      this.ioClient?.on("jwt_expire", async (data: boolean) => {
-        if (data) {
-          clearInterval(checkInterval);
-          const userStore = useUser();
-          await userStore.logout();
-        }
       });
     },
 
@@ -164,10 +149,6 @@ export const useSocket = defineStore("socket", {
           await this.router.push(`/channels/${ns.id}/${ns.rooms[0].id}`);
         });
       });
-
-      this.ioClient?.on("loadMoreMessages", (data: MessageInterface[]) => {
-        messageStore.loadMoreMessages(data);
-      });
     },
 
     initNamespaceData(
@@ -228,6 +209,10 @@ export const useSocket = defineStore("socket", {
 
       nsSocket.on("message", (data: MessageInterface) => {
         messageStore.getMessage(data);
+      });
+
+      nsSocket.on("loadMoreMessages", (data: MessageInterface[]) => {
+        messageStore.loadMoreMessages(data);
       });
 
       nsSocket.on("createRoom", async (data: RoomInterface) => {

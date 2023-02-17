@@ -12,8 +12,10 @@ import {
   watch,
 } from "vue";
 import { useChat } from "@/shared/stores/chatStore";
+import { useSocket } from "@/shared/stores/socketStore";
 
 const meStore = useMe();
+const socketStore = useSocket();
 const chatStore = useChat();
 
 const isMounted = ref<boolean>(false);
@@ -40,17 +42,6 @@ watch(
     }
   }
 );
-
-watch(
-  () => meStore.isMoreMessagesLoaded,
-  async (value) => {
-    if (value) {
-      await nextTick();
-      chatStore.newMessagesLoaded();
-      meStore.isMoreMessagesLoaded = false;
-    }
-  }
-);
 </script>
 <template>
   <div class="chat-container d-flex flex-column flex-fill">
@@ -58,7 +49,10 @@ watch(
       @scroll="
         chatStore.loadMoreMessages(
           $event,
-          'loadMoreMessages',
+          {
+            socket: socketStore.ioClient,
+            eventName: 'loadMorePrivateMessages',
+          },
           meStore.messages.length,
           meStore.currentRecipient?.privateRoomId
         )

@@ -10,23 +10,20 @@ import {
   UserInterface,
   SocketCustom,
 } from "../interfaces";
-import { SecurityManager } from "./security.socket";
 
 const { unlinkImage } = require("../utils/unlinckImage");
 
 class NamespacesManager {
-  private _ios: Server;
-  private _clients: Map<number, string>;
+  protected _ios: Server;
+  protected _clients: Map<number, string>;
   private readonly _userLimit: number;
   private readonly _userNamespacesLimit: number;
-  private _securityManager: SecurityManager;
 
   constructor(ios: Server, clients: Map<number, string>) {
     this._ios = ios;
     this._clients = clients;
     this._userLimit = 3000;
     this._userNamespacesLimit = 150;
-    this._securityManager = new SecurityManager(this._ios);
   }
 
   public get userLimit() {
@@ -40,7 +37,7 @@ class NamespacesManager {
   public async getUserNamespaces(socket: SocketCustom) {
     const userId = socket.request.user?.id;
 
-    let foundUsersNamespace = (
+    let foundUserNamespaces = (
       await User.findByPk(userId, {
         include: {
           model: UserNamespace,
@@ -50,7 +47,7 @@ class NamespacesManager {
       })
     )?.toJSON();
 
-    const namespaces = foundUsersNamespace?.namespaces?.map(
+    const namespaces = foundUserNamespaces?.namespaces?.map(
       (namespace: NamespaceInterface) => {
         return {
           ...namespace,
@@ -64,7 +61,9 @@ class NamespacesManager {
     socket.emit("namespaces", namespaces);
   }
 
-  public async getNamespaceUsers(nsSocket: Socket, namespaceId: number) {
+  public async getNamespaceUsers(nsSocket: Socket) {
+    const namespaceId = Number(nsSocket.nsp.name.substring(1));
+
     let foundNamespace = await UserNamespace.findByPk(namespaceId);
 
     const nbUsers = await getNumberOfUsers(namespaceId);
@@ -95,9 +94,11 @@ class NamespacesManager {
 
   public async loadMoreUser(
     nsSocket: Socket,
-    data: { currentArrayLength: number; namespaceId: number }
+    data: { currentArrayLength: number }
   ) {
-    const { currentArrayLength, namespaceId } = data;
+    const { currentArrayLength } = data;
+
+    const namespaceId = Number(nsSocket.nsp.name.substring(1));
 
     let namespace = await UserNamespace.findByPk(namespaceId);
 
@@ -123,8 +124,6 @@ class NamespacesManager {
   }
 
   public async createNamespace(socket: SocketCustom, data: NamespaceInterface) {
-    console.time("create");
-
     const userId = socket.request.user?.id;
 
     const imgName = data.imgBuffer ? Date.now() : null;
@@ -181,8 +180,6 @@ class NamespacesManager {
     };
 
     socket.emit("createdNamespace", [userNamespace]);
-
-    console.timeEnd("create");
   }
 
   public async updateNamespace(
@@ -335,9 +332,7 @@ class NamespacesManager {
 
     socket.emit("createdNamespace", [userNamespaces]);
 
-    if (this._securityManager.checkIfNamespaceIsInit(namespaceId)) {
-      this._ios.of(`/${namespaceId}`).emit("userJoinNamespace", [user]);
-    }
+    this._ios.of(`/${namespaceId}`).emit("userJoinNamespace", [user]);
   }
 
   async leaveNamespace(socket: SocketCustom, data: { id: number }) {

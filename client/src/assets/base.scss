@@ -4,7 +4,7 @@
   --primary-2: #2F3136;
   --primary-3: #202225;
   --danger-1: #e74c3c;
-  --danger-2: #c0392b;
+  --danger-2: #D33E43;
   --success-1: #2ecc71;
   --success-2: #27ae60;
   --gray-1: #f6f6f6;
@@ -12,6 +12,7 @@
   --gray-3: #34495e;
   --text-color: #444;
   --text-primary-color: #ffffff;
+  --yellow: #EEC643;
 
   --border: 1px solid var(--gray-2);
 
@@ -26,7 +27,7 @@
 
 h1, h2, h3, h4 {
   margin: 0;
-  color: #f4f4f4;
+  color: #F0F0F0;
 }
 
 ul {
@@ -36,7 +37,7 @@ ul {
 }
 
 li {
-  color: #f4f4f4;
+  color: #F0F0F0;
 }
 
 a {
@@ -45,7 +46,7 @@ a {
 
 p {
   margin: 0;
-  color: #f4f4f4;
+  color: #F0F0F0;
 
 }
 
@@ -70,7 +71,7 @@ input, textarea, select {
   border: var(--border);
   border-radius: 4px;
   padding: 8px 15px;
-  color: #f4f4f4;
+  color: #F0F0F0;
 }
 
 label {
@@ -81,7 +82,7 @@ label {
 
 .form-error {
   max-width: 250px;
-  color: #eb4144ff;
+  color: #E3170A;
   font-size: 14px;
   font-weight: 500;
   text-align: center;
@@ -307,14 +308,6 @@ h2 {
   width: 100%;
   z-index: 2;
 
-  .background {
-    position: relative;
-    height: 100vh;
-    width: 100vw;
-    background-image: url("@/assets/images/background.png");
-    background-repeat: no-repeat;
-    background-size: cover;
-  }
 
   .form-signup {
     width: 25%;
@@ -442,13 +435,14 @@ h2 {
 
 }
 
-
-
 .background {
-  position: absolute;
+  position: relative;
   height: 100vh;
   width: 100vw;
-  background-image: url("@/assets/images/background.png");
-  background-repeat: no-repeat;
-  background-size: cover;
+  background: rgb(54,57,53);
+  background: linear-gradient(141deg, rgba(63,66,62,1) 0%, rgba(67,121,163,1) 78%, rgba(54,142,217,1) 100%);
+
 }
+
+
+

@@ -6,7 +6,7 @@ import { useSocket } from "@/shared/stores/socketStore";
 import type { MeState } from "@/shared/interfaces/meState";
 import { useMessage } from "@/features/server/stores/messageStore";
 import { useGetMessage } from "@/composables/useGetMessage";
-import { useLoadMoreMessage } from "@/composables/useLoadMoreMessage";
+import { useLoadMoreMessages } from "@/composables/useLoadMoreMessages";
 
 export const useMe = defineStore("me", {
   state: (): MeState => ({
@@ -15,7 +15,6 @@ export const useMe = defineStore("me", {
     currentRecipient: null,
     isConversationLoaded: false,
     isMessagesLoaded: false,
-    isMoreMessagesLoaded: false,
     messages: [],
     previousMessages: [],
     isMessagePushInArray: false,
@@ -56,13 +55,13 @@ export const useMe = defineStore("me", {
 
     getPrivateMessageHistory(data: PrivateMessageInterface[]) {
       this.isMessagesLoaded = false;
-      this.isBeginningConversation = data.length < 50;
+      this.isBeginningConversation = data.length < 100;
       this.messages = data;
       this.isMessagesLoaded = true;
     },
 
     loadMorePrivateMessages(data: PrivateMessageInterface[]) {
-      useLoadMoreMessage(data, this);
+      useLoadMoreMessages(data, this);
     },
 
     privateMessage(data: PrivateMessageInterface) {

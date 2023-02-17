@@ -5,7 +5,7 @@ import { SocketCustom } from "../interfaces/SocketCustom";
 import { Namespace } from "socket.io/dist/namespace";
 
 class MessageManager {
-  private _ios: Server;
+  protected _ios: Server;
 
   constructor(ios: Server) {
     this._ios = ios;

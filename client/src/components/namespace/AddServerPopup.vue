@@ -45,7 +45,7 @@ watch(namespaceImage, (NewValue) => {
         type="file"
       />
       <CreateServer :namespace-image="namespaceImage" />
-      <JoinServer @close-popup="emit('closePopup')"/>
+      <JoinServer @close-popup="emit('closePopup')" />
     </div>
   </div>
 </template>
@@ -89,7 +89,8 @@ watch(namespaceImage, (NewValue) => {
   button {
     cursor: pointer;
     width: inherit;
-    background-color: #236cab;
+    background-color: var(--yellow);
+    color: black;
     outline: none;
     border: none;
     border-radius: 3px;

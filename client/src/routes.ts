@@ -27,7 +27,6 @@ export const router = createRouter({
     {
       path: "/channels/me",
       beforeEnter: [isAuthenticatedGaurd],
-      meta: { transition: "home" },
       component: () => import("@/features/home/Home.vue"),
       children: [
         {
@@ -47,7 +46,6 @@ export const router = createRouter({
 
     {
       path: "/channels/:idChannel",
-      meta: { transition: "server" },
       beforeEnter: [isAuthenticatedGaurd],
       component: () => import("@/features/server/Server.vue"),
       children: [

@@ -145,8 +145,7 @@ const selectedItem = ref<{ text: string; status: string }>(items.value[0]);
     }
 
     .add {
-      color: #f4f4f4;
-      background-color: #2d7c45ff;
+      background-color: #0072bb;
     }
   }
 }

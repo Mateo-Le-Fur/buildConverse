@@ -129,7 +129,7 @@ const { value: nameValue, errorMessage: nameError } = useField("name");
     outline: none;
     border: none;
     border-radius: 4px;
-    background-color: #236cab;
+    background-color: var(--yellow);
   }
 }
 </style>

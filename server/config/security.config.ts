@@ -1,21 +1,28 @@
 import cookieParser from "cookie";
 import authProtect from "./jwt.config";
+import { JWTPayload, RequestCustom } from "../interfaces";
+import http from "http";
+import { JwtPayload } from "jsonwebtoken";
+
+interface RequestHandshake extends http.IncomingMessage {
+  user?: string | JwtPayload;
+}
 
 export async function ensureAuthenticatedOnSocketHandshake(
-  request: any,
-  success: (arg0: any, arg1: boolean) => void
+  request: RequestHandshake,
+  cb: (error: string | null | undefined, success: boolean) => void
 ) {
   try {
     const cookies = cookieParser.parse(request.headers.cookie || "");
     if (cookies && cookies.jwt) {
-      // @ts-ignore
       request.user = authProtect.decodedToken(cookies.jwt);
-      success(null, true);
+      cb(null, true);
     } else {
-      success(null, false);
+      cb(null, false);
     }
   } catch (e) {
-    console.error(e);
-    success(null, false);
+    if (e instanceof Error) {
+      cb(e.message, false);
+    }
   }
 }

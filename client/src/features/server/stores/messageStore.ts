@@ -2,14 +2,13 @@ import { defineStore } from "pinia";
 
 import type { MessageInterface } from "@/shared/interfaces/MessageInterface";
 import { useGetMessage } from "@/composables/useGetMessage";
-import { useLoadMoreMessage } from "@/composables/useLoadMoreMessage";
+import { useLoadMoreMessages } from "@/composables/useLoadMoreMessages";
 import type { MessageState } from "@/shared/interfaces/MessageState";
 
 export const useMessage = defineStore("message", {
   state: (): MessageState => ({
     messages: [],
     previousMessages: [],
-    isMoreMessagesLoaded: false,
     isMessagePushInArray: false,
     isBeginningConversation: false,
     isMessagesLoaded: false,
@@ -27,8 +26,9 @@ export const useMessage = defineStore("message", {
       useGetMessage(data, this);
     },
 
-    loadMoreMessages(data: MessageInterface[]) {
-      useLoadMoreMessage(data, this);
+    async loadMoreMessages(data: MessageInterface[]) {
+      // console.log(this.messages);
+      await useLoadMoreMessages(data, this);
     },
   },
 });

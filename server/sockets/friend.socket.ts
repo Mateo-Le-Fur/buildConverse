@@ -13,8 +13,8 @@ import { PrivateMessageInterface } from "../interfaces/PrivateMessageInterface";
 import { UserInterface } from "../interfaces/User";
 
 class FriendsManager {
-  private _ios: Server;
-  private _clients: Map<number, string>;
+  protected _ios: Server;
+  protected _clients: Map<number, string>;
 
   constructor(ios: Server, clients: Map<number, string>) {
     this._ios = ios;

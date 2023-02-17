@@ -265,6 +265,8 @@ watchEffect(() => {
   }
 
   input {
+    border: 1px solid var(--yellow);
+
     @include mixins.md {
       font-size: 0.9rem !important;
     }
@@ -290,14 +292,14 @@ watchEffect(() => {
       width: 45%;
 
       label {
-        color: #f4f4f4;
+        color: #f0f0f0;
       }
 
       input {
         width: 100%;
         outline: none;
         background-color: #1f2023;
-        color: #f4f4f4;
+        color: #f0f0f0;
         font-size: 1.1rem;
       }
     }
@@ -306,13 +308,13 @@ watchEffect(() => {
       width: 45%;
 
       label {
-        color: #f4f4f4;
+        color: #f0f0f0;
       }
 
       input {
         outline: none;
         background-color: #1f2023;
-        color: #f4f4f4;
+        color: #f0f0f0;
         font-size: 1.1rem;
       }
     }
@@ -330,6 +332,7 @@ watchEffect(() => {
         outline: none;
         resize: none;
         background-color: #1f2023;
+        border: 1px solid var(--yellow);
       }
     }
   }
@@ -343,7 +346,8 @@ watchEffect(() => {
     outline: none;
     padding: 15px 10px;
     border-radius: 5px;
-    background-color: var(--primary-1);
+    color: black;
+    background-color: var(--yellow);
   }
 
   .back {
@@ -354,16 +358,17 @@ watchEffect(() => {
     outline: none;
     padding: 15px 10px;
     border-radius: 5px;
-    background-color: #eb4144ff;
+    background-color: var(--danger-2);
   }
 
   .danger-line {
     width: 90%;
-    border-top: 1px solid #e10c0c;
+    border-top: 1px solid #f24333;
     margin-top: 50px;
     padding-top: 30px;
 
     .delete-account {
+      font-weight: 500;
       text-align: center;
       width: 150px;
       cursor: pointer;
@@ -371,7 +376,7 @@ watchEffect(() => {
       outline: none;
       padding: 15px 10px;
       border-radius: 5px;
-      background-color: var(--danger-1);
+      background-color: #f24333;
     }
   }
 
@@ -386,10 +391,10 @@ watchEffect(() => {
     background-color: var(--primary-1);
 
     svg {
-      fill: #f4f4f4;
+      fill: #f0f0f0;
 
       &:hover {
-        fill: crimson;
+        fill: var(--danger-2);
       }
     }
   }

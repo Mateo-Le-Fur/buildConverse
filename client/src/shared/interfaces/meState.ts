@@ -11,7 +11,6 @@ export interface MeState {
   previousMessages: MessageInterface[];
   isMessagePushInArray: boolean;
   isMessagesLoaded: boolean;
-  isMoreMessagesLoaded: boolean;
   isBeginningConversation: boolean;
   error: null | string;
 }

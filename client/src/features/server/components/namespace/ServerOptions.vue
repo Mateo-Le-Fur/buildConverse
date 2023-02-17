@@ -45,7 +45,7 @@ function deleteNamespace(namespaceId: number) {
 }
 
 function leaveNamespace(namespaceId: number) {
-  socketStore.activeNsSocket.emit(
+  socketStore.activeNsSocket?.emit(
     "userLeaveNamespace",
     { id: namespaceId },
     (response: { status: string; message: string }) => {
@@ -77,7 +77,8 @@ function leaveNamespace(namespaceId: number) {
     >
       <ul>
         <li class="mb-5 p-10 justify-content-center">
-          Code d'invitation: {{ currentNamespace?.inviteCode }}
+          Code d'invitation:
+          <span class="invite_code">{{ currentNamespace?.inviteCode }}</span>
         </li>
         <li
           v-if="currentNamespace?.UserHasNamespace.admin"
@@ -148,6 +149,11 @@ function leaveNamespace(namespaceId: number) {
     background-color: var(--primary-3);
     border-radius: 4px;
 
+    .invite_code {
+      color: #0072bb;
+      font-weight: 700;
+    }
+
     li {
       font-size: 0.9rem;
     }
@@ -158,7 +164,7 @@ function leaveNamespace(namespaceId: number) {
       cursor: pointer;
 
       &:hover {
-        background-color: #eb4144ff;
+        background-color: var(--danger-2);
         color: #f4f4f4;
         border-radius: 4px;
       }
@@ -169,7 +175,8 @@ function leaveNamespace(namespaceId: number) {
       cursor: pointer;
 
       &:hover {
-        background-color: #737ad8;
+        color: black;
+        background-color: var(--yellow);
         border-radius: 4px;
       }
     }

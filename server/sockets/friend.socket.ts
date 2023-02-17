@@ -11,13 +11,10 @@ import { SocketCustom } from "../interfaces/SocketCustom";
 import { FriendsInterface } from "../interfaces/FriendsInterface";
 import { PrivateMessageInterface } from "../interfaces/PrivateMessageInterface";
 import { UserInterface } from "../interfaces/User";
-import { RecipientInterface } from "../interfaces/RecipientInterface";
-import { SenderInterface } from "../interfaces/SenderInterface";
-import { UserHasPrivateRoomInterface } from "../interfaces/UserHasPrivateRoom";
 
 class FriendsManager {
-  private _ios: Server;
-  private _clients: Map<number, string>;
+  protected _ios: Server;
+  protected _clients: Map<number, string>;
 
   constructor(ios: Server, clients: Map<number, string>) {
     this._ios = ios;
@@ -253,10 +250,6 @@ class FriendsManager {
         }
       });
 
-      const t1 = performance.now();
-
-      console.log(t1 - t0);
-
       socket.emit("conversations", result);
     }
   }
@@ -457,8 +450,6 @@ class FriendsManager {
       if (socketId) {
         this._ios.to(socketId).emit("privateMessage", message);
       }
-
-      console.log(message);
 
       socket.emit("privateMessage", message);
     }

@@ -1,39 +1,16 @@
 import { Server, Socket } from "socket.io";
 import { MessageInterface, RoomInterface, SocketCustom } from "../interfaces";
-import { Namespace } from "socket.io/dist/namespace";
-import { Room, Message, UserHasNamespace } from "../models";
+import { Room, Message } from "../models";
 import { getNumberOfRooms } from "../query/room.query";
 
 class RoomsManager {
-  private _ios: Server;
+  protected _ios: Server;
 
   constructor(ios: Server) {
     this._ios = ios;
   }
 
   public async joinRoom(nsSocket: SocketCustom, data: RoomInterface) {
-    const userId = nsSocket.request.user?.id;
-
-    const { namespaceId, roomId } = data;
-
-    const foundUserNamespace = await UserHasNamespace.findOne({
-      where: {
-        userId,
-        namespaceId,
-      },
-    });
-
-    if (!foundUserNamespace) throw new Error("forbidden");
-
-    const foundNamespaceRoom = await Room.findOne({
-      where: {
-        id: roomId,
-        namespaceId: foundUserNamespace.namespaceId,
-      },
-    });
-
-    if (!foundNamespaceRoom) throw new Error("forbidden");
-
     nsSocket.join(`/${data.roomId}`);
     await this.getMessages(nsSocket, data.roomId);
   }
@@ -71,25 +48,23 @@ class RoomsManager {
     nsSocket.emit("history", messages);
   }
   public async loadMoreMessage(
-    socket: SocketCustom,
+    nsSocket: SocketCustom,
     data: {
       id: number;
       messagesArrayLength: number;
       isBeginningConversation: boolean;
     }
   ) {
-    console.log(data);
-
     if (data.messagesArrayLength < 0) return;
 
     if (data.isBeginningConversation) {
       const messages = await this.getMessages(
-        socket,
+        nsSocket,
         data.id,
         data.isBeginningConversation
       );
 
-      socket.emit("loadMoreMessages", messages);
+      nsSocket.emit("loadMoreMessages", messages);
 
       return;
     }
@@ -114,7 +89,7 @@ class RoomsManager {
       };
     });
 
-    socket.emit("loadMoreMessages", messages);
+    nsSocket.emit("loadMoreMessages", messages);
   }
 
   public async createRoom(data: RoomInterface) {
@@ -129,8 +104,6 @@ class RoomsManager {
   public async updateRoom(nsSocket: SocketCustom, data: RoomInterface) {
     const { id, namespaceId, name, index } = data;
 
-    const t0 = performance.now();
-
     await Room.update(
       {
         name,
@@ -142,10 +115,6 @@ class RoomsManager {
         },
       }
     );
-
-    const t1 = performance.now();
-
-    console.log(t1 - t0 + " switch");
 
     this._ios.of(`/${namespaceId}`).emit("updateRoom", data);
   }

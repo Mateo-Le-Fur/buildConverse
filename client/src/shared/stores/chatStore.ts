@@ -1,10 +1,11 @@
 import { defineStore } from "pinia";
-import { useSocket } from "@/shared/stores/socketStore";
 import type { Ref } from "vue";
 import { ref } from "vue";
 import type { MessageInterface } from "@/shared/interfaces/MessageInterface";
 import type { PrivateMessageInterface } from "@/shared/interfaces/PrivateMessageInterface";
 import { useMessage } from "@/features/server/stores/messageStore";
+import { useMe } from "@/features/home/stores/meStore";
+import type { Socket } from "socket.io-client";
 
 interface ChatState {
   element: Ref<HTMLDivElement | null>;
@@ -27,7 +28,6 @@ function shouldShowAvatar<Type extends MessageInterface>(
 
   /* On doit aussi vérifier que la date n'a pas changé, si c'est le cas il faut afficher de nouveau
    * l'avatar peu importe l'utilisateur */
-
   return differentUser || dateSeparator(previous, message);
 }
 
@@ -36,6 +36,7 @@ function dateSeparator<Type extends MessageInterface>(
   message: Type
 ): boolean {
   const messageStore = useMessage();
+  const meStore = useMe();
   if (previous) {
     const previousDate = new Date(previous.created_at).getDay();
     const date = new Date(message.created_at).getDay();
@@ -46,7 +47,9 @@ function dateSeparator<Type extends MessageInterface>(
   /* Si le premier message est undefined "const previous = values[index - 1] ==> undefined",
    * et que l'on a atteint le début de la conversation alors il faut
    * afficher un séparateur */
-  return !previous && messageStore.isBeginningConversation;
+  return (
+    messageStore.isBeginningConversation || meStore.isBeginningConversation
+  );
 }
 
 export const useChat = defineStore("chat", {
@@ -65,11 +68,9 @@ export const useChat = defineStore("chat", {
       return <T extends PrivateMessageInterface | MessageInterface>(
         messages: T[]
       ): T[] => {
-        // On s'assure qu'il n'y a pas de valeurs dupliquées
-        const key = "id";
-        const values = [
-          ...new Map(messages.map((item) => [item[key], item])).values(),
-        ];
+        console.log("filter");
+        // On crée une nouvelle référence pour notre tableau
+        const values = [...messages];
         // On trie les messages par id, et on vérifie s'il est nécessaire d'afficher l'avatar ou un séparateur de date
         return values
           .sort((a, b) => a.id - b.id)
@@ -113,11 +114,11 @@ export const useChat = defineStore("chat", {
 
     loadMoreMessages(
       e: Event,
-      socketEventName: string,
+      socket: { socket: Socket; eventName: string },
       messagesArrayLength: number,
-      id: number
+      roomId: number,
+      namespaceId: number
     ) {
-      const socketStore = useSocket();
       const messageStore = useMessage();
 
       const target = e.target as HTMLDivElement;
@@ -141,10 +142,10 @@ export const useChat = defineStore("chat", {
         return;
       }
 
-      this.isChangeDirectionToGoUp =
-        lastDirection === "down" && this.direction === "up";
       this.isChangeDirectionToGoDown =
         lastDirection === "up" && this.direction === "down";
+      this.isChangeDirectionToGoUp =
+        lastDirection === "down" && this.direction === "up";
 
       /* Si on change de direction pour aller en haut alors il faut de nouveau incrémenter de 1 la page pour
        * ne pas récupérer de nouveau les messages que l'on a déjà dans notre tableau "previousMessages",
@@ -157,28 +158,23 @@ export const useChat = defineStore("chat", {
         this.page--;
       }
 
-      socketStore.ioClient?.emit(socketEventName, {
+      socket.socket.emit(socket.eventName, {
         messagesArrayLength: this.limit * this.page,
-        id,
+        id: roomId,
+        namespaceId,
         isBeginningConversation: messageStore.isBeginningConversation,
       });
     },
 
-    newMessagesLoaded() {
+    newMessagesLoaded(lastMessage: MessageInterface) {
       if (this.element?.scrollHeight && this.oldHeight) {
-        const messageStore = useMessage();
-
-        const messageId =
-          this.direction === "up"
-            ? messageStore.messages[messageStore.messages.length / 2 - 1]?.id
-            : messageStore.messages[messageStore.messages.length - 1]?.id;
-
         const messagesElem: NodeListOf<HTMLDivElement> =
           document.querySelectorAll(".message");
 
-        // on place la scroll bar sur le nouveau message chargé
+        /* on place la scroll bar sur le dernier message vu afin de ne pas déstabiliser l'utilisateur
+         * lorsqu'il va charger plus de message */
         messagesElem?.forEach((el) => {
-          if (Number(el.dataset.id) === messageId) {
+          if (Number(el.dataset.id) === lastMessage.id) {
             this.element?.scrollTo({
               top: el.offsetTop - el.offsetHeight,
               left: 0,
@@ -197,3 +193,9 @@ export const useChat = defineStore("chat", {
     },
   },
 });
+
+// On s'assure qu'il n'y a pas de valeurs dupliquées
+// const key = "id";
+// const values = [
+//   ...new Map(messages.map((item) => [item[key], item])).values(),
+// ];

@@ -10,8 +10,11 @@ export function useGetMessage<
 >(message: Type, store: MessageState | MeState) {
   const chatStore = useChat();
 
+  // On fait en sorte de garder un tableau de 100 messages
   if (store.messages.length >= 100) store.messages.pop();
 
+  /* Push un message dans le tableau déclenche le scroll automatique en bas de la page donc on évite
+   * ce comportement si l'utilisateur parcours les pages */
   if (chatStore.page <= 1) {
     store.messages.push(message);
     store.messages.sort((a, b) => b.id - a.id);

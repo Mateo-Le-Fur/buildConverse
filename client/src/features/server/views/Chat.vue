@@ -1,14 +1,29 @@
 <script setup lang="ts">
-import { useSocket } from "@/shared/stores/socketStore";
 import SendMessage from "../components/message/SendMessage.vue";
-import { nextTick, onBeforeUnmount, watch, watchEffect } from "vue";
+import {
+  nextTick,
+  onBeforeUnmount,
+  reactive,
+  ref,
+  watch,
+  watchEffect,
+} from "vue";
 import { useRoom } from "@/features/server/stores/roomStore";
 import { useChat } from "@/shared/stores/chatStore";
 import { useMessage } from "@/features/server/stores/messageStore";
+import type { MessageInterface } from "@/shared/interfaces/MessageInterface";
+import { useSocket } from "@/shared/stores/socketStore";
 
 const chatStore = useChat();
 const roomStore = useRoom();
+const socketStore = useSocket();
 const messageStore = useMessage();
+
+const state = reactive<{
+  messages: MessageInterface[];
+}>({
+  messages: [],
+});
 
 watchEffect(async () => {
   if (messageStore.isMessagesLoaded) {
@@ -17,7 +32,6 @@ watchEffect(async () => {
     chatStore.scrollToBottomOnMounted();
   }
 });
-
 watch(
   () => messageStore.isMessagePushInArray,
   async (value) => {
@@ -29,20 +43,11 @@ watch(
   }
 );
 
-watch(
-  () => messageStore.isMoreMessagesLoaded,
-  async (value) => {
-    if (value) {
-      await nextTick();
-      chatStore.newMessagesLoaded();
-      messageStore.isMoreMessagesLoaded = false;
-    }
-  }
-);
+watchEffect(() => {
+  state.messages = chatStore.filteredMessages(messageStore.messages);
+});
 
 onBeforeUnmount(() => {
-  console.log("unmount");
-  messageStore.messages = [];
   chatStore.$reset();
 });
 </script>
@@ -53,9 +58,13 @@ onBeforeUnmount(() => {
       @scroll="
         chatStore.loadMoreMessages(
           $event,
-          'loadMoreMessages',
+          {
+            socket: socketStore.activeNsSocket,
+            eventName: 'loadMoreMessages',
+          },
           messageStore.messages.length,
-          roomStore.activeRoom?.id
+          roomStore.activeRoom?.id,
+          roomStore.activeRoom?.namespaceId
         )
       "
       class="message-container"
@@ -63,10 +72,7 @@ onBeforeUnmount(() => {
       <h2 v-if="messageStore.isBeginningConversation" class="room-name">
         Bienvenue dans le salon {{ roomStore.activeRoom?.name }}
       </h2>
-      <template
-        v-for="message of chatStore.filteredMessages(messageStore.messages)"
-        :key="message.id"
-      >
+      <template v-for="message of state.messages" :key="message.id">
         <div v-if="message.separator" class="separator">
           <span>{{
             new Date(message.created_at).toLocaleDateString("fr-FR")

@@ -254,7 +254,8 @@ function previewAvatar(e: Event) {
     button {
       border: none;
       cursor: pointer;
-      background-color: #236cab;
+      color: black;
+      background-color: var(--yellow);
       padding: 10px;
       border-radius: 4px;
     }

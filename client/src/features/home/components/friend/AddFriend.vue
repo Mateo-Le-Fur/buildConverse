@@ -136,7 +136,8 @@ const { value: pseudoValue, errorMessage: pseudoError } = useField("pseudo");
       cursor: pointer;
       border: none;
       padding: 8px;
-      background-color: #236cab;
+      color: black;
+      background-color: var(--yellow);
       border-radius: 3px;
 
       @include mixins.md {

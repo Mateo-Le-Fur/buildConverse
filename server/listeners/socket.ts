@@ -1,512 +1,62 @@
-import { Server } from "socket.io";
+import { Server, Socket } from "socket.io";
 import { server } from "../app";
 import { ensureAuthenticatedOnSocketHandshake } from "../config/security.config";
-import cookieParser from "cookie";
-import {
-  SecurityManager,
-  FriendsManager,
-  MessageManager,
-  UserManager,
-  RoomsManager,
-  NamespacesManager,
-} from "./index";
-import {
-  UpdateUserInterface,
-  RoomInterface,
-  MessageInterface,
-  UpdateNamespaceInterface,
-  DeleteUserInterface,
-  FriendsInterface,
-  PrivateMessageInterface,
-  NamespaceInterface,
-  SocketCustom,
-} from "../interfaces";
-import authProtect from "../config/jwt.config";
-import { ExtendedError } from "socket.io/dist/namespace";
-import { UserHasNamespace, Room, UserNamespace, User } from "../models";
-import namespaceValidator from "../validation/schema/namespace.schema";
-import roomValidator from "../validation/schema/room.schema";
-import joinNamespaceValidator from "../validation/schema/joinNamespace.schema";
-import userValidator from "../validation/schema/user.schema";
+import { SecurityManager } from "./index";
+import { SocketCustom } from "../interfaces";
+
+import { FriendListener } from "./friend.listener";
+import { NamespaceListener } from "./namespace.listener";
+import { UserListener } from "./user.listener";
+import { DynamicNamespaceListener } from "./dynamicNamespace.listener";
+import { RoomListener } from "./room.listener";
+import { MessageListener } from "./message.listener";
 
 class SocketManager {
   private _ios: Server;
   private _clients: Map<number, string>;
-  private _namespacesManager: NamespacesManager;
-  private _roomsManager: RoomsManager;
-  private _usersManager: UserManager;
-  private _messagesManager: MessageManager;
-  private _friendsManager: FriendsManager;
   private _securityManager: SecurityManager;
 
   constructor() {
     this._ios = new Server(server, {
       allowRequest: ensureAuthenticatedOnSocketHandshake,
       maxHttpBufferSize: 1e7,
-      cors: { origin: "*", credentials: true },
+      cors: { origin: "http://localhost:3000" },
     });
     this._clients = new Map();
-    this._namespacesManager = new NamespacesManager(this._ios, this._clients);
-    this._roomsManager = new RoomsManager(this._ios);
-    this._usersManager = new UserManager(this._ios, this._clients);
-    this._messagesManager = new MessageManager(this._ios);
-    this._friendsManager = new FriendsManager(this._ios, this._clients);
     this._securityManager = new SecurityManager(this._ios);
   }
 
   public init() {
     this._ios.on("connect", async (socket: SocketCustom) => {
       const id = socket.request.user?.id;
-      console.log("client connected");
 
       if (id) this._clients.set(id, socket.id);
 
       try {
-        const friends = await this._friendsManager.getUserFriends(socket);
-        await this._friendsManager.getAllConversations(socket);
-        await this._namespacesManager.getUserNamespaces(socket);
-        await this._usersManager.connectUser(socket, friends);
+        new FriendListener(socket, this._ios, this._clients).onConnect();
+        new NamespaceListener(socket, this._ios, this._clients).onConnect();
+        new UserListener(socket, this._ios, this._clients);
       } catch (e) {
         console.error(e);
       }
-
-      socket.on("friendRequest", async (data: FriendsInterface, callback) => {
-        try {
-          await this._friendsManager.friendRequest(socket, data);
-          callback({
-            status: "ok",
-            message: "Demande d'ami envoyé",
-          });
-        } catch (e) {
-          if (e instanceof Error) {
-            callback({
-              status: "error",
-              message: e.message,
-            });
-            console.error(e);
-          }
-        }
-      });
-
-      socket.on("acceptFriendRequest", async (senderId: number, callback) => {
-        try {
-          await this._friendsManager.acceptFriendRequest(socket, senderId);
-          callback({
-            status: "ok",
-            message: "",
-          });
-        } catch (e) {
-          if (e instanceof Error) {
-            console.error(e);
-            callback({
-              status: "error",
-              message: e.message,
-            });
-          }
-        }
-      });
-
-      socket.on("declineFriendRequest", async (senderId: number) => {
-        try {
-          await this._friendsManager.declineFriendRequest(socket, senderId);
-        } catch (e) {
-          console.error(e);
-        }
-      });
-
-      socket.on(
-        "deleteFriend",
-        async (data: { friendId: number; privateRoomId: number }) => {
-          try {
-            await this._friendsManager.deleteFriend(socket, data);
-          } catch (e) {
-            console.error(e);
-          }
-        }
-      );
-
-      socket.on(
-        "getConversationWithAFriend",
-        async (data: { friendId: number; privateRoomId: number }) => {
-          try {
-            await this._friendsManager.getConversationWithAFriend(socket, data);
-          } catch (e) {
-            console.error(e);
-          }
-        }
-      );
-
-      socket.on("getPrivateMessagesHistory", async (privateRoomId: number) => {
-        try {
-          console.log(privateRoomId);
-          await this._friendsManager.getPrivateMessages(socket, privateRoomId);
-        } catch (e) {
-          console.error(e);
-        }
-      });
-
-      socket.on(
-        "loadMorePrivateMessages",
-        async (data: { id: number; messagesArrayLength: number }) => {
-          try {
-            await this._friendsManager.loadMorePrivateMessages(socket, data);
-          } catch (e) {
-            console.error(e);
-          }
-        }
-      );
-
-      socket.on("sendPrivateMessage", async (data: PrivateMessageInterface) => {
-        try {
-          await this._friendsManager.sendPrivateMessage(socket, data);
-        } catch (e) {
-          console.error(e);
-        }
-      });
-
-      socket.on(
-        "createNamespace",
-        async (data: NamespaceInterface, callback) => {
-          try {
-            const userId = socket.request.user?.id;
-            await this._securityManager.checkUserNamespacesLimit(
-              userId,
-              this._namespacesManager.userNamespacesLimit
-            );
-            await namespaceValidator.validateAsync(data);
-            await this._namespacesManager.createNamespace(socket, data);
-            callback({
-              status: "ok",
-              message: "",
-            });
-          } catch (e) {
-            if (e instanceof Error) {
-              callback({
-                status: "error",
-                message: e.message,
-              });
-            }
-          }
-        }
-      );
-
-      socket.on(
-        "userJoinNamespace",
-        async (data: NamespaceInterface, callback) => {
-          try {
-            const userId = socket.request.user?.id;
-
-            const namespace = await UserNamespace.findOne({
-              where: { inviteCode: data.inviteCode },
-              raw: true,
-            });
-
-            if (namespace) {
-              await joinNamespaceValidator.validateAsync(data);
-              await this._securityManager.checkIfUserAlreadyHasTheServer(
-                userId,
-                namespace.id
-              );
-              await this._securityManager.checkUserNamespacesLimit(
-                userId,
-                this._namespacesManager.userLimit
-              );
-              await this._securityManager.checkIfServerIsFull(
-                namespace.id,
-                this._namespacesManager.userLimit
-              );
-              await this._namespacesManager.joinInvitation(socket, data);
-            }
-
-            callback({
-              status: "ok",
-            });
-          } catch (e) {
-            if (e instanceof Error) {
-              console.error(e);
-              callback({
-                status: "error",
-                message: e.message,
-              });
-            }
-          }
-        }
-      );
-
-      socket.on(
-        "loadMoreMessages",
-        async (data: {
-          id: number;
-          messagesArrayLength: number;
-          isBeginningConversation: boolean;
-        }) => {
-          try {
-            await this._roomsManager.loadMoreMessage(socket, data);
-          } catch (e) {
-            console.error(e);
-          }
-        }
-      );
-
-      socket.on("updateUser", async (data: UpdateUserInterface, callback) => {
-        try {
-          await userValidator.validateAsync(data);
-          await this._usersManager.updateUser(socket, data);
-          callback({
-            status: "ok",
-          });
-        } catch (e) {
-          if (e instanceof Error) {
-            callback({
-              status: "error",
-              message: e.message,
-            });
-          }
-        }
-      });
-
-      socket.on("deleteUser", async (data: DeleteUserInterface) => {
-        try {
-          await this._usersManager.deleteUser(socket, data);
-        } catch (e) {
-          console.error(e);
-        }
-      });
-
-      socket.on("jwt_expire", (data: string) => {
-        if (data) {
-          try {
-            const cookies = cookieParser.parse(
-              socket.handshake.headers.cookie || ""
-            );
-            authProtect.decodedToken(cookies.jwt);
-            socket.emit("jwt_expire", false);
-          } catch (e) {
-            console.error(e);
-            socket.emit("jwt_expire", true);
-          }
-        }
-      });
-
-      socket.on("disconnect", async () => {
-        const { id } = socket.request.user!;
-
-        if (id) this._clients.delete(id);
-
-        await this._usersManager.disconnectUser(socket);
-
-        console.log("disconnect home");
-      });
     });
 
     this.initNamespace();
   }
 
-  private initNamespace() {
+  private async initNamespace() {
     const ns = this._ios.of(/^\/\d+$/);
 
-    ns.use(
-      async (
-        socket: SocketCustom,
-        next: (err?: ExtendedError | undefined) => void
-      ) => {
-        try {
-          const namespaceId = Number(socket.nsp.name.substring(1));
-
-          const foundUserNamespace =
-            await this._securityManager.checkIfUserHasNamespace(
-              socket,
-              namespaceId
-            );
-
-          if (foundUserNamespace) {
-            this._ios
-              .of(`/${namespaceId}`)
-              .emit("userConnect", foundUserNamespace?.users);
-
-            next();
-          } else {
-            next(new Error("Tu n'as pas accès à ce serveur "));
-          }
-        } catch (e) {
-          console.error(e);
-        }
-      }
-    );
+    try {
+      await this._securityManager.checkIfUserHasNamespace(ns);
+    } catch (e) {
+      console.error(e);
+    }
 
     ns.on("connect", async (nsSocket: SocketCustom) => {
-      nsSocket.on(
-        "updateNamespace",
-        async (data: UpdateNamespaceInterface, callback) => {
-          try {
-            await this._securityManager.checkIfUserIsAdminOfNamespace(
-              nsSocket,
-              data.namespaceId
-            );
-            await namespaceValidator.validateAsync(data);
-            await this._namespacesManager.updateNamespace(nsSocket, data);
-            callback({
-              status: "ok",
-            });
-          } catch (e) {
-            if (e instanceof Error) {
-              callback({
-                status: "error",
-                message: e.message,
-              });
-            }
-          }
-        }
-      );
-
-      nsSocket.on(
-        "deleteNamespace",
-        async (data: NamespaceInterface, callback) => {
-          try {
-            await this._securityManager.checkIfUserIsAdminOfNamespace(
-              nsSocket,
-              data.id
-            );
-            await this._namespacesManager.deleteNamespace(nsSocket, data);
-            callback({
-              status: "ok",
-            });
-          } catch (e) {
-            if (e instanceof Error) {
-              callback({
-                status: "error",
-                message: e.message,
-              });
-            }
-          }
-        }
-      );
-
-      nsSocket.on(
-        "userLeaveNamespace",
-        async (data: NamespaceInterface, callback) => {
-          try {
-            await this._namespacesManager.leaveNamespace(nsSocket, data);
-            callback({
-              status: "ok",
-            });
-          } catch (e) {
-            if (e instanceof Error) {
-              callback({
-                status: "error",
-                message: e.message,
-              });
-            }
-          }
-        }
-      );
-
-      nsSocket.on("getNamespaceUsers", async (data: number) => {
-        try {
-          await this._namespacesManager.getNamespaceUsers(nsSocket, data);
-        } catch (e) {
-          console.error(e);
-        }
-      });
-
-      nsSocket.on(
-        "loadMoreUser",
-        async (data: { currentArrayLength: number; namespaceId: number }) => {
-          try {
-            await this._namespacesManager.loadMoreUser(nsSocket, data);
-          } catch (e) {
-            console.error(e);
-          }
-        }
-      );
-
-      nsSocket.on("joinRoom", async (data) => {
-        try {
-          await this._roomsManager.joinRoom(nsSocket, data);
-        } catch (e) {
-          console.error(e);
-        }
-      });
-
-      nsSocket.on("leaveRoom", (roomId: number) => {
-        this._roomsManager.leaveRoom(nsSocket, roomId);
-      });
-
-      nsSocket.on("createRoom", async (data: RoomInterface, callback) => {
-        try {
-          await this._securityManager.checkIfUserIsAdminOfNamespace(
-            nsSocket,
-            data.namespaceId
-          );
-          await roomValidator.validateAsync(data);
-          await this._roomsManager.createRoom(data);
-          callback({
-            status: "ok",
-          });
-        } catch (e) {
-          if (e instanceof Error) {
-            callback({
-              status: "error",
-              message: e.message,
-            });
-          }
-        }
-      });
-
-      nsSocket.on("updateRoom", async (data: RoomInterface, callback) => {
-        try {
-          await this._securityManager.checkIfUserIsAdminOfNamespace(
-            nsSocket,
-            data.namespaceId
-          );
-          await roomValidator.validateAsync(data);
-          await this._roomsManager.updateRoom(nsSocket, data);
-          callback({
-            status: "ok",
-          });
-        } catch (e) {
-          if (e instanceof Error) {
-            console.error(e);
-            callback({
-              status: "error",
-              message: e.message,
-            });
-          }
-        }
-      });
-
-      nsSocket.on("deleteRoom", async (data: RoomInterface, callback) => {
-        try {
-          await this._securityManager.checkIfUserIsAdminOfNamespace(
-            nsSocket,
-            data.namespaceId
-          );
-          await this._roomsManager.deleteRoom(nsSocket, data);
-        } catch (e) {
-          if (e instanceof Error) {
-            if (typeof callback === "function")
-              callback({
-                status: "error",
-                message: e.message,
-              });
-          }
-        }
-      });
-
-      nsSocket.on("message", async (data: MessageInterface) => {
-        try {
-          await this._messagesManager.sendMessage(ns, nsSocket, data);
-        } catch (e) {
-          console.error(e);
-        }
-      });
-
-      nsSocket.on("disconnect", () => {
-        const namespaceId = nsSocket.nsp.name;
-        const userId = nsSocket.request.user?.id;
-        this._ios.of(namespaceId).emit("userDisconnect", { id: userId });
-        nsSocket.disconnect();
-      });
+      new DynamicNamespaceListener(nsSocket, this._ios, this._clients);
+      new RoomListener(nsSocket, this._ios, this._clients);
+      new MessageListener(ns, nsSocket, this._ios);
     });
   }
 }

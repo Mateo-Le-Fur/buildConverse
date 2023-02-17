@@ -53,8 +53,8 @@ CREATE TABLE "room" (
 
 CREATE TABLE "message" (
     "id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    "user_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE ,
-    "room_id" INT NOT NULL REFERENCES "room"(id) ON DELETE CASCADE ,
+    "user_id" INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    "room_id" INT NOT NULL REFERENCES "room"(id) ON DELETE CASCADE,
     "data" TEXT NOT NULL,
     "data_type" data_type NOT NULL DEFAULT 'text',
     "author_name" TEXT NOT NULL,

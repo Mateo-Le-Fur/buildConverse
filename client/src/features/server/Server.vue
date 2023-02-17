@@ -11,6 +11,8 @@ import ServerOptions from "@/features/server/components/namespace/ServerOptions.
 import SearchBar from "@/features/server/components/search/SearchBar.vue";
 import Namespace from "@/components/namespace/Namespace.vue";
 import { useNamespace } from "@/features/server/stores/namespaceStore";
+import { useMessage } from "@/features/server/stores/messageStore";
+import { useChat } from "@/shared/stores/chatStore";
 
 const route = useRoute();
 
@@ -18,11 +20,18 @@ const socketStore = useSocket();
 const namespaceStore = useNamespace();
 const roomStore = useRoom();
 const userNsStore = useNsUser();
-
+const messageStore = useMessage();
 watch(
   () => route.params.idChannel,
   async (value) => {
     if (value) await joinNamespace();
+  }
+);
+
+watch(
+  () => route.params.idRoom,
+  () => {
+    messageStore.isBeginningConversation = false;
   }
 );
 

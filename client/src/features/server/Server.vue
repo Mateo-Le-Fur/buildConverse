@@ -4,15 +4,13 @@ import UserList from "@/features/server/components/user/UserList.vue";
 import { useRoute } from "vue-router";
 import { useSocket } from "@/shared/stores/socketStore";
 import type { RoomInterface } from "@/shared/interfaces/Room";
-import { nextTick, onMounted, onUnmounted, watch, watchEffect } from "vue";
+import { nextTick, watch } from "vue";
 import { useRoom } from "@/features/server/stores/roomStore";
 import { useNsUser } from "@/features/server/stores/userNsStore";
 import ServerOptions from "@/features/server/components/namespace/ServerOptions.vue";
 import SearchBar from "@/features/server/components/search/SearchBar.vue";
-import Namespace from "@/components/namespace/Namespace.vue";
 import { useNamespace } from "@/features/server/stores/namespaceStore";
 import { useMessage } from "@/features/server/stores/messageStore";
-import { useChat } from "@/shared/stores/chatStore";
 
 const route = useRoute();
 
@@ -47,22 +45,10 @@ watch(
   }
 );
 
-watch(
-  () => namespaceStore.creatingNamespace,
-  async () => {
-    await joinNamespace();
-  }
-);
-
 async function joinNamespace() {
   await nextTick();
 
-  const nsSocket = namespaceStore.namespaceSockets.find(
-    (ns: any) => ns.nsp === `/${route.params.idChannel}`
-  );
-
   namespaceStore.joinNamespace(
-    nsSocket,
     route.params.idRoom as string,
     route.params.idChannel as string
   );
@@ -70,7 +56,7 @@ async function joinNamespace() {
 
 function changeRoom(room: RoomInterface) {
   if (roomStore.activeRoom?.id !== Number(room.id)) {
-    socketStore.activeNsSocket?.emit("leaveRoom", roomStore.activeRoom?.id);
+    socketStore.ioClient?.emit("leaveRoom", roomStore.activeRoom?.id);
     roomStore.joinRoom(room, room.namespaceId);
   }
 }

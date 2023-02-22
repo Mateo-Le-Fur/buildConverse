@@ -10,17 +10,17 @@ class RoomsManager {
     this._ios = ios;
   }
 
-  public async joinRoom(nsSocket: SocketCustom, data: RoomInterface) {
-    nsSocket.join(`/${data.roomId}`);
-    await this.getMessages(nsSocket, data.roomId);
+  public async joinRoom(socket: SocketCustom, roomId: number) {
+    socket.join(`room-${roomId}`);
+    await this.getMessages(socket, roomId);
   }
 
-  public async leaveRoom(nsSocket: Socket, roomId: number) {
-    nsSocket.leave(`/${roomId}`);
+  public async leaveRoom(socket: Socket, roomId: number) {
+    socket.leave(`room-${roomId}`);
   }
 
   public async getMessages(
-    nsSocket: Socket,
+    socket: Socket,
     roomId: number,
     isBeginningConversation?: boolean
   ) {
@@ -45,10 +45,10 @@ class RoomsManager {
 
     if (isBeginningConversation) return messages;
 
-    nsSocket.emit("history", messages);
+    socket.emit("history", messages);
   }
   public async loadMoreMessage(
-    nsSocket: SocketCustom,
+    socket: SocketCustom,
     data: {
       id: number;
       messagesArrayLength: number;
@@ -59,12 +59,12 @@ class RoomsManager {
 
     if (data.isBeginningConversation) {
       const messages = await this.getMessages(
-        nsSocket,
+        socket,
         data.id,
         data.isBeginningConversation
       );
 
-      nsSocket.emit("loadMoreMessages", messages);
+      socket.emit("loadMoreMessages", messages);
 
       return;
     }
@@ -89,7 +89,7 @@ class RoomsManager {
       };
     });
 
-    nsSocket.emit("loadMoreMessages", messages);
+    socket.emit("loadMoreMessages", messages);
   }
 
   public async createRoom(data: RoomInterface) {
@@ -98,10 +98,10 @@ class RoomsManager {
       namespaceId: data.namespaceId,
     });
 
-    this._ios.of(`/${data.namespaceId}`).emit("createRoom", room);
+    this._ios.to(`server-${data.namespaceId}`).emit("createRoom", room);
   }
 
-  public async updateRoom(nsSocket: SocketCustom, data: RoomInterface) {
+  public async updateRoom(socket: SocketCustom, data: RoomInterface) {
     const { id, namespaceId, name, index } = data;
 
     await Room.update(
@@ -116,11 +116,11 @@ class RoomsManager {
       }
     );
 
-    this._ios.of(`/${namespaceId}`).emit("updateRoom", data);
+    this._ios.to(`server-${namespaceId}`).emit("updateRoom", data);
   }
 
   public async deleteRoom(
-    nsSocket: Socket,
+    socket: Socket,
     data: { id: number; namespaceId: number }
   ) {
     const { id, namespaceId } = data;
@@ -135,9 +135,9 @@ class RoomsManager {
       });
     }
 
-    nsSocket.leave(`/${id}`);
+    socket.leave(`room-${id}`);
 
-    this._ios.of(`${namespaceId}`).emit("deleteRoom", data);
+    this._ios.to(`server-${namespaceId}`).emit("deleteRoom", data);
   }
 }
 

@@ -3,20 +3,32 @@ import { RoomInterface, SocketCustom } from "../interfaces";
 import { SecurityManager } from "../sockets/security.socket";
 import { RoomsManager } from "../sockets/room.socket";
 import roomValidator from "../validation/schema/room.schema";
+import { AuthorizationsInterface } from "../interfaces/AuthorizationsInterface";
 
-class RoomListener extends RoomsManager {
+class RoomListener {
   protected _ios: Server;
-  protected _nsSocket: SocketCustom;
+  protected _socket: SocketCustom;
   protected _securityManager: SecurityManager;
+  private _authorizations: AuthorizationsInterface;
+  private _user: number | undefined;
+  private _roomManager: RoomsManager;
   constructor(
-    nsSocket: SocketCustom,
-    ios: Server,
-    clients: Map<number, string>
+    { socket, ios, authorizations, securityManager }: {
+      socket: SocketCustom;
+      ios: Server;
+      authorizations: AuthorizationsInterface;
+      securityManager: SecurityManager;
+    },
+    roomManager: RoomsManager
   ) {
-    super(ios);
-    this._securityManager = new SecurityManager(ios);
     this._ios = ios;
-    this._nsSocket = nsSocket;
+    this._socket = socket;
+    this._authorizations = authorizations;
+    this._securityManager = securityManager;
+
+    this._roomManager = roomManager;
+
+    this._user = this._socket.request.user?.id;
 
     this.joinRoomListener();
     this.loadMoreMessagesListener();
@@ -27,20 +39,24 @@ class RoomListener extends RoomsManager {
   }
 
   joinRoomListener() {
-    this._nsSocket.on("joinRoom", async (data) => {
-      try {
-        await this._securityManager.isAllowedToRetrieveMessages(
-          this._nsSocket,
-          data
-        );
-        await this.joinRoom(this._nsSocket, data);
-      } catch (e) {
-        console.error(e);
+    this._socket.on(
+      "joinRoom",
+      async (data: { roomId: number; namespaceId: number }) => {
+        try {
+          await this._securityManager.isAllowedToJoinRoom(
+            this._socket,
+            this._authorizations,
+            data
+          );
+          await this._roomManager.joinRoom(this._socket, data.roomId);
+        } catch (e) {
+          console.error(e);
+        }
       }
-    });
+    );
   }
   loadMoreMessagesListener() {
-    this._nsSocket.on(
+    this._socket.on(
       "loadMoreMessages",
       async (data: {
         id: number;
@@ -48,13 +64,11 @@ class RoomListener extends RoomsManager {
         isBeginningConversation: boolean;
       }) => {
         try {
-          await this._securityManager.isAllowedToRetrieveMessages(
-            this._nsSocket,
-            {
-              roomId: data.id,
-            }
-          );
-          await this.loadMoreMessage(this._nsSocket, data);
+          const checkAuthorization = this._authorizations.room.has(data.id);
+
+          if (!checkAuthorization) throw new Error("forbidden");
+
+          await this._roomManager.loadMoreMessage(this._socket, data);
         } catch (e) {
           console.error(e);
         }
@@ -62,18 +76,16 @@ class RoomListener extends RoomsManager {
     );
   }
   leaveRoomListener() {
-    this._nsSocket.on("leaveRoom", (roomId: number) => {
-      this.leaveRoom(this._nsSocket, roomId);
+    this._socket.on("leaveRoom", (roomId: number) => {
+      this._roomManager.leaveRoom(this._socket, roomId);
     });
   }
   createRoomListener() {
-    this._nsSocket.on("createRoom", async (data: RoomInterface, callback) => {
+    this._socket.on("createRoom", async (data: RoomInterface, callback) => {
       try {
-        await this._securityManager.checkIfUserIsAdminOfNamespace(
-          this._nsSocket
-        );
         await roomValidator.validateAsync(data);
-        await this.createRoom(data);
+        await this._securityManager.checkIfUserIsAdminOfNamespace(this._socket, this._authorizations, data.namespaceId)
+        await this._roomManager.createRoom(data);
         callback({
           status: "ok",
         });
@@ -88,13 +100,11 @@ class RoomListener extends RoomsManager {
     });
   }
   updateRoomListener() {
-    this._nsSocket.on("updateRoom", async (data: RoomInterface, callback) => {
+    this._socket.on("updateRoom", async (data: RoomInterface, callback) => {
       try {
-        await this._securityManager.checkIfUserIsAdminOfNamespace(
-          this._nsSocket
-        );
         await roomValidator.validateAsync(data);
-        await this.updateRoom(this._nsSocket, data);
+        await this._securityManager.checkIfUserIsAdminOfNamespace(this._socket, this._authorizations, data.namespaceId)
+        await this._roomManager.updateRoom(this._socket, data);
         callback({
           status: "ok",
         });
@@ -110,12 +120,10 @@ class RoomListener extends RoomsManager {
     });
   }
   deleteRoomListener() {
-    this._nsSocket.on("deleteRoom", async (data: RoomInterface, callback) => {
+    this._socket.on("deleteRoom", async (data: RoomInterface, callback) => {
       try {
-        await this._securityManager.checkIfUserIsAdminOfNamespace(
-          this._nsSocket
-        );
-        await this.deleteRoom(this._nsSocket, data);
+        await this._securityManager.checkIfUserIsAdminOfNamespace(this._socket, this._authorizations, data.namespaceId)
+        await this._roomManager.deleteRoom(this._socket, data);
       } catch (e) {
         if (e instanceof Error) {
           if (typeof callback === "function")

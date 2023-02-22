@@ -33,9 +33,9 @@ function closePopupUpdate() {
 }
 
 function deleteNamespace(namespaceId: number) {
-  socketStore.activeNsSocket?.emit(
+  socketStore.ioClient?.emit(
     "deleteNamespace",
-    { id: namespaceId },
+    namespaceId,
     (response: { status: string; message?: string }) => {
       if (response.status !== "ok") {
         socketStore.setError(response.message!);
@@ -45,9 +45,9 @@ function deleteNamespace(namespaceId: number) {
 }
 
 function leaveNamespace(namespaceId: number) {
-  socketStore.activeNsSocket?.emit(
+  socketStore.ioClient?.emit(
     "userLeaveNamespace",
-    { id: namespaceId },
+    namespaceId,
     (response: { status: string; message: string }) => {
       if (response.status === "ok") {
         namespaceStore.deleteNamespace({ id: namespaceId });

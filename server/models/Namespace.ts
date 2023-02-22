@@ -16,9 +16,9 @@ import { RoomInterface } from "../interfaces/Room";
 import { UserHasNamespaceInterface } from "../interfaces/UserHasNamespace";
 import { UserInterface } from "../interfaces/User";
 
-class UserNamespace extends Model<
-  InferAttributes<UserNamespace>,
-  InferCreationAttributes<UserNamespace>
+class Namespace extends Model<
+  InferAttributes<Namespace>,
+  InferCreationAttributes<Namespace>
 > {
   declare id: CreationOptional<ForeignKey<any>>;
   declare name: string;
@@ -34,7 +34,7 @@ class UserNamespace extends Model<
   ) => UserInterface[];
 }
 
-UserNamespace.init(
+Namespace.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -63,4 +63,4 @@ UserNamespace.init(
     tableName: "namespace",
   }
 );
-export default UserNamespace;
+export default Namespace;

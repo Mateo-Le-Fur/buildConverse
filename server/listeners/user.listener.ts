@@ -7,29 +7,41 @@ import {
 
 import { UserManager } from "../sockets/user.socket";
 import userValidator from "../validation/schema/user.schema";
-class UserListener extends UserManager {
+import { AuthorizationsInterface } from "../interfaces/AuthorizationsInterface";
+import { SecurityManager } from "../sockets/security.socket";
+class UserListener {
   protected _ios: Server;
   protected _socket: SocketCustom;
-  protected _clients: Map<number, string>;
-  constructor(socket: SocketCustom, ios: Server, clients: Map<number, string>) {
-    super(ios, clients);
+  private _authorizations: AuthorizationsInterface;
+  private _securityManager: SecurityManager;
+  private _userManager: UserManager;
+  constructor(
+    { socket, ios, authorizations, securityManager }: {
+      socket: SocketCustom;
+      ios: Server;
+      authorizations: AuthorizationsInterface;
+      securityManager: SecurityManager;
+    },    userManager: UserManager
+  ) {
     this._ios = ios;
-    this._clients = clients;
     this._socket = socket;
+    this._authorizations = authorizations;
+    this._securityManager = securityManager;
+    this._userManager = userManager;
 
     this.updateUserListener();
     this.deleteUserListener();
-    this.disconnectListener();
   }
 
   updateUserListener() {
     this._socket.on(
       "updateUser",
       async (data: UpdateUserInterface, callback) => {
+        console.log(data);
         try {
           await userValidator.validateAsync(data);
 
-          await this.updateUser(this._socket, data);
+          await this._userManager.updateUser(this._socket, data);
           callback({
             status: "ok",
           });
@@ -47,23 +59,21 @@ class UserListener extends UserManager {
   deleteUserListener() {
     this._socket.on("deleteUser", async (data: DeleteUserInterface) => {
       try {
-        await this.deleteUser(this._socket, data);
+        await this._userManager.deleteUser(this._socket, data);
       } catch (e) {
         console.error(e);
       }
     });
   }
 
-  disconnectListener() {
-    this._socket.on("disconnect", async () => {
-      const { id } = this._socket.request.user!;
+  async disconnect(socket: SocketCustom, clients: Map<number, string>) {
+    const { id } = socket.request.user!;
 
-      if (id) this._clients.delete(id);
+    if (id) clients.delete(id);
 
-      await this.disconnectUser(this._socket);
+    await this._userManager.disconnectUser(this._socket);
 
-      console.log("disconnect home");
-    });
+    console.log("disconnect home");
   }
 }
 

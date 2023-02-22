@@ -9,6 +9,7 @@ import {
   onUpdated,
   ref,
   toRaw,
+  unref,
   watch,
 } from "vue";
 import CreateRoomPopup from "./CreateRoomPopup.vue";
@@ -94,7 +95,7 @@ function deleteRoom(room: RoomInterface) {
   const rooms = roomStore.getRooms(room.namespaceId.toString());
 
   if (rooms.length > 1) {
-    socketStore.activeNsSocket?.emit("deleteRoom", {
+    socketStore.ioClient?.emit("deleteRoom", {
       namespaceId: Number(props.params.idChannel),
       id: room.id,
     });
@@ -115,16 +116,16 @@ function deleteRoom(room: RoomInterface) {
 
 async function updateRoom(room: RoomInterface, updateIndex?: number) {
   await nextTick();
-  const input = toRaw(inputElem.value) as HTMLInputElement[] | null;
+  const input = inputElem.value ? toRaw(inputElem.value[0]) : null;
 
-  if ((input && input[0]?.value !== room.name) || updateIndex) {
-    socketStore.activeNsSocket?.emit(
+  if ((input && input.value !== room.name) || updateIndex) {
+    socketStore.ioClient?.emit(
       "updateRoom",
       {
         id: room.id,
         index: updateIndex ? updateIndex : room.index,
         namespaceId: room.namespaceId,
-        name: updateIndex ? room.name : input![0]?.value,
+        name: updateIndex ? room.name : input.value,
       },
       (response: { status: string; message: string }) => {}
     );

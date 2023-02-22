@@ -2,20 +2,38 @@ import { Server } from "socket.io";
 import {
   FriendsInterface,
   PrivateMessageInterface,
-  SocketCustom,
+  SocketCustom
 } from "../interfaces";
 import { FriendsManager } from "../sockets/friend.socket";
 import { UserManager } from "../sockets/user.socket";
+import { SecurityManager } from "../sockets/security.socket";
+import { AuthorizationsInterface } from "../interfaces/AuthorizationsInterface";
 
-class FriendListener extends FriendsManager {
+class FriendListener {
   protected _ios: Server;
   protected _socket: SocketCustom;
   private _usersManager: UserManager;
-  constructor(socket: SocketCustom, ios: Server, clients: Map<number, string>) {
-    super(ios, clients);
-    this._usersManager = new UserManager(ios, clients);
+  private _friendManager: FriendsManager;
+  private _securityManager: SecurityManager;
+  private _authorizations: AuthorizationsInterface;
+
+  constructor(
+    { socket, ios, authorizations, securityManager }: {
+      socket: SocketCustom;
+      ios: Server;
+      authorizations: AuthorizationsInterface;
+      securityManager: SecurityManager;
+    },
+    friendManager: FriendsManager,
+    userManager: UserManager
+  ) {
     this._ios = ios;
     this._socket = socket;
+    this._authorizations = authorizations;
+    this._securityManager = securityManager;
+
+    this._friendManager = friendManager;
+    this._usersManager = userManager;
 
     this.friendRequestListener();
     this.acceptFriendRequestListener();
@@ -28,27 +46,28 @@ class FriendListener extends FriendsManager {
   }
 
   async onConnect() {
-    const friends = await this.getUserFriends(this._socket);
+    const friends = await this._friendManager.getUserFriends(this._socket);
     await this._usersManager.connectUser(this._socket, friends);
-    await this.getAllConversations(this._socket);
+    await this._friendManager.getAllConversations(this._socket);
+
+    return friends;
   }
 
   friendRequestListener() {
     this._socket.on(
       "friendRequest",
       async (data: FriendsInterface, callback) => {
-        console.log("friend request");
         try {
-          await this.friendRequest(this._socket, data);
+          await this._friendManager.friendRequest(this._socket, data);
           callback({
             status: "ok",
-            message: "Demande d'ami envoyé",
+            message: "Demande d'ami envoyé"
           });
         } catch (e) {
           if (e instanceof Error) {
             callback({
               status: "error",
-              message: e.message,
+              message: e.message
             });
             console.error(e);
           }
@@ -56,55 +75,62 @@ class FriendListener extends FriendsManager {
       }
     );
   }
+
   acceptFriendRequestListener() {
     this._socket.on(
       "acceptFriendRequest",
       async (senderId: number, callback) => {
         try {
-          await this.acceptFriendRequest(this._socket, senderId);
+          await this._friendManager.acceptFriendRequest(this._socket, senderId);
           callback({
             status: "ok",
-            message: "",
+            message: ""
           });
         } catch (e) {
           if (e instanceof Error) {
             console.error(e);
             callback({
               status: "error",
-              message: e.message,
+              message: e.message
             });
           }
         }
       }
     );
   }
+
   declineFriendRequestListener() {
     this._socket.on("declineFriendRequest", async (senderId: number) => {
       try {
-        await this.declineFriendRequest(this._socket, senderId);
+        await this._friendManager.declineFriendRequest(this._socket, senderId);
       } catch (e) {
         console.error(e);
       }
     });
   }
+
   deleteFriendListener() {
     this._socket.on(
       "deleteFriend",
       async (data: { friendId: number; privateRoomId: number }) => {
         try {
-          await this.deleteFriend(this._socket, data);
+          await this._friendManager.deleteFriend(this._socket, data);
         } catch (e) {
           console.error(e);
         }
       }
     );
   }
+
   getConversationWithAFriendListener() {
     this._socket.on(
       "getConversationWithAFriend",
       async (data: { friendId: number; privateRoomId: number }) => {
         try {
-          await this.getConversationWithAFriend(this._socket, data);
+          await this._friendManager.getConversationWithAFriend(
+            this._socket,
+            data
+          );
         } catch (e) {
           console.error(e);
         }
@@ -117,7 +143,7 @@ class FriendListener extends FriendsManager {
       "sendPrivateMessage",
       async (data: PrivateMessageInterface) => {
         try {
-          await this.sendPrivateMessage(this._socket, data);
+          await this._friendManager.sendPrivateMessage(this._socket, data);
         } catch (e) {
           console.error(e);
         }
@@ -130,19 +156,23 @@ class FriendListener extends FriendsManager {
       "getPrivateMessagesHistory",
       async (privateRoomId: number) => {
         try {
-          await this.getPrivateMessages(this._socket, privateRoomId);
+          await this._friendManager.getPrivateMessages(
+            this._socket,
+            privateRoomId
+          );
         } catch (e) {
           console.error(e);
         }
       }
     );
   }
+
   loadMorePrivateMessagesListener() {
     this._socket.on(
       "loadMorePrivateMessages",
       async (data: { id: number; messagesArrayLength: number }) => {
         try {
-          await this.loadMorePrivateMessages(this._socket, data);
+          await this._friendManager.loadMorePrivateMessages(this._socket, data);
         } catch (e) {
           console.error(e);
         }

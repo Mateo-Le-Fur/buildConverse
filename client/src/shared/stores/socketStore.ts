@@ -17,7 +17,6 @@ import { useMessage } from "@/features/server/stores/messageStore";
 interface SocketState {
   ioClient: Socket | null;
   opts: Partial<ManagerOptions>;
-  activeNsSocket: Socket | null;
   numberOfLoadedNamespaces: number;
   error: any;
 }
@@ -25,7 +24,6 @@ interface SocketState {
 export const useSocket = defineStore("socket", {
   state: (): SocketState => ({
     ioClient: null,
-    activeNsSocket: null,
     numberOfLoadedNamespaces: 0,
     error: null,
     opts: {
@@ -130,113 +128,94 @@ export const useSocket = defineStore("socket", {
       const messageStore = useMessage();
       const namespaceStore = useNamespace();
       const roomStore = useRoom();
+      const userNsStore = useNsUser();
 
       this.ioClient?.on("namespaces", (data: Namespace[]) => {
         namespaceStore.init(data);
       });
 
-      this.ioClient?.on("createdNamespace", async (data: Namespace[]) => {
-        const ns = data[0];
-
-        const nsSocket = io(`/${ns.id}`);
-
-        this.initNamespaceData(nsSocket, data.length, async () => {
-          namespaceStore.createNamespace(data, nsSocket);
-
-          this.activeNsSocket?.emit("leaveRoom", roomStore.activeRoom?.id);
-
-          // @ts-ignore
-          await this.router.push(`/channels/${ns.id}/${ns.rooms[0].id}`);
-        });
-      });
-    },
-
-    initNamespaceData(
-      nsSocket: any,
-      numberOfNamespaces: number,
-      callback: () => void
-    ) {
-      const namespaceStore = useNamespace();
-      const roomStore = useRoom();
-      const userNsStore = useNsUser();
-      const messageStore = useMessage();
-
-      this.numberOfLoadedNamespaces++;
-
-      if (this.numberOfLoadedNamespaces === numberOfNamespaces) {
-        callback();
-        this.numberOfLoadedNamespaces = 0;
-      }
-
-      nsSocket.on(
+      this.ioClient?.on(
         "userList",
         (data: { users: User[]; numberOfUsers: number }) => {
           userNsStore.getUsersData(data);
         }
       );
 
-      nsSocket.on("loadMoreUser", (data: User[]) => {
+      this.ioClient?.on("loadMoreUser", (data: User[]) => {
         userNsStore.loadMoreUser(data);
       });
 
-      nsSocket.on("updateUser", async (data: User) => {
+      this.ioClient?.on("updateUser", async (data: User) => {
         await userNsStore.updateUser(data);
       });
 
-      nsSocket.on("deleteUser", async (data: { id: number; nsId: number }) => {
-        userNsStore.deleteUser(data);
-      });
+      this.ioClient?.on(
+        "deleteUser",
+        async (data: { id: number; nsId: number }) => {
+          userNsStore.deleteUser(data);
+        }
+      );
 
-      nsSocket.on("userConnect", async (data: User[]) => {
+      this.ioClient?.on("userConnectedToTheServer", async (data: User[]) => {
         userNsStore.userConnect(data);
       });
 
-      nsSocket.on("userDisconnect", async (data: { id: number }) => {
+      this.ioClient?.on("userDisconnect", async (data: { id: number }) => {
         userNsStore.userDisconnect(data);
       });
 
-      nsSocket.on("userJoinNamespace", (data: User[]) => {
+      this.ioClient?.on("userJoinNamespace", (data: User[]) => {
         userNsStore.addNewUser(data);
       });
 
-      nsSocket.on("userLeaveNamespace", async (data: { id: number }) => {
+      this.ioClient?.on("userLeaveNamespace", async (data: { id: number }) => {
         namespaceStore.userLeaveNamespace(data);
       });
 
-      nsSocket.on("history", async (data: MessageInterface[]) => {
+      this.ioClient?.on("history", async (data: MessageInterface[]) => {
+        console.log(data);
         messageStore.getHistory(data);
       });
 
-      nsSocket.on("message", (data: MessageInterface) => {
+      this.ioClient?.on("message", (data: MessageInterface) => {
         messageStore.getMessage(data);
       });
 
-      nsSocket.on("loadMoreMessages", (data: MessageInterface[]) => {
+      this.ioClient?.on("loadMoreMessages", (data: MessageInterface[]) => {
         messageStore.loadMoreMessages(data);
       });
 
-      nsSocket.on("createRoom", async (data: RoomInterface) => {
+      this.ioClient?.on("createRoom", async (data: RoomInterface) => {
         roomStore.createRoom(data);
       });
 
-      nsSocket.on("updateRoom", async (data: RoomInterface) => {
+      this.ioClient?.on("updateRoom", async (data: RoomInterface) => {
         roomStore.updateRoom(data);
       });
 
-      nsSocket.on("deleteRoom", async (data: RoomInterface) => {
+      this.ioClient?.on("deleteRoom", async (data: RoomInterface) => {
         await roomStore.deleteRoom(data);
       });
 
-      nsSocket.on("updateNamespace", async (data: Namespace) => {
+      this.ioClient?.on("updateNamespace", async (data: Namespace) => {
         await namespaceStore.updateNamespace(data);
       });
 
-      nsSocket.on("deleteNamespace", async (data: { id: number }) => {
+      this.ioClient?.on("deleteNamespace", async (data: { id: number }) => {
         await namespaceStore.deleteNamespace(data);
       });
 
-      nsSocket.on("connect_error", (err: Error) => {
+      this.ioClient?.on("connect_error", (err: Error) => {
         console.error(err);
+      });
+
+      this.ioClient?.on("createdNamespace", async (data: Namespace) => {
+        namespaceStore.createNamespace(data);
+
+        this.ioClient?.emit("leaveRoom", roomStore.activeRoom?.id);
+
+        // @ts-ignore
+        await this.router.push(`/channels/${data.id}/${data.rooms[0].id}`);
       });
     },
 

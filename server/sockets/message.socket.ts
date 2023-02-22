@@ -11,11 +11,7 @@ class MessageManager {
     this._ios = ios;
   }
 
-  public async sendMessage(
-    ns: Namespace,
-    nsSocket: SocketCustom,
-    data: MessageInterface
-  ) {
+  public async sendMessage(nsSocket: SocketCustom, data: MessageInterface) {
     const userId = nsSocket.request.user?.id;
 
     const user = await User.findByPk(userId, {
@@ -42,7 +38,7 @@ class MessageManager {
         }/user/${userId}/${Date.now()}/avatar`,
       };
 
-      ns.in(`/${data.roomId}`).emit("message", message);
+      this._ios.to(`room-${data.roomId}`).emit("message", message);
     }
   }
 }

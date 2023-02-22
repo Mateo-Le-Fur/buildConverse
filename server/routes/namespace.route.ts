@@ -8,9 +8,9 @@ router.get(
   "/:id/:random/avatar",
   controllerHandler(namespaceController.getNamespaceAvatar)
 );
-router.delete(
-  "/:id/delete",
-  controllerHandler(namespaceController.leaveNamespace)
-);
+// router.delete(
+//   "/:id/delete",
+//   controllerHandler(namespaceController.leaveNamespace)
+// );
 
 export default router;

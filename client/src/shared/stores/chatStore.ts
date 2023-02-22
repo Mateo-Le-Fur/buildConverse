@@ -68,7 +68,6 @@ export const useChat = defineStore("chat", {
       return <T extends PrivateMessageInterface | MessageInterface>(
         messages: T[]
       ): T[] => {
-        console.log("filter");
         // On crée une nouvelle référence pour notre tableau
         const values = [...messages];
         // On trie les messages par id, et on vérifie s'il est nécessaire d'afficher l'avatar ou un séparateur de date

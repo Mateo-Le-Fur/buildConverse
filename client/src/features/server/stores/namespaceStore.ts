@@ -1,13 +1,13 @@
 import { defineStore } from "pinia";
 import type { Namespace } from "@/shared/interfaces/Namespace";
-import { io, Socket } from "socket.io-client";
+import type { Socket } from "socket.io-client";
 import { useSocket } from "@/shared/stores/socketStore";
 import { useRoom } from "@/features/server/stores/roomStore";
 import { useNsUser } from "@/features/server/stores/userNsStore";
 
 interface NamespaceState {
   namespaces: Namespace[];
-  namespaceSockets: Socket[];
+  activeNamespace: Namespace | null;
   isNamespacesLoaded: boolean;
   creatingNamespace: boolean;
   isNamespaceUpdated: boolean;
@@ -16,7 +16,7 @@ interface NamespaceState {
 export const useNamespace = defineStore("namespace", {
   state: (): NamespaceState => ({
     namespaces: [],
-    namespaceSockets: [],
+    activeNamespace: null,
     isNamespacesLoaded: false,
     creatingNamespace: false,
     isNamespaceUpdated: false,
@@ -31,7 +31,6 @@ export const useNamespace = defineStore("namespace", {
 
   actions: {
     init(data: Namespace[]) {
-      const socketStore = useSocket();
       const roomStore = useRoom();
 
       if (!data.length) return (this.isNamespacesLoaded = true);
@@ -42,24 +41,15 @@ export const useNamespace = defineStore("namespace", {
         namespace.rooms.forEach((room) => roomStore.getRoomsData(room));
       });
 
-      for (const ns of this.namespaces) {
-        const nsSocket = io(`/${ns.id}`);
-
-        socketStore.initNamespaceData(nsSocket, data.length, () => {
-          this.isNamespacesLoaded = true;
-        });
-
-        this.namespaceSockets.push(nsSocket);
-      }
+      this.isNamespacesLoaded = true;
     },
 
-    createNamespace(data: Namespace[], nsSocket: Socket) {
+    createNamespace(data: Namespace) {
       const roomStore = useRoom();
 
-      this.namespaces.push(...data);
-      this.namespaceSockets.push(nsSocket);
+      this.namespaces.push(data);
 
-      const room = data[0].rooms[0];
+      const room = data.rooms[0];
 
       roomStore.getRoomsData(room);
 
@@ -101,35 +91,19 @@ export const useNamespace = defineStore("namespace", {
         (ns) => ns.id === data.id
       );
 
-      const namespaceSocketIndex = this.namespaceSockets.findIndex(
-        (ns: any) => ns.nsp === `/${data.id}`
-      );
-
-      const namespaceSocket = this.namespaceSockets.find(
-        (nsSocket: any) => nsSocket.nsp === `/${data.id}`
-      );
-
-      if (namespaceSocket) namespaceSocket.disconnect();
-
       if (namespaceIndex !== -1) {
         this.namespaces.splice(namespaceIndex, 1);
       }
 
-      if (namespaceSocketIndex !== -1) {
-        this.namespaceSockets.splice(namespaceSocketIndex, 1);
-      }
-
-      socketStore.activeNsSocket = null;
+      this.activeNamespace = null;
       // @ts-ignore
       await this.router.push("/channels/me");
     },
 
-    joinNamespace(nsSocket: any, roomId: string, namespaceId: string) {
+    joinNamespace(roomId: string, namespaceId: string) {
       const roomStore = useRoom();
       const userNsStore = useNsUser();
       const socketStore = useSocket();
-
-      socketStore.activeNsSocket = nsSocket;
 
       const room = roomStore.findRoom(Number(roomId));
 
@@ -137,7 +111,10 @@ export const useNamespace = defineStore("namespace", {
 
       userNsStore.isUsersLoaded = false;
 
-      socketStore.activeNsSocket?.emit("getNamespaceUsers", namespaceId);
+      socketStore.ioClient?.emit("getNamespaceUsers", namespaceId);
+
+      this.activeNamespace =
+        this.namespaces.find((ns) => ns.id === Number(namespaceId)) ?? null;
     },
 
     userLeaveNamespace(data: { id: number }) {

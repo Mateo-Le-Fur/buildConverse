@@ -60,7 +60,7 @@ const submit = handleSubmit(async (formValue: Partial<Namespace>) => {
       formValue.inviteCode !== props.currentNamespace?.inviteCode ||
       avatar.value
     ) {
-      socketStore.activeNsSocket?.emit(
+      socketStore.ioClient?.emit(
         "updateNamespace",
         {
           ...formValue,

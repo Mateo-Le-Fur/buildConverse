@@ -43,12 +43,8 @@ export const useUser = defineStore("user", {
 
     async logout() {
       const socketStore = useSocket();
-      const namespaceStore = useNamespace();
       await logout();
       socketStore.ioClient?.disconnect();
-      namespaceStore.namespaceSockets.forEach((nsSocket: any) => {
-        nsSocket.disconnect();
-      });
 
       // @ts-ignore
       getActivePinia()._s.forEach((store) => store.$reset());

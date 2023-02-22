@@ -1,6 +1,5 @@
 import cookieParser from "cookie";
 import authProtect from "./jwt.config";
-import { JWTPayload, RequestCustom } from "../interfaces";
 import http from "http";
 import { JwtPayload } from "jsonwebtoken";
 

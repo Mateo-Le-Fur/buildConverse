@@ -30,4 +30,5 @@ router.get(
   controllerHandler(authController.getCurrent)
 );
 
+
 export default router;

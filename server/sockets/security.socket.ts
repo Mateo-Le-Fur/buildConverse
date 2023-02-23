@@ -95,6 +95,19 @@ class SecurityManager {
       authorizations.room.add(data.roomId);
     }
   }
+
+  async checkIfRoomBelongsToNamespace(authorizations: AuthorizationsInterface, namespaceId: number, roomId: number) {
+    const isRoomBelongsToNamespace = authorizations.namespaceHasRooms.get(namespaceId)?.has(roomId);
+
+    if (!isRoomBelongsToNamespace) {
+      const foundNamespaceRoom = await Room.findOne({
+        where: { id: roomId, namespaceId }
+      });
+      if (!foundNamespaceRoom) throw new Error("Forbidden");
+      const rooms = authorizations.namespaceHasRooms.get(namespaceId);
+      rooms?.add(roomId);
+    }
+  }
 }
 
 export { SecurityManager };

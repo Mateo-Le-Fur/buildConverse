@@ -10,6 +10,7 @@ import { MessageListener } from "./message.listener";
 import { User, Namespace } from "../models";
 import SocketServer from "./socket";
 import protect from "../config/jwt.config";
+
 class SocketListener {
   private _shared: {
     authorizations: AuthorizationsInterface;
@@ -35,8 +36,9 @@ class SocketListener {
     this._socket = socket;
 
     this._authorizations = {
+      adminServer: new Set(),
       room: new Set(),
-      adminServer: new Set()
+      namespaceHasRooms: new Map()
     };
 
     this._shared = {
@@ -50,8 +52,8 @@ class SocketListener {
   async initAllSocketListeners() {
 
     this._socket.onAny(() => {
-      protect.ensureAuthenticatedOnSocketServer(this._socket.request, this._socket)
-    })
+      protect.ensureAuthenticatedOnSocketServer(this._socket.request, this._socket);
+    });
 
 
     new MessageListener(this._shared, this._socketServer.messageManager);
@@ -65,6 +67,7 @@ class SocketListener {
     const friends = await friendListener.onConnect();
 
     this.setAuthorizations(namespaces);
+
     await this.joinServers(namespaces);
 
     this._socket.emit("namespaces", namespaces);
@@ -79,20 +82,23 @@ class SocketListener {
 
   setAuthorizations(namespaces: NamespaceInterface[] | undefined) {
     namespaces?.forEach((namespace) => {
+      const rooms = new Set<number>();
+      namespace.rooms.forEach((room) => {
+        rooms.add(room.id);
+        this._authorizations.namespaceHasRooms.set(namespace.id, rooms);
+        this._authorizations.room.add(room.id);
+      });
       if (namespace.UserHasNamespace.admin) {
-        this._authorizations.adminServer.add(namespace.id);
-        namespace.rooms.forEach((room) => {
-          this._authorizations.room.add(room.id);
-        });
+        this._authorizations.adminServer.add(namespace.id)
       }
     });
+
   }
 
   async joinServers(namespaces: NamespaceInterface[] | undefined) {
     namespaces?.forEach((ns) => {
       this._socket.join(`server-${ns.id}`);
     });
-
     await this.connectUser(namespaces);
   }
 
@@ -110,7 +116,7 @@ class SocketListener {
           ...user,
           UserHasNamespace: {
             namespaceId: ns.id,
-            admin: this._authorizations.adminServer.has(ns.id)
+            admin: this._authorizations.namespaceHasRooms.has(ns.id)
           }
         };
         this._ios

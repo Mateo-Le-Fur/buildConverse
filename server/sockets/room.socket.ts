@@ -130,7 +130,7 @@ class RoomsManager {
     if (count > 1) {
       await Room.destroy({
         where: {
-          id,
+          id: id,
         },
       });
     }

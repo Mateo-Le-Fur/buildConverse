@@ -173,7 +173,6 @@ export const useSocket = defineStore("socket", {
       });
 
       this.ioClient?.on("history", async (data: MessageInterface[]) => {
-        console.log(data);
         messageStore.getHistory(data);
       });
 

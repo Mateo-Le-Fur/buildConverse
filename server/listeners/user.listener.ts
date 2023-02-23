@@ -37,7 +37,6 @@ class UserListener {
     this._socket.on(
       "updateUser",
       async (data: UpdateUserInterface, callback) => {
-        console.log(data);
         try {
           await userValidator.validateAsync(data);
 

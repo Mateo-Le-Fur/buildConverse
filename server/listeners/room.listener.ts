@@ -12,6 +12,7 @@ class RoomListener {
   private _authorizations: AuthorizationsInterface;
   private _user: number | undefined;
   private _roomManager: RoomsManager;
+
   constructor(
     { socket, ios, authorizations, securityManager }: {
       socket: SocketCustom;
@@ -55,6 +56,7 @@ class RoomListener {
       }
     );
   }
+
   loadMoreMessagesListener() {
     this._socket.on(
       "loadMoreMessages",
@@ -75,61 +77,71 @@ class RoomListener {
       }
     );
   }
+
   leaveRoomListener() {
     this._socket.on("leaveRoom", (roomId: number) => {
       this._roomManager.leaveRoom(this._socket, roomId);
     });
   }
+
   createRoomListener() {
     this._socket.on("createRoom", async (data: RoomInterface, callback) => {
       try {
         await roomValidator.validateAsync(data);
-        await this._securityManager.checkIfUserIsAdminOfNamespace(this._socket, this._authorizations, data.namespaceId)
+        await this._securityManager.checkIfUserIsAdminOfNamespace(this._socket, this._authorizations, data.namespaceId);
         await this._roomManager.createRoom(data);
         callback({
-          status: "ok",
+          status: "ok"
         });
       } catch (e) {
         if (e instanceof Error) {
           callback({
             status: "error",
-            message: e.message,
+            message: e.message
           });
         }
       }
     });
   }
+
   updateRoomListener() {
     this._socket.on("updateRoom", async (data: RoomInterface, callback) => {
       try {
+        const t0 = performance.now()
         await roomValidator.validateAsync(data);
-        await this._securityManager.checkIfUserIsAdminOfNamespace(this._socket, this._authorizations, data.namespaceId)
+        await this._securityManager.checkIfRoomBelongsToNamespace(this._authorizations, data.namespaceId, data.id)
+        await this._securityManager.checkIfUserIsAdminOfNamespace(this._socket, this._authorizations, data.namespaceId);
+        const t1= performance.now()
+        console.log(t1 - t0)
         await this._roomManager.updateRoom(this._socket, data);
+
         callback({
-          status: "ok",
+          status: "ok"
         });
       } catch (e) {
         if (e instanceof Error) {
           console.error(e);
           callback({
             status: "error",
-            message: e.message,
+            message: e.message
           });
         }
       }
     });
   }
+
   deleteRoomListener() {
     this._socket.on("deleteRoom", async (data: RoomInterface, callback) => {
       try {
-        await this._securityManager.checkIfUserIsAdminOfNamespace(this._socket, this._authorizations, data.namespaceId)
+        await this._securityManager.checkIfRoomBelongsToNamespace(this._authorizations, data.namespaceId, data.id)
+        await this._securityManager.checkIfUserIsAdminOfNamespace(this._socket, this._authorizations, data.namespaceId);
         await this._roomManager.deleteRoom(this._socket, data);
       } catch (e) {
         if (e instanceof Error) {
           if (typeof callback === "function")
             callback({
               status: "error",
-              message: e.message,
+              message: e.message
             });
         }
       }

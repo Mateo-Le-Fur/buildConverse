@@ -1,4 +1,5 @@
 export interface AuthorizationsInterface {
-  room: Set<number>;
   adminServer: Set<number>;
+  room: Set<number>;
+  namespaceHasRooms: Map<number, Set<number>>;
 }

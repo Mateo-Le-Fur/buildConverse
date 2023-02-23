@@ -49,9 +49,9 @@ export const useNamespace = defineStore("namespace", {
 
       this.namespaces.push(data);
 
-      const room = data.rooms[0];
-
-      roomStore.getRoomsData(room);
+      data.rooms.forEach((room) => {
+        roomStore.getRoomsData(room);
+      });
 
       this.creatingNamespace = false;
     },

@@ -259,7 +259,6 @@ class NamespacesManager {
 
     if (!isAuthorize) throw new Error("Forbidden");
 
-    console.log(namespaceId);
 
     const userId = socket.request.user?.id;
 
@@ -298,7 +297,6 @@ class NamespacesManager {
 
     if (!foundNamespace) throw new Error("Code non valide");
 
-    console.log(foundNamespace);
 
     const { id: namespaceId } = foundNamespace;
 

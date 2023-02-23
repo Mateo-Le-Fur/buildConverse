@@ -89,7 +89,6 @@ export const useNsUser = defineStore("userSocket", {
     },
 
     userConnect(data: User[]) {
-      console.log(data);
       const [userData] = [...data];
 
       const index = this.userList.findIndex((user) => user.id === userData.id);

@@ -38,14 +38,8 @@ function displayTooltip(): void {
 }
 
 function changeNamespace(namespaceId: number, home: boolean = false) {
-  if (
-    socketStore.activeNsSocket &&
-    namespaceId !== Number(route.params.idChannel)
-  ) {
-    socketStore.activeNsSocket.emit("leaveRoom", roomStore.activeRoom?.id);
-  }
-  if (home) {
-    socketStore.activeNsSocket = null;
+  if (namespaceId !== Number(route.params.idChannel)) {
+    socketStore.ioClient?.emit("leaveRoom", roomStore.activeRoom?.id);
   }
 }
 
@@ -101,13 +95,13 @@ watch(
     />
     <div class="scroll d-flex flex-column align-items-center">
       <router-link
-        @click="socketStore.activeNsSocket ? changeNamespace(null, true) : ''"
+        @click="socketStore.activeNs ? changeNamespace(null, true) : ''"
         to="/channels/me"
       >
         <div
           data-tooltip="Messages Privés"
           class="private-message tooltip"
-          :class="{ active: !socketStore.activeNsSocket }"
+          :class="{ active: !socketStore.activeNs }"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
             <!--! Font Awesome Pro 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
@@ -136,7 +130,7 @@ watch(
             <img
               class="namespace-avatar"
               :class="{
-                active: socketStore.activeNsSocket?.nsp == `/${namespace.id}`,
+                active: socketStore.activeNs?.nsp == `/${namespace.id}`,
               }"
               :src="namespace.imgUrl"
               :alt="namespace.name"

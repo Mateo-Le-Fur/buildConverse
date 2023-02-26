@@ -59,7 +59,7 @@ onBeforeUnmount(() => {
         chatStore.loadMoreMessages(
           $event,
           {
-            socket: socketStore.activeNsSocket,
+            socket: socketStore.ioClient,
             eventName: 'loadMoreMessages',
           },
           messageStore.messages.length,

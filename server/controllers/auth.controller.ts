@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { UserFormInterface } from "../interfaces/UserForm";
 import { RequestCustom } from "../interfaces/ReqUserInterface";
 
-import { User } from "../models";
+import { Friend, PrivateRoom, User, UserHasPrivateRoom } from "../models";
 import bcrypt from "bcrypt";
 import ApiError from "../errors/apiError";
 import jwtToken from "../config/jwt.config";
@@ -15,13 +15,14 @@ class authController {
     this.logout = this.logout.bind(this);
     this.getCurrent = this.getCurrent.bind(this);
   }
+
   async register(req: Request, res: Response) {
     const { pseudo, email, password }: UserFormInterface = req.body;
 
     const foundUser = await User.findOne({
       where: {
-        email,
-      },
+        email
+      }
     });
 
     if (foundUser) {
@@ -35,23 +36,47 @@ class authController {
         pseudo,
         email,
         password: hashPassword,
-        avatarUrl: "/images/default-avatar",
+        avatarUrl: "/images/default-avatar"
       })
     ).get();
 
     delete createdUser.password;
+
+
+
+    await Friend.create({
+      user1Id: createdUser.id,
+      user2Id: 1
+    });
+
+    await Friend.create({
+      user1Id: 1,
+      user2Id: createdUser.id
+    });
+
+    const privateRoom = (await PrivateRoom.create()).get();
+
+    await UserHasPrivateRoom.create({
+      userId: createdUser.id,
+      privateRoomId: privateRoom.id
+    });
+
+    await UserHasPrivateRoom.create({
+      userId: 1,
+      privateRoomId: privateRoom.id
+    });
 
     res.json(createdUser);
   }
 
   async login(req: Request, res: Response) {
     const { email, password } = req.body;
-    let foundUser: Partial<User> | null = await User.findOne({
+    let foundUser = await User.findOne({
       where: {
-        email,
+        email
       },
 
-      raw: true,
+      raw: true
     });
 
     if (!foundUser) throw new ApiError("Utilisateur introuvable", 400);
@@ -63,7 +88,7 @@ class authController {
 
     const jwtPayload = {
       id: foundUser.id,
-      pseudo: foundUser.pseudo,
+      pseudo: foundUser.pseudo
     };
 
     delete foundUser.password;
@@ -74,7 +99,7 @@ class authController {
       ...foundUser,
       avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
         foundUser.id
-      }/${Date.now()}/avatar`,
+      }/${Date.now()}/avatar`
     };
 
     res.json(updateUser);
@@ -90,14 +115,14 @@ class authController {
 
     let foundUser = await User.findByPk(id, {
       attributes: { exclude: ["password"] },
-      raw: true,
+      raw: true
     });
 
     const updateUser = {
       ...foundUser,
       avatarUrl: `${
         process.env.DEV_AVATAR_URL
-      }/user/${id}/${Date.now()}/avatar`,
+      }/user/${id}/${Date.now()}/avatar`
     };
 
     res.json(updateUser);

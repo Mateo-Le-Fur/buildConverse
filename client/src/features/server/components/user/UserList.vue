@@ -17,7 +17,7 @@ const props = defineProps<{
 function loadMoreUser(e: Event) {
   const target = e.target as HTMLDivElement;
   if (target.scrollTop + target.clientHeight >= target.scrollHeight) {
-    socketStore.activeNsSocket?.emit("loadMoreUser", {
+    socketStore.ioClient?.emit("loadMoreUser", {
       currentArrayLength: props.userList.length,
       namespaceId: props.params.idChannel,
     });

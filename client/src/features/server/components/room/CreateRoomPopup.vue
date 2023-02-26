@@ -31,11 +31,11 @@ const { handleSubmit, setErrors } = useForm<Namespace>({
 
 const submit = handleSubmit((formValue: Namespace) => {
   try {
-    socketStore.activeNsSocket?.emit(
+    socketStore.ioClient?.emit(
       "createRoom",
       {
         name: formValue.name,
-        namespaceId: props.params.idChannel,
+        namespaceId: Number(props.params.idChannel),
       },
       (response: { status: string; message: string }) => {
         if (response.status !== "ok") {

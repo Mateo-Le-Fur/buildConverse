@@ -5,7 +5,7 @@ import {
   PrivateRoom,
   User,
   UserHasPrivateRoom,
-  Friend,
+  Friend
 } from "../models";
 import { SocketCustom } from "../interfaces/SocketCustom";
 import { FriendsInterface } from "../interfaces/FriendsInterface";
@@ -33,15 +33,15 @@ class FriendsManager {
             model: User,
             as: "friends",
             required: false,
-            attributes: { exclude: ["password"] },
+            attributes: { exclude: ["password", "email"] }
           },
           {
             model: User,
             as: "friendsRequests",
             required: false,
-            attributes: { exclude: ["password"] },
-          },
-        ],
+            attributes: { exclude: ["password", "email"] }
+          }
+        ]
       })
     )?.toJSON();
 
@@ -56,7 +56,7 @@ class FriendsManager {
         avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
           friend.id
         }/${Date.now()}/avatar`,
-        status: checkIfUserIsOnline ? "online" : "offline",
+        status: checkIfUserIsOnline ? "online" : "offline"
       };
     });
 
@@ -66,14 +66,14 @@ class FriendsManager {
         avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
           friend.id
         }/${Date.now()}/avatar`,
-        status: "pending",
+        status: "pending"
       };
     });
 
     const merge = [
       // @ts-ignore
       ...friends,
-      ...friendsRequest,
+      ...friendsRequest
     ];
 
     const friendsId = friends?.map((friend) => friend.id);
@@ -88,21 +88,21 @@ class FriendsManager {
 
     const foundUser = await User.findOne({
       where: {
-        pseudo: data.pseudo,
+        pseudo: data.pseudo
       },
-      raw: true,
+      raw: true
     });
 
     if (!foundUser) throw new Error("Aucun utilisateur trouvé");
 
     await FriendRequest.create({
       senderId: userId,
-      recipientId: foundUser.id,
+      recipientId: foundUser.id
     });
 
     const sender = await User.findByPk(userId, {
       attributes: { exclude: ["password"] },
-      raw: true,
+      raw: true
     });
 
     if (sender) {
@@ -122,46 +122,48 @@ class FriendsManager {
   public async acceptFriendRequest(socket: SocketCustom, senderId: number) {
     const userId = socket.request.user?.id;
 
-    await FriendRequest.destroy({
+    const isFriendRequestExist = await FriendRequest.destroy({
       where: {
         senderId: senderId,
-        recipientId: userId,
-      },
+        recipientId: userId
+      }
     });
+
+    if (!isFriendRequestExist) throw new Error("Forbidden");
 
     await Friend.create({
       user1Id: userId,
-      user2Id: senderId,
+      user2Id: senderId
     });
 
     await Friend.create({
       user1Id: senderId,
-      user2Id: userId,
+      user2Id: userId
     });
 
     const privateRoom = (await PrivateRoom.create()).get();
 
     await UserHasPrivateRoom.create({
       userId: userId,
-      privateRoomId: privateRoom.id,
+      privateRoomId: privateRoom.id
     });
 
     await UserHasPrivateRoom.create({
       userId: senderId,
-      privateRoomId: privateRoom.id,
+      privateRoomId: privateRoom.id
     });
 
     const socketId = this._clients.get(senderId);
 
     const friend = {
       id: senderId,
-      status: socketId ? "online" : "offline",
+      status: socketId ? "online" : "offline"
     };
 
     if (socketId) {
       const user = await User.findByPk(userId, {
         attributes: { exclude: ["password"] },
-        raw: true,
+        raw: true
       });
 
       if (user) {
@@ -174,37 +176,37 @@ class FriendsManager {
       this._ios.to(socketId).emit("friendRequestAccepted", {
         ...user,
         privateRoomId: privateRoom.id,
-        active: false,
+        active: false
       });
     }
 
     socket.emit("acceptFriendRequest", {
       ...friend,
       privateRoomId: privateRoom.id,
-      active: false,
+      active: false
     });
   }
 
   public async declineFriendRequest(socket: SocketCustom, senderId: number) {
-    await FriendRequest.destroy({
+    const userId = socket.request.user?.id;
+    const deleted = await FriendRequest.destroy({
       where: {
-        senderId: senderId,
-      },
+        recipientId: userId,
+        senderId: senderId
+      }
     });
 
-    socket.emit("declineFriendRequest", senderId);
+    if (deleted) socket.emit("declineFriendRequest", senderId);
   }
 
   public async getAllConversations(socket: SocketCustom) {
-    const t0 = performance.now();
-
     const userId = socket.request.user?.id;
 
     const recipients = (
       await UserHasPrivateRoom.findAll({
         where: {
-          userId,
-        },
+          userId
+        }
       })
     ).map((el: UserHasPrivateRoom) => el.toJSON());
 
@@ -216,17 +218,17 @@ class FriendsManager {
               {
                 model: User,
                 as: "privateRoomUsers",
-                attributes: { exclude: ["password"] },
-              },
+                attributes: { exclude: ["password"] }
+              }
             ],
             where: {
-              id: recipient.privateRoomId,
-            },
+              id: recipient.privateRoomId
+            }
           });
 
           return {
             ...data?.toJSON(),
-            active: recipient.active,
+            active: recipient.active
           };
         })
       );
@@ -245,7 +247,7 @@ class FriendsManager {
               filteredUser.id
             }/${Date.now()}/avatar`,
             privateRoomId: element.id,
-            active: element.active,
+            active: element.active
           };
         }
       });
@@ -263,22 +265,22 @@ class FriendsManager {
     await Friend.destroy({
       where: {
         user1Id: data.friendId,
-        user2Id: userId,
-      },
+        user2Id: userId
+      }
     });
 
     await Friend.destroy({
       where: {
         user1Id: userId,
-        user2Id: data.friendId,
-      },
+        user2Id: data.friendId
+      }
     });
 
     if (data.privateRoomId) {
       await PrivateRoom.destroy({
         where: {
-          id: data.privateRoomId,
-        },
+          id: data.privateRoomId
+        }
       });
     }
 
@@ -287,12 +289,12 @@ class FriendsManager {
     if (socketId)
       this._ios.to(socketId).emit("deleteFriend", {
         id: userId,
-        privateRoomId: data.privateRoomId,
+        privateRoomId: data.privateRoomId
       });
 
     socket.emit("deleteFriend", {
       id: data.friendId,
-      privateRoomId: data.privateRoomId,
+      privateRoomId: data.privateRoomId
     });
   }
 
@@ -302,17 +304,24 @@ class FriendsManager {
   ) {
     const userId = socket.request.user?.id;
 
-    const checkIfFriendExist = await User.findByPk(data.friendId);
+    const isFriendsWith = await Friend.findOne({
+      where: {
+        user1Id: userId,
+        user2Id: data.friendId
+      }
+    });
 
-    if (!checkIfFriendExist) return;
+    if (!isFriendsWith) throw new Error("Forbidden");
 
     const userRoom = await UserHasPrivateRoom.findOne({
       where: {
         userId,
-        privateRoomId: data.privateRoomId,
+        privateRoomId: data.privateRoomId
       },
-      raw: true,
+      raw: true
     });
+
+    if (!userRoom) throw new Error("Forbidden");
 
     const privateRoom = (
       await PrivateRoom.findOne({
@@ -320,45 +329,45 @@ class FriendsManager {
           {
             model: User,
             as: "privateRoomUsers",
-            attributes: { exclude: ["password"] },
+            attributes: { exclude: ["password", "email"] },
             where: {
-              id: data.friendId,
-            },
-          },
+              id: data.friendId
+            }
+          }
         ],
         where: {
-          id: data.privateRoomId,
-        },
+          id: data.privateRoomId
+        }
       })
     )?.toJSON();
 
     if (!userRoom?.active) {
       await UserHasPrivateRoom.update(
         {
-          active: true,
+          active: true
         },
         {
           where: {
             userId,
-            privateRoomId: userRoom?.privateRoomId,
-          },
+            privateRoomId: userRoom?.privateRoomId
+          }
         }
       );
     }
 
     if (privateRoom?.privateRoomUsers) {
-      const getRecipient = privateRoom?.privateRoomUsers[0];
+      const getFriend = privateRoom?.privateRoomUsers[0];
 
-      const recipient = {
-        ...getRecipient,
+      const friend = {
+        ...getFriend,
         avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
-          getRecipient?.id
+          getFriend?.id
         }/${Date.now()}/avatar`,
         active: true,
-        privateRoomId: getRecipient?.UserHasPrivateRoom.privateRoomId,
+        privateRoomId: data.privateRoomId
       };
 
-      socket.emit("getConversationWithAFriend", recipient);
+      socket.emit("getConversationWithAFriend", friend);
     }
   }
 
@@ -366,10 +375,10 @@ class FriendsManager {
     let messages = (
       await PrivateMessage.findAll({
         where: {
-          privateRoomId: privateRoomId,
+          privateRoomId: privateRoomId
         },
         order: [["id", "desc"]],
-        limit: 50,
+        limit: 50
       })
     ).map((message: PrivateMessage) => message.toJSON());
 
@@ -378,7 +387,7 @@ class FriendsManager {
         ...message,
         avatarAuthor: `${process.env.DEV_AVATAR_URL}/user/${
           message.userId
-        }/${Date.now()}/avatar`,
+        }/${Date.now()}/avatar`
       };
     });
 
@@ -395,11 +404,11 @@ class FriendsManager {
     let messages = (
       await PrivateMessage.findAll({
         where: {
-          privateRoomId: data.id,
+          privateRoomId: data.id
         },
         order: [["id", "desc"]],
         limit: 50,
-        offset: data.messagesArrayLength,
+        offset: data.messagesArrayLength
       })
     ).map((message: PrivateMessage) => message.toJSON());
 
@@ -408,7 +417,7 @@ class FriendsManager {
         ...message,
         avatarAuthor: `${process.env.DEV_AVATAR_URL}/user/${
           message.userId
-        }/${Date.now()}/avatar`,
+        }/${Date.now()}/avatar`
       };
     });
 
@@ -423,7 +432,7 @@ class FriendsManager {
 
     const user = await User.findByPk(userId, {
       attributes: ["pseudo", ["avatar_url", "avatarUrl"]],
-      raw: true,
+      raw: true
     });
 
     if (user) {
@@ -434,7 +443,7 @@ class FriendsManager {
           privateRoomId: data.privateRoomId,
           userId: userId,
           authorName: user.pseudo,
-          avatarAuthor: user.avatarUrl,
+          avatarAuthor: user.avatarUrl
         })
       ).get();
 
@@ -442,7 +451,7 @@ class FriendsManager {
         ...message,
         avatarAuthor: `${
           process.env.DEV_AVATAR_URL
-        }/user/${userId}/${Date.now()}/avatar`,
+        }/user/${userId}/${Date.now()}/avatar`
       };
 
       const socketId = this._clients.get(data.recipientId);

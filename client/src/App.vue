@@ -15,9 +15,7 @@ const router = useRouter();
 
 <template>
   <div class="app-container shape d-flex">
-    <Namespace
-      v-if="userStore.isAuthenticated && namespaceStore.isNamespacesLoaded"
-    />
+    <Namespace v-if="userStore.isAuthenticated" />
     <router-view v-slot="{ Component }">
       <component :is="Component" />
     </router-view>

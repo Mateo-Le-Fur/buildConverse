@@ -27,7 +27,6 @@ export const useMessage = defineStore("message", {
     },
 
     async loadMoreMessages(data: MessageInterface[]) {
-      // console.log(this.messages);
       await useLoadMoreMessages(data, this);
     },
   },

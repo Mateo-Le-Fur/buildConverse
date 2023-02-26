@@ -1,6 +1,6 @@
 import User from "./User";
 import Room from "./Room";
-import UserNamespace from "./Namespace";
+import Namespace from "./Namespace";
 import Message from "./Message";
 import UserHasNamespace from "./UserHasNamespace";
 import FriendRequest from "./FriendRequest";
@@ -9,12 +9,12 @@ import PrivateRoom from "./PrivateRoom";
 import PrivateMessage from "./PrivateMessage";
 import UserHasPrivateRoom from "./UserHasPrivateRoom";
 
-UserNamespace.hasMany(Room, {
+Namespace.hasMany(Room, {
   foreignKey: "namespace_id",
   as: "rooms",
 });
 
-Room.belongsTo(UserNamespace, {
+Room.belongsTo(Namespace, {
   foreignKey: "namespace_id",
   as: "namespaces",
 });
@@ -98,7 +98,7 @@ PrivateRoom.belongsToMany(User, {
   timestamps: false,
 });
 
-User.belongsToMany(UserNamespace, {
+User.belongsToMany(Namespace, {
   as: "namespaces",
   through: UserHasNamespace,
   foreignKey: "user_id",
@@ -106,7 +106,7 @@ User.belongsToMany(UserNamespace, {
   timestamps: false,
 });
 
-UserNamespace.belongsToMany(User, {
+Namespace.belongsToMany(User, {
   as: "users",
   through: UserHasNamespace,
   foreignKey: "namespace_id",
@@ -117,7 +117,7 @@ UserNamespace.belongsToMany(User, {
 export {
   User,
   Room,
-  UserNamespace,
+  Namespace,
   Message,
   UserHasNamespace,
   FriendRequest,

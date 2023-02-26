@@ -62,9 +62,6 @@ async function deleteAccount() {
   });
 
   socketStore.ioClient?.disconnect();
-  namespaceStore.namespaceSockets.forEach((nsSocket: any) => {
-    nsSocket.disconnect();
-  });
 
   // @ts-ignore
   getActivePinia()._s.forEach((store) => store.$reset());

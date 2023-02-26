@@ -60,7 +60,7 @@ export const useRoom = defineStore("room", {
       );
 
       if (this.activeRoom?.id === data.id) {
-        socketStore.activeNsSocket?.emit("leaveRoom", data.id);
+        socketStore.ioClient?.emit("leaveRoom", data.id);
       }
 
       //@ts-ignore
@@ -74,7 +74,7 @@ export const useRoom = defineStore("room", {
     joinRoom(room: RoomInterface | undefined, namespaceId: number) {
       const socketStore = useSocket();
 
-      socketStore.activeNsSocket?.emit("joinRoom", {
+      socketStore.ioClient?.emit("joinRoom", {
         roomId: room?.id,
         namespaceId,
       });

@@ -1,18 +1,31 @@
 import { Namespace, Server } from "socket.io";
 import { MessageInterface, SocketCustom } from "../interfaces";
-import { SecurityManager } from "../sockets/security.socket";
 import { MessageManager } from "../sockets/message.socket";
-class MessageListener extends MessageManager {
+import { AuthorizationsInterface } from "../interfaces/AuthorizationsInterface";
+import { SecurityManager } from "../sockets/security.socket";
+
+class MessageListener {
   protected _ios: Server;
   protected _socket: SocketCustom;
-  protected _securityManager: SecurityManager;
-  private _ns: Namespace;
-  constructor(ns: Namespace, socket: SocketCustom, ios: Server) {
-    super(ios);
-    this._securityManager = new SecurityManager(ios);
-    this._ns = ns;
+  private _authorizations: AuthorizationsInterface;
+  private _messageManager: MessageManager;
+  private _securityManager: SecurityManager;
+
+  constructor(
+    { socket, ios, authorizations, securityManager }: {
+      socket: SocketCustom;
+      ios: Server;
+      authorizations: AuthorizationsInterface;
+      securityManager: SecurityManager;
+    },
+    messageManager: MessageManager
+  ) {
     this._ios = ios;
     this._socket = socket;
+    this._authorizations = authorizations;
+    this._securityManager = securityManager;
+
+    this._messageManager = messageManager;
 
     this.messageListener();
   }
@@ -20,7 +33,9 @@ class MessageListener extends MessageManager {
   messageListener() {
     this._socket.on("message", async (data: MessageInterface) => {
       try {
-        await this.sendMessage(this._ns, this._socket, data);
+        const checkAuthorization = this._authorizations.room.has(data.roomId);
+        if (!checkAuthorization) throw new Error("forbidden");
+        await this._messageManager.sendMessage(this._socket, data);
       } catch (e) {
         console.error(e);
       }

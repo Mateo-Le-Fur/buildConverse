@@ -3,7 +3,7 @@ import {
   User,
   UserHasNamespace,
   UserHasPrivateRoom,
-  UserNamespace,
+  Namespace,
 } from "../models";
 import runService from "../services/runService";
 import { Server, Socket } from "socket.io";
@@ -37,11 +37,6 @@ class UserManager {
           effort: 0,
         })
         .toFile(path.join(__dirname, `../images/${avatarName}.webp`));
-
-      // await runService("./services/compressWorker.js", {
-      //   data,
-      //   avatarName
-      // });
     }
 
     const { avatarUrl: oldAvatar } = (await User.findByPk(userId, {
@@ -71,7 +66,7 @@ class UserManager {
       await Promise.all(
         data.namespaces.map(async (ns) => {
           let namespace = (
-            await UserNamespace.findByPk(ns, {
+            await Namespace.findByPk(ns, {
               attributes: {
                 exclude: [
                   "name",
@@ -107,51 +102,9 @@ class UserManager {
             }
           });
 
-          if (user) this._ios.of(`/${ns}`).emit("updateUser", user[0]);
+          if (user) this._ios.to(`server-${ns}`).emit("updateUser", user[0]);
         })
       );
-
-      // for await (const ns of data.namespaces) {
-      //   let namespace = (
-      //     await UserNamespace.findByPk(ns, {
-      //       attributes: {
-      //         exclude: [
-      //           "name",
-      //           "invite_code",
-      //           "img_url",
-      //           "created_at",
-      //           "updated_at",
-      //         ],
-      //       },
-      //       include: [
-      //         {
-      //           model: User,
-      //           as: "users",
-      //           attributes: {
-      //             exclude: ["password", "email", "created_at", "updated_at"],
-      //           },
-      //           where: {
-      //             id: userId,
-      //           },
-      //         },
-      //       ],
-      //     })
-      //   )?.toJSON();
-      //
-      //   const user = namespace?.users?.map((element: UserInterface) => {
-      //     if (element) {
-      //       return {
-      //         ...element,
-      //         avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
-      //           element.id
-      //         }/${Date.now()}/avatar`,
-      //         status: "online",
-      //       };
-      //     }
-      //   });
-      //
-      //   if (user) this._ios.of(`/${ns}`).emit("updateUser", user[0]);
-      // }
     }
 
     if (data.friends.length) {
@@ -213,7 +166,7 @@ class UserManager {
 
     if (namespacesId.length) {
       for (let nsId of namespacesId) {
-        this._ios.of(`/${nsId}`).emit("deleteUser", { id, nsId });
+        this._ios.to(`server-${nsId}`).emit("deleteUser", { id, nsId });
       }
     }
   }

@@ -1,64 +1,75 @@
-import { Server, Socket } from "socket.io";
+import { Server } from "socket.io";
 import { server } from "../app";
 import { ensureAuthenticatedOnSocketHandshake } from "../config/security.config";
-import { SecurityManager } from "./index";
+import {
+  FriendsManager,
+  MessageManager,
+  NamespacesManager,
+  RoomsManager,
+  SecurityManager,
+  UserManager,
+} from "./index";
 import { SocketCustom } from "../interfaces";
+import { SocketListener } from "./socketListener";
+import sizeof from "object-sizeof"
 
-import { FriendListener } from "./friend.listener";
-import { NamespaceListener } from "./namespace.listener";
-import { UserListener } from "./user.listener";
-import { DynamicNamespaceListener } from "./dynamicNamespace.listener";
-import { RoomListener } from "./room.listener";
-import { MessageListener } from "./message.listener";
-
-class SocketManager {
+class SocketServer {
+  get listeners(): Map<number | undefined, Set<SocketListener>> {
+    return this._listeners;
+  }
+  get ios(): Server {
+    return this._ios;
+  }
+  get clients(): Map<number, string> {
+    return this._clients;
+  }
   private _ios: Server;
   private _clients: Map<number, string>;
-  private _securityManager: SecurityManager;
+  private _listeners: Map<number | undefined, Set<SocketListener>>;
+  public securityManager: SecurityManager;
+  public friendManager: FriendsManager;
+  public namespaceManager: NamespacesManager;
+  public messageManager: MessageManager;
+  public roomManager: RoomsManager;
+  public userManager: UserManager;
 
   constructor() {
     this._ios = new Server(server, {
       allowRequest: ensureAuthenticatedOnSocketHandshake,
       maxHttpBufferSize: 1e7,
-      cors: { origin: "http://localhost:3000" },
+      cors: { origin: "*" },
     });
     this._clients = new Map();
-    this._securityManager = new SecurityManager(this._ios);
+    this._listeners = new Map();
+    this.securityManager = new SecurityManager(this._ios);
+    this.friendManager = new FriendsManager(this._ios, this._clients);
+    this.messageManager = new MessageManager(this._ios);
+    this.roomManager = new RoomsManager(this._ios);
+    this.userManager = new UserManager(this._ios, this._clients);
+    this.namespaceManager = new NamespacesManager(this._ios, this._clients);
   }
 
-  public init() {
+  public async init() {
     this._ios.on("connect", async (socket: SocketCustom) => {
-      const id = socket.request.user?.id;
+      const userId = socket.request.user?.id;
 
-      if (id) this._clients.set(id, socket.id);
+      if (userId) this._clients.set(userId, socket.id);
 
       try {
-        new FriendListener(socket, this._ios, this._clients).onConnect();
-        new NamespaceListener(socket, this._ios, this._clients).onConnect();
-        new UserListener(socket, this._ios, this._clients);
+          const listener = new SocketListener(this, socket);
+          await listener.initAllSocketListeners();
+
+          let listenersSet = this._listeners.get(userId);
+          if (!listenersSet) listenersSet = new Set();
+
+          listenersSet.add(listener);
+          this._listeners.set(userId, listenersSet);
+
       } catch (e) {
         console.error(e);
       }
     });
-
-    this.initNamespace();
-  }
-
-  private async initNamespace() {
-    const ns = this._ios.of(/^\/\d+$/);
-
-    try {
-      await this._securityManager.checkIfUserHasNamespace(ns);
-    } catch (e) {
-      console.error(e);
-    }
-
-    ns.on("connect", async (nsSocket: SocketCustom) => {
-      new DynamicNamespaceListener(nsSocket, this._ios, this._clients);
-      new RoomListener(nsSocket, this._ios, this._clients);
-      new MessageListener(ns, nsSocket, this._ios);
-    });
   }
 }
 
-export default SocketManager;
+export default SocketServer;

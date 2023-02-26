@@ -4,6 +4,7 @@ import type { User } from "@/shared/interfaces/User";
 import { useUser } from "@/shared/stores";
 import { useMe } from "@/features/home/stores/meStore";
 import { useSocket } from "@/shared/stores/socketStore";
+import { useNamespace } from "@/features/server/stores/namespaceStore";
 
 interface userState {
   userList: User[];
@@ -24,7 +25,6 @@ export const useNsUser = defineStore("userSocket", {
     getUsersData(data: { users: User[]; numberOfUsers: number }) {
       this.userList = data.users;
       this.numberOfUsers = data.numberOfUsers;
-
       this.isUsersLoaded = true;
     },
 
@@ -58,10 +58,9 @@ export const useNsUser = defineStore("userSocket", {
     },
 
     async updateUser(data: User) {
-      const socketStore = useSocket();
+      const namespaceStore = useNamespace();
       if (
-        `/${data.UserHasNamespace.namespaceId}` ===
-        socketStore.activeNsSocket?.nsp
+        data.UserHasNamespace.namespaceId === namespaceStore.activeNamespace?.id
       ) {
         const userNamespaceIndex = this.userList.findIndex(
           (user) =>
@@ -76,8 +75,8 @@ export const useNsUser = defineStore("userSocket", {
     },
 
     deleteUser(data: { id: number; nsId: number }) {
-      const socketStore = useSocket();
-      if (`/${data.nsId}` === socketStore.activeNsSocket?.nsp) {
+      const namespaceStore = useNamespace();
+      if (data.nsId === namespaceStore.activeNamespace?.id) {
         const userIndex = this.userList.findIndex(
           (user) => user.id === data.id
         );

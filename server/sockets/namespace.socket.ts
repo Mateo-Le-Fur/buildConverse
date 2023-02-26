@@ -1,6 +1,6 @@
 import { NamespaceInterface } from "../interfaces/Namespace";
 import { Server, Socket } from "socket.io";
-import { User, UserNamespace, Room, UserHasNamespace } from "../models";
+import { User, Namespace, Room, UserHasNamespace } from "../models";
 import path from "path";
 import sharp from "sharp";
 import { getNumberOfUsers } from "../query/namespace.query";
@@ -23,7 +23,7 @@ class NamespacesManager {
     this._ios = ios;
     this._clients = clients;
     this._userLimit = 3000;
-    this._userNamespacesLimit = 150;
+    this._userNamespacesLimit = 20;
   }
 
   public get userLimit() {
@@ -39,8 +39,11 @@ class NamespacesManager {
 
     let foundUserNamespaces = (
       await User.findByPk(userId, {
+        attributes: {
+          exclude: ["email", "password"],
+        },
         include: {
-          model: UserNamespace,
+          model: Namespace,
           as: "namespaces",
           include: ["rooms"],
         },
@@ -58,13 +61,16 @@ class NamespacesManager {
       }
     );
 
-    socket.emit("namespaces", namespaces);
+
+    return namespaces;
   }
 
-  public async getNamespaceUsers(nsSocket: Socket) {
-    const namespaceId = Number(nsSocket.nsp.name.substring(1));
+  public async getNamespaceUsers(socket: Socket, namespaceId: number) {
+    const isAuthorize = socket.rooms.has(`server-${namespaceId}`);
 
-    let foundNamespace = await UserNamespace.findByPk(namespaceId);
+    if (!isAuthorize) throw new Error("Forbidden");
+
+    let foundNamespace = await Namespace.findByPk(namespaceId);
 
     const nbUsers = await getNumberOfUsers(namespaceId);
 
@@ -86,21 +92,23 @@ class NamespacesManager {
       };
     });
 
-    nsSocket.emit("userList", {
+    socket.emit("userList", {
       users: updateUser,
       numberOfUsers: nbUsers.count,
     });
   }
 
   public async loadMoreUser(
-    nsSocket: Socket,
-    data: { currentArrayLength: number }
+    socket: Socket,
+    data: { currentArrayLength: number; namespaceId: number }
   ) {
-    const { currentArrayLength } = data;
+    const { currentArrayLength, namespaceId } = data;
 
-    const namespaceId = Number(nsSocket.nsp.name.substring(1));
+    const isAuthorize = socket.rooms.has(`server-${namespaceId}`);
 
-    let namespace = await UserNamespace.findByPk(namespaceId);
+    if (!isAuthorize) throw new Error("Forbidden");
+
+    let namespace = await Namespace.findByPk(namespaceId);
 
     const foundUser = await namespace?.getUsers({
       attributes: { exclude: ["password"] },
@@ -120,7 +128,7 @@ class NamespacesManager {
       };
     });
 
-    nsSocket.emit("loadMoreUser", updateUser);
+    socket.emit("loadMoreUser", updateUser);
   }
 
   public async createNamespace(socket: SocketCustom, data: NamespaceInterface) {
@@ -137,7 +145,7 @@ class NamespacesManager {
         .toFile(path.join(__dirname, `../images/${imgName}.webp`));
     }
 
-    const createNamespace = await UserNamespace.create({
+    const createNamespace = await Namespace.create({
       name: data.name,
       inviteCode: data.inviteCode,
       imgUrl: imgName ? `/images/${imgName}` : `/images/${getRandomImage()}`,
@@ -160,7 +168,7 @@ class NamespacesManager {
     const foundUserNamespace = (
       await User.findByPk(userId, {
         include: {
-          model: UserNamespace,
+          model: Namespace,
           as: "namespaces",
           include: ["rooms"],
           where: {
@@ -179,7 +187,10 @@ class NamespacesManager {
       }/${Date.now()}/avatar`,
     };
 
-    socket.emit("createdNamespace", [userNamespace]);
+
+    socket.join(`server-${id}`);
+
+    socket.emit("createdNamespace", userNamespace);
   }
 
   public async updateNamespace(
@@ -187,6 +198,10 @@ class NamespacesManager {
     data: UpdateNamespaceInterface
   ) {
     const { namespaceId, inviteCode, imgBuffer, name } = data;
+
+    const isAuthorize = socket.rooms.has(`server-${namespaceId}`);
+
+    if (!isAuthorize) throw new Error("Forbidden");
 
     const userId = socket.request.user?.id;
 
@@ -202,11 +217,11 @@ class NamespacesManager {
         .toFile(path.join(__dirname, `../images/${avatarName}.webp`));
     }
 
-    const { imgUrl: oldAvatar } = (await UserNamespace.findByPk(namespaceId, {
+    const { imgUrl: oldAvatar } = (await Namespace.findByPk(namespaceId, {
       raw: true,
-    })) as UserNamespace;
+    })) as Namespace;
 
-    await UserNamespace.update(
+    await Namespace.update(
       {
         name,
         inviteCode,
@@ -219,7 +234,7 @@ class NamespacesManager {
       }
     );
 
-    let updateNamespace = await UserNamespace.findByPk(namespaceId, {
+    let updateNamespace = await Namespace.findByPk(namespaceId, {
       include: {
         model: Room,
         as: "rooms",
@@ -234,31 +249,36 @@ class NamespacesManager {
       }/namespace/${namespaceId}/${Date.now()}/avatar`,
     };
 
-    this._ios.of(`${namespaceId}`).emit("updateNamespace", newUpdateNamespace);
+    this._ios
+      .to(`server-${namespaceId}`)
+      .emit("updateNamespace", newUpdateNamespace);
   }
 
-  async deleteNamespace(socket: SocketCustom, data: { id: number }) {
-    const { id: namespaceId } = data;
+  async deleteNamespace(socket: SocketCustom, namespaceId: number) {
+    const isAuthorize = socket.rooms.has(`server-${namespaceId}`);
+
+    if (!isAuthorize) throw new Error("Forbidden");
+
 
     const userId = socket.request.user?.id;
 
     this._ios
-      .of(`/${namespaceId}`)
+      .to(`server-${namespaceId}`)
       .emit("deleteNamespace", { id: namespaceId });
 
-    const namespace = await UserNamespace.findByPk(namespaceId, {
+    const namespace = await Namespace.findByPk(namespaceId, {
       raw: true,
     });
 
     unlinkImage(namespace?.imgUrl);
 
-    await UserNamespace.destroy({
+    await Namespace.destroy({
       where: {
         id: namespaceId,
       },
     });
 
-    this._ios._nsps.delete(`/${namespaceId}`);
+    this._ios.sockets.adapter.rooms.delete(`server-${namespaceId}`);
   }
 
   public async joinInvitation(
@@ -268,26 +288,27 @@ class NamespacesManager {
     const userId = socket.request.user?.id;
 
     const foundNamespace = (
-      await UserNamespace.findOne({
+      await Namespace.findOne({
         where: {
           inviteCode: data.inviteCode,
         },
       })
-    )?.toJSON() as UserNamespace;
+    )?.toJSON() as Namespace;
 
     if (!foundNamespace) throw new Error("Code non valide");
+
 
     const { id: namespaceId } = foundNamespace;
 
     await UserHasNamespace.create({
       userId,
-      namespaceId,
+      namespaceId: namespaceId,
     });
 
     let foundUserNamespaces = (
       await User.findByPk(userId, {
         include: {
-          model: UserNamespace,
+          model: Namespace,
           as: "namespaces",
           include: ["rooms"],
           where: {
@@ -307,7 +328,7 @@ class NamespacesManager {
     };
 
     let foundNamespaceUser = (
-      await UserNamespace.findByPk(namespaceId, {
+      await Namespace.findByPk(namespaceId, {
         include: [
           {
             model: User,
@@ -330,24 +351,30 @@ class NamespacesManager {
       }/user/${userId}/${Date.now()}/avatar`,
     };
 
-    socket.emit("createdNamespace", [userNamespaces]);
+    socket.join(`server-${namespaceId}`);
 
-    this._ios.of(`/${namespaceId}`).emit("userJoinNamespace", [user]);
+    socket.emit("createdNamespace", userNamespaces);
+
+    this._ios.to(`server-${namespaceId}`).emit("userJoinNamespace", [user]);
   }
 
-  async leaveNamespace(socket: SocketCustom, data: { id: number }) {
-    const { id: namespaceId } = data;
+  async leaveNamespace(socket: SocketCustom, namespaceId: number) {
+    const isAuthorize = socket.rooms.has(`server-${namespaceId}`);
+
+    if (!isAuthorize) throw new Error("Forbidden");
 
     const userId = socket.request.user?.id;
 
     await UserHasNamespace.destroy({
       where: {
         userId,
-        namespaceId,
+        namespaceId: namespaceId,
       },
     });
 
-    this._ios.of(`/${namespaceId}`).emit("userLeaveNamespace", { id: userId });
+    this._ios
+      .to(`server-${namespaceId}`)
+      .emit("userLeaveNamespace", { id: userId });
   }
 }
 

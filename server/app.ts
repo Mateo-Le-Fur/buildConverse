@@ -1,21 +1,30 @@
 require("dotenv").config();
+import https from "https";
 import express, { Express, Request, Response } from "express";
 import cors from "cors";
 import path from "path";
 import router from "./routes";
 import { errorHandler } from "./helpers/errorHandler";
-import SocketManager from "./listeners/socket";
+import SocketServer from "./listeners/socket";
 import cookieParser from "cookie-parser";
+import fs from "fs";
+
+const key = fs.readFileSync(path.join(__dirname, "key.pem"));
+const cert = fs.readFileSync(path.join(__dirname, "cert.pem"));
 
 const app: Express = express();
 
-const server = app.listen(process.env.PORT);
+const server = https.createServer({ key, cert, passphrase: process.env.PASSPHRASE }, app);
+
+server.listen(443, "0.0.0.0");
 export { server, app };
 
 app.use(cookieParser());
 
-const socketManager = new SocketManager();
-socketManager.init();
+const socketServer = new SocketServer();
+(async () => {
+  await socketServer.init();
+})();
 
 app.use(cors());
 app.use(express.static(path.join(__dirname, "../../client/dist")));

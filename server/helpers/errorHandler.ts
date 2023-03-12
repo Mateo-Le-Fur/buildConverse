@@ -18,7 +18,7 @@ const errorHandler = (
   }
 
   if (statusCode) {
-    // logger.log("error", `${err.message}`);
+    // logger.log("error", `${err.Menu}`);
   }
 
   if (statusCode === 500 && process.env.NODE_ENV === "production") {

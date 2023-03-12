@@ -4,10 +4,12 @@ import type { Socket } from "socket.io-client";
 import { useSocket } from "@/shared/stores/socketStore";
 import { useRoom } from "@/features/server/stores/roomStore";
 import { useNsUser } from "@/features/server/stores/userNsStore";
+import { useMe } from "@/features/me/stores/meStore";
 
 interface NamespaceState {
   namespaces: Namespace[];
   activeNamespace: Namespace | null;
+  activeNamespaceId: number | null;
   isNamespacesLoaded: boolean;
   creatingNamespace: boolean;
   isNamespaceUpdated: boolean;
@@ -17,20 +19,21 @@ export const useNamespace = defineStore("namespace", {
   state: (): NamespaceState => ({
     namespaces: [],
     activeNamespace: null,
+    activeNamespaceId: null,
     isNamespacesLoaded: false,
     creatingNamespace: false,
     isNamespaceUpdated: false,
   }),
 
   getters: {
-    currentNamespace(state): (namespaceId: string) => Namespace | undefined {
-      return (namespaceId: string) =>
-        state.namespaces.find((ns: Namespace) => ns.id === Number(namespaceId));
+    currentNamespace(state): (namespaceId: number) => Namespace | undefined {
+      return (namespaceId: number) =>
+        state.namespaces.find((ns: Namespace) => ns.id === namespaceId);
     },
   },
 
   actions: {
-    init(data: Namespace[]) {
+    loadNamespaces(data: Namespace[]) {
       const roomStore = useRoom();
 
       if (!data.length) return (this.isNamespacesLoaded = true);
@@ -75,7 +78,6 @@ export const useNamespace = defineStore("namespace", {
     async deleteNamespace(data: { id: number }) {
       const roomStore = useRoom();
       const userNsStore = useNsUser();
-      const socketStore = useSocket();
 
       roomStore.activeRoom = null;
 
@@ -104,6 +106,7 @@ export const useNamespace = defineStore("namespace", {
       const roomStore = useRoom();
       const userNsStore = useNsUser();
       const socketStore = useSocket();
+      const meStore = useMe();
 
       const room = roomStore.findRoom(Number(roomId));
 
@@ -115,6 +118,11 @@ export const useNamespace = defineStore("namespace", {
 
       this.activeNamespace =
         this.namespaces.find((ns) => ns.id === Number(namespaceId)) ?? null;
+
+      if (this.activeNamespace) {
+        this.activeNamespaceId = this.activeNamespace?.id;
+        meStore.currentRecipientId = null;
+      }
     },
 
     userLeaveNamespace(data: { id: number }) {

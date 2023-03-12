@@ -11,8 +11,8 @@ class MessageManager {
     this._ios = ios;
   }
 
-  public async sendMessage(nsSocket: SocketCustom, data: MessageInterface) {
-    const userId = nsSocket.request.user?.id;
+  public async sendMessage(socket: SocketCustom, data: MessageInterface) {
+    const userId = socket.request.user?.id;
 
     const user = await User.findByPk(userId, {
       attributes: ["pseudo", ["avatar_url", "avatarUrl"]],

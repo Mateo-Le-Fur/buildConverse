@@ -9,6 +9,8 @@ export interface Namespace {
   imgUrl: string;
   rooms: RoomInterface[];
   UserHasNamespace: UserHasNamespace;
+
+  usersOnline: number;
   createdAt: string;
   updatedAt: string;
 }

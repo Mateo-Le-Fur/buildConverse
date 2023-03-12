@@ -371,14 +371,14 @@ class FriendsManager {
     }
   }
 
-  public async getPrivateMessages(socket: SocketCustom, privateRoomId: number) {
+  public async getPrivateMessages(socket: SocketCustom, privateRoomId: number, isBeginningConversation?: boolean) {
     let messages = (
       await PrivateMessage.findAll({
         where: {
           privateRoomId: privateRoomId
         },
         order: [["id", "desc"]],
-        limit: 50
+        limit: 40
       })
     ).map((message: PrivateMessage) => message.toJSON());
 
@@ -391,6 +391,8 @@ class FriendsManager {
       };
     });
 
+    if (isBeginningConversation) return messages;
+
     socket.emit("getPrivateMessagesHistory", messages);
   }
 
@@ -399,15 +401,28 @@ class FriendsManager {
     data: {
       id: number;
       messagesArrayLength: number;
+      isBeginningConversation: boolean;
     }
   ) {
+
+
+    if (data.isBeginningConversation) {
+      const messages = await this.getPrivateMessages(
+        socket,
+        data.id,
+        data.isBeginningConversation
+      );
+      socket.emit("loadMorePrivateMessages", messages);
+      return;
+    }
+
     let messages = (
       await PrivateMessage.findAll({
         where: {
           privateRoomId: data.id
         },
         order: [["id", "desc"]],
-        limit: 50,
+        limit: 20,
         offset: data.messagesArrayLength
       })
     ).map((message: PrivateMessage) => message.toJSON());

@@ -27,33 +27,28 @@ export const router = createRouter({
     {
       path: "/channels/me",
       beforeEnter: [isAuthenticatedGaurd],
-      component: () => import("@/features/home/Home.vue"),
+      component: () => import("@/views/Menu/Menu.vue"),
       children: [
-        {
-          path: "me",
-          name: "me",
-          component: () => import("@/features/home/views/FriendList.vue"),
-          props: true,
-        },
         {
           path: ":privateRoomId",
-          name: "privateRoom",
-          component: () => import("@/features/home/views/Chat.vue"),
+          name: "room",
+          component: () => import("@/features/me/views/Chat.vue"),
           props: true,
         },
-      ],
-    },
-
-    {
-      path: "/channels/:idChannel",
-      beforeEnter: [isAuthenticatedGaurd],
-      component: () => import("@/features/server/Server.vue"),
-      children: [
         {
-          path: ":idRoom",
-          name: "room",
-          component: () => import("@/features/server/views/Chat.vue"),
-          props: true,
+          path: "/channels/:serverId",
+          beforeEnter: [isAuthenticatedGaurd],
+          component: () => import("@/features/server/Server.vue"),
+          props: (route) => ({ serverId: Number(route.params.serverId) }),
+
+          children: [
+            {
+              path: ":roomId",
+              name: "server.room",
+              component: () => import("@/features/server/views/Chat.vue"),
+              props: (route) => ({ roomId: Number(route.params.roomId) }),
+            },
+          ],
         },
       ],
     },

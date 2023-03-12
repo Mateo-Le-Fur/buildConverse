@@ -14,9 +14,9 @@ const cert = fs.readFileSync(path.join(__dirname, "cert.pem"));
 
 const app: Express = express();
 
-const server = https.createServer({ key, cert, passphrase: process.env.PASSPHRASE }, app);
+// const server = https.createServer({ key, cert, passphrase: process.env.PASSPHRASE }, app);
+const server = app.listen(3000)
 
-server.listen(443, "0.0.0.0");
 export { server, app };
 
 app.use(cookieParser());

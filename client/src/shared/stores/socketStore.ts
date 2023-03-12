@@ -10,9 +10,11 @@ import type { FriendsInterface } from "@/shared/interfaces/FriendsInterface";
 import { useRoom } from "@/features/server/stores/roomStore";
 import { useNsUser } from "@/features/server/stores/userNsStore";
 import { useUser } from "@/shared/stores/authStore";
-import { useMe } from "@/features/home/stores/meStore";
+import { useMe } from "@/features/me/stores/meStore";
 import { useNamespace } from "@/features/server/stores/namespaceStore";
 import { useMessage } from "@/features/server/stores/messageStore";
+import { usePrivateMessage } from "@/features/me/stores/privateMessageStore";
+import type { UserHasNamespace } from "@/shared/interfaces/UserHasNamespace";
 
 interface SocketState {
   ioClient: Socket | null;
@@ -43,8 +45,13 @@ export const useSocket = defineStore("socket", {
       });
     },
 
-    initMe() {
+    initAllListeners() {
       const meStore = useMe();
+      const privateMessageStore = usePrivateMessage();
+      const messageStore = useMessage();
+      const namespaceStore = useNamespace();
+      const roomStore = useRoom();
+      const userNsStore = useNsUser();
 
       this.ioClient?.on("friends", (data: FriendsInterface[]) => {
         meStore.getFriends(data);
@@ -57,19 +64,19 @@ export const useSocket = defineStore("socket", {
       this.ioClient?.on(
         "getPrivateMessagesHistory",
         (data: PrivateMessageInterface[]) => {
-          meStore.getPrivateMessageHistory(data);
+          privateMessageStore.getPrivateMessageHistory(data);
         }
       );
 
       this.ioClient?.on(
         "loadMorePrivateMessages",
-        (data: PrivateMessageInterface[]) => {
-          meStore.loadMorePrivateMessages(data);
+        async (data: PrivateMessageInterface[]) => {
+          await privateMessageStore.loadMorePrivateMessages(data);
         }
       );
 
       this.ioClient?.on("privateMessage", (data: PrivateMessageInterface) => {
-        meStore.privateMessage(data);
+        privateMessageStore.privateMessage(data);
       });
 
       this.ioClient?.on(
@@ -122,16 +129,9 @@ export const useSocket = defineStore("socket", {
       this.ioClient?.on("userDisconnect", async (data: { id: number }) => {
         meStore.userDisconnect(data);
       });
-    },
-
-    initNamespaces() {
-      const messageStore = useMessage();
-      const namespaceStore = useNamespace();
-      const roomStore = useRoom();
-      const userNsStore = useNsUser();
 
       this.ioClient?.on("namespaces", (data: Namespace[]) => {
-        namespaceStore.init(data);
+        namespaceStore.loadNamespaces(data);
       });
 
       this.ioClient?.on(
@@ -160,9 +160,12 @@ export const useSocket = defineStore("socket", {
         userNsStore.userConnect(data);
       });
 
-      this.ioClient?.on("userDisconnect", async (data: { id: number }) => {
-        userNsStore.userDisconnect(data);
-      });
+      this.ioClient?.on(
+        "userDisconnectedFromTheServer",
+        async (data: UserHasNamespace) => {
+          userNsStore.userDisconnect(data);
+        }
+      );
 
       this.ioClient?.on("userJoinNamespace", (data: User[]) => {
         userNsStore.addNewUser(data);

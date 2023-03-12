@@ -2,13 +2,15 @@ import { defineStore } from "pinia";
 
 import type { User } from "@/shared/interfaces/User";
 import { useUser } from "@/shared/stores";
-import { useMe } from "@/features/home/stores/meStore";
+import { useMe } from "@/features/me/stores/meStore";
 import { useSocket } from "@/shared/stores/socketStore";
 import { useNamespace } from "@/features/server/stores/namespaceStore";
+import type { UserHasNamespace } from "@/shared/interfaces/UserHasNamespace";
 
 interface userState {
   userList: User[];
   numberOfUsers: number;
+  usersOnline: number;
   isUsersLoaded: boolean;
   error: null | string;
 }
@@ -17,6 +19,7 @@ export const useNsUser = defineStore("userSocket", {
   state: (): userState => ({
     userList: [],
     numberOfUsers: 0,
+    usersOnline: 0,
     isUsersLoaded: false,
     error: null,
   }),
@@ -58,19 +61,14 @@ export const useNsUser = defineStore("userSocket", {
     },
 
     async updateUser(data: User) {
-      const namespaceStore = useNamespace();
-      if (
-        data.UserHasNamespace.namespaceId === namespaceStore.activeNamespace?.id
-      ) {
-        const userNamespaceIndex = this.userList.findIndex(
-          (user) =>
-            user.id === data.id &&
-            user.UserHasNamespace.namespaceId ===
-              data.UserHasNamespace.namespaceId
-        );
-        if (userNamespaceIndex !== -1) {
-          this.userList[userNamespaceIndex] = data;
-        }
+      const userNamespaceIndex = this.userList.findIndex(
+        (user) =>
+          user.id === data.id &&
+          user.UserHasNamespace.namespaceId ===
+            data.UserHasNamespace.namespaceId
+      );
+      if (userNamespaceIndex !== -1) {
+        this.userList[userNamespaceIndex] = data;
       }
     },
 
@@ -89,25 +87,39 @@ export const useNsUser = defineStore("userSocket", {
     },
 
     userConnect(data: User[]) {
+      const namespaceStore = useNamespace();
+
       const [userData] = [...data];
 
       const index = this.userList.findIndex((user) => user.id === userData.id);
 
       if (index !== -1) {
         this.userList[index].status = "online";
-
-        return;
       }
+
+      namespaceStore.namespaces.forEach((namespace) => {
+        if (userData.UserHasNamespace.namespaceId === namespace.id) {
+          namespace.usersOnline++;
+        }
+      });
 
       this.userList.push(userData);
     },
 
-    userDisconnect(data: { id: number }) {
-      const index = this.userList.findIndex((user) => user.id === data.id);
+    userDisconnect(data: UserHasNamespace) {
+      const namespaceStore = useNamespace();
+
+      const index = this.userList.findIndex((user) => user.id === data.userId);
 
       if (index !== -1) {
         this.userList[index].status = "offline";
       }
+
+      namespaceStore.namespaces.forEach((namespace) => {
+        if (data.namespaceId === namespace.id) {
+          namespace.usersOnline--;
+        }
+      });
     },
   },
 });

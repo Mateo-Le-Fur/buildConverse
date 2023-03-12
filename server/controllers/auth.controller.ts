@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response, Router } from "express";
 import { UserFormInterface } from "../interfaces/UserForm";
 import { RequestCustom } from "../interfaces/ReqUserInterface";
 
@@ -14,6 +14,7 @@ class authController {
     this.login = this.login.bind(this);
     this.logout = this.logout.bind(this);
     this.getCurrent = this.getCurrent.bind(this);
+
   }
 
   async register(req: Request, res: Response) {
@@ -41,30 +42,6 @@ class authController {
     ).get();
 
     delete createdUser.password;
-
-
-
-    await Friend.create({
-      user1Id: createdUser.id,
-      user2Id: 1
-    });
-
-    await Friend.create({
-      user1Id: 1,
-      user2Id: createdUser.id
-    });
-
-    const privateRoom = (await PrivateRoom.create()).get();
-
-    await UserHasPrivateRoom.create({
-      userId: createdUser.id,
-      privateRoomId: privateRoom.id
-    });
-
-    await UserHasPrivateRoom.create({
-      userId: 1,
-      privateRoomId: privateRoom.id
-    });
 
     res.json(createdUser);
   }

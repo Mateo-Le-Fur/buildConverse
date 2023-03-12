@@ -2,7 +2,7 @@ import { Server } from "socket.io";
 import {
   NamespaceInterface,
   SocketCustom,
-  UpdateNamespaceInterface,
+  UpdateNamespaceInterface
 } from "../interfaces";
 import { NamespacesManager } from "../sockets/namespace.socket";
 import { SecurityManager } from "../sockets/security.socket";
@@ -10,6 +10,8 @@ import { Namespace } from "../models";
 import namespaceValidator from "../validation/schema/namespace.schema";
 import joinNamespaceValidator from "../validation/schema/joinNamespace.schema";
 import { AuthorizationsInterface } from "../interfaces/AuthorizationsInterface";
+import listenerHandler from "../helpers/listenerHandler";
+import { Acknowledgment } from "../interfaces/Acknowledgment";
 
 class NamespaceListener {
   protected _ios: Server;
@@ -17,6 +19,7 @@ class NamespaceListener {
   protected _securityManager: SecurityManager;
   private _authorizations: AuthorizationsInterface;
   private _namespaceManager: NamespacesManager;
+
   constructor(
     { socket, ios, authorizations, securityManager }: {
       socket: SocketCustom;
@@ -48,8 +51,7 @@ class NamespaceListener {
   createNamespaceListener() {
     this._socket.on(
       "createNamespace",
-      async (data: NamespaceInterface, callback) => {
-        try {
+      listenerHandler(async (data: NamespaceInterface, callback: Acknowledgment) => {
           const userId = this._socket.request.user?.id;
           await this._securityManager.checkUserNamespacesLimit(
             userId,
@@ -57,27 +59,15 @@ class NamespaceListener {
           );
           await namespaceValidator.validateAsync(data);
           await this._namespaceManager.createNamespace(this._socket, data);
-          callback({
-            status: "ok",
-            message: "",
-          });
-        } catch (e) {
-          if (e instanceof Error) {
-            callback({
-              status: "error",
-              message: e.message,
-            });
-          }
+          callback({ status: "ok", message: "" });
         }
-      }
-    );
+      ));
   }
 
   updateNamespaceListener() {
     this._socket.on(
       "updateNamespace",
-      async (data: UpdateNamespaceInterface, callback) => {
-        try {
+      listenerHandler(async (data: UpdateNamespaceInterface, callback: Acknowledgment) => {
           await this._securityManager.checkIfUserIsAdminOfNamespace(
             this._socket,
             this._authorizations,
@@ -85,69 +75,43 @@ class NamespaceListener {
           );
           await namespaceValidator.validateAsync(data);
           await this._namespaceManager.updateNamespace(this._socket, data);
-          callback({
-            status: "ok",
-          });
-        } catch (e) {
-          if (e instanceof Error) {
-            callback({
-              status: "error",
-              message: e.message,
-            });
-          }
+          callback({ status: "ok", message: "" });
         }
-      }
-    );
+      ));
   }
+
   deleteNamespaceListener() {
     this._socket.on(
       "deleteNamespace",
-      async (namespaceId: number, callback) => {
-        try {
-          // if (!this._authorizations.isAdmin) {
-          //   throw new Error("Tu dois être administrateur");
-          // }
+      listenerHandler(async (namespaceId: number, callback: Acknowledgment) => {
+          await this._securityManager.checkIfUserIsAdminOfNamespace(
+            this._socket,
+            this._authorizations,
+            namespaceId
+          );
           await this._namespaceManager.deleteNamespace(
             this._socket,
             namespaceId
           );
-          callback({
-            status: "ok",
-          });
-        } catch (e) {
-          if (e instanceof Error) {
-            callback({
-              status: "error",
-              message: e.message,
-            });
-          }
+          callback({ status: "ok", message: "" });
         }
-      }
-    );
+      ));
   }
+
   userLeaveNamespaceListener() {
     this._socket.on(
       "userLeaveNamespace",
-      async (namespaceId: number, callback) => {
-        try {
+      listenerHandler(async (namespaceId: number, callback: Acknowledgment) => {
           await this._namespaceManager.leaveNamespace(
             this._socket,
             namespaceId
           );
-          callback({
-            status: "ok",
-          });
-        } catch (e) {
-          if (e instanceof Error) {
-            console.error(e)
-            callback({
-              status: "error",
-              message: e.message,
-            });
-          }
+          const rooms = this._authorizations.namespaceHasRooms.get(namespaceId);
+          this._authorizations.namespaceHasRooms.delete(namespaceId);
+          rooms?.forEach((room) => this._authorizations.room.delete(room));
+          callback({ status: "ok", message: "" });
         }
-      }
-    );
+      ));
   }
 
   getNamespaceUsersListener() {
@@ -162,6 +126,7 @@ class NamespaceListener {
       }
     });
   }
+
   loadMoreUserListener() {
     this._socket.on(
       "loadMoreUser",
@@ -174,39 +139,20 @@ class NamespaceListener {
       }
     );
   }
+
   userJoinNamespaceListener() {
     this._socket.on(
       "userJoinNamespace",
-      async (data: NamespaceInterface, callback) => {
-        try {
-          const userId = this._socket.request.user?.id;
-            await joinNamespaceValidator.validateAsync(data);
-            await this._securityManager.checkIfUserAlreadyHasTheServer(
-              this._socket,
-              userId
-            );
-            await this._securityManager.checkUserNamespacesLimit(
-              userId,
-              this._namespaceManager.userLimit
-            );
-            await this._securityManager.checkIfServerIsFull(
-              this._socket,
-              this._namespaceManager.userLimit
-            );
-            await this._namespaceManager.joinInvitation(this._socket, data);
+      listenerHandler(async (data: NamespaceInterface, callback: Acknowledgment) => {
+          await joinNamespaceValidator.validateAsync(data);
+          await this._securityManager.beforeUserJoinNamespace(this._socket, this._namespaceManager.userLimit);
+          await this._namespaceManager.joinInvitation(this._socket, data);
           callback({
             status: "ok",
+            message: ""
           });
-        } catch (e) {
-          if (e instanceof Error) {
-            callback({
-              status: "error",
-              message: e.message,
-            });
-          }
         }
-      }
-    );
+      ));
   }
 }
 

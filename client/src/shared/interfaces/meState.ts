@@ -6,11 +6,6 @@ export interface MeState {
   friends: FriendsInterface[] | any[];
   recipients: RecipientInterface[];
   currentRecipient: RecipientInterface | null;
-  isConversationLoaded: boolean;
-  messages: MessageInterface[];
-  previousMessages: MessageInterface[];
-  isMessagePushInArray: boolean;
-  isMessagesLoaded: boolean;
-  isBeginningConversation: boolean;
+  currentRecipientId: number | null;
   error: null | string;
 }

@@ -17,7 +17,7 @@ export const useMessage = defineStore("message", {
   actions: {
     getHistory(data: MessageInterface[]) {
       this.isMessagesLoaded = false;
-      this.isBeginningConversation = data.length < 100;
+      this.isBeginningConversation = data.length < 40;
       this.messages = data;
       this.isMessagesLoaded = true;
     },

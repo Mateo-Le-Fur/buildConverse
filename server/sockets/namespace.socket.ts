@@ -1,17 +1,18 @@
-import { NamespaceInterface } from "../interfaces/Namespace";
-import { Server, Socket } from "socket.io";
-import { User, Namespace, Room, UserHasNamespace } from "../models";
+import {NamespaceInterface} from "../interfaces/Namespace";
+import {Server, Socket} from "socket.io";
+import {User, Namespace, Room, UserHasNamespace} from "../models";
 import path from "path";
 import sharp from "sharp";
-import { getNumberOfUsers } from "../query/namespace.query";
-import { getRandomImage } from "../utils/getRandomImage";
+import {getNumberOfUsers, getNumberOfUsersConnected} from "../query/namespace.query";
+import {getRandomImage} from "../utils/getRandomImage";
 import {
   UpdateNamespaceInterface,
   UserInterface,
   SocketCustom,
 } from "../interfaces";
+import namespace from "../models/Namespace";
 
-const { unlinkImage } = require("../utils/unlinckImage");
+const {unlinkImage} = require("../utils/unlinckImage");
 
 class NamespacesManager {
   protected _ios: Server;
@@ -50,19 +51,19 @@ class NamespacesManager {
       })
     )?.toJSON();
 
-    const namespaces = foundUserNamespaces?.namespaces?.map(
-      (namespace: NamespaceInterface) => {
-        return {
-          ...namespace,
-          imgUrl: `${process.env.DEV_AVATAR_URL}/namespace/${
-            namespace.id
-          }/${Date.now()}/avatar`,
-        };
-      }
-    );
-
-
-    return namespaces;
+    if (foundUserNamespaces?.namespaces) {
+     return await Promise.all(foundUserNamespaces?.namespaces?.map(
+        async (namespace: NamespaceInterface) => {
+          return {
+            ...namespace,
+            usersOnline: await getNumberOfUsersConnected(namespace.id),
+            imgUrl: `${process.env.DEV_AVATAR_URL}/namespace/${
+              namespace.id
+            }/${Date.now()}/avatar`,
+          };
+        }
+      ))
+    }
   }
 
   public async getNamespaceUsers(socket: Socket, namespaceId: number) {
@@ -75,7 +76,7 @@ class NamespacesManager {
     const nbUsers = await getNumberOfUsers(namespaceId);
 
     let users = await foundNamespace?.getUsers({
-      attributes: { exclude: ["password", "email"] },
+      attributes: {exclude: ["password", "email"]},
       limit: 50,
       offset: 0,
       raw: true,
@@ -102,7 +103,7 @@ class NamespacesManager {
     socket: Socket,
     data: { currentArrayLength: number; namespaceId: number }
   ) {
-    const { currentArrayLength, namespaceId } = data;
+    const {currentArrayLength, namespaceId} = data;
 
     const isAuthorize = socket.rooms.has(`server-${namespaceId}`);
 
@@ -111,7 +112,7 @@ class NamespacesManager {
     let namespace = await Namespace.findByPk(namespaceId);
 
     const foundUser = await namespace?.getUsers({
-      attributes: { exclude: ["password"] },
+      attributes: {exclude: ["email", "password"]},
       limit: 50,
       offset: currentArrayLength,
       raw: true,
@@ -151,7 +152,7 @@ class NamespacesManager {
       imgUrl: imgName ? `/images/${imgName}` : `/images/${getRandomImage()}`,
     });
 
-    const { id } = createNamespace.toJSON();
+    const {id} = createNamespace.toJSON();
 
     await Room.create({
       name: "# Général",
@@ -182,6 +183,7 @@ class NamespacesManager {
 
     const userNamespace = {
       ...namespaces,
+      usersOnline: 1,
       imgUrl: `${process.env.DEV_AVATAR_URL}/namespace/${
         namespaces?.id
       }/${Date.now()}/avatar`,
@@ -197,7 +199,7 @@ class NamespacesManager {
     socket: SocketCustom,
     data: UpdateNamespaceInterface
   ) {
-    const { namespaceId, inviteCode, imgBuffer, name } = data;
+    const {namespaceId, inviteCode, imgBuffer, name} = data;
 
     const isAuthorize = socket.rooms.has(`server-${namespaceId}`);
 
@@ -217,7 +219,7 @@ class NamespacesManager {
         .toFile(path.join(__dirname, `../images/${avatarName}.webp`));
     }
 
-    const { imgUrl: oldAvatar } = (await Namespace.findByPk(namespaceId, {
+    const {imgUrl: oldAvatar} = (await Namespace.findByPk(namespaceId, {
       raw: true,
     })) as Namespace;
 
@@ -242,8 +244,10 @@ class NamespacesManager {
       raw: true,
     });
 
+
     const newUpdateNamespace = {
       ...updateNamespace,
+      usersOnline: await getNumberOfUsersConnected(updateNamespace?.id),
       imgUrl: `${
         process.env.DEV_AVATAR_URL
       }/namespace/${namespaceId}/${Date.now()}/avatar`,
@@ -264,7 +268,7 @@ class NamespacesManager {
 
     this._ios
       .to(`server-${namespaceId}`)
-      .emit("deleteNamespace", { id: namespaceId });
+      .emit("deleteNamespace", {id: namespaceId});
 
     const namespace = await Namespace.findByPk(namespaceId, {
       raw: true,
@@ -298,7 +302,7 @@ class NamespacesManager {
     if (!foundNamespace) throw new Error("Code non valide");
 
 
-    const { id: namespaceId } = foundNamespace;
+    const {id: namespaceId} = foundNamespace;
 
     await UserHasNamespace.create({
       userId,
@@ -333,7 +337,7 @@ class NamespacesManager {
           {
             model: User,
             as: "users",
-            attributes: { exclude: ["password"] },
+            attributes: {exclude: ["email", "password"]},
             where: {
               id: userId,
             },
@@ -374,8 +378,8 @@ class NamespacesManager {
 
     this._ios
       .to(`server-${namespaceId}`)
-      .emit("userLeaveNamespace", { id: userId });
+      .emit("userLeaveNamespace", {id: userId});
   }
 }
 
-export { NamespacesManager };
+export {NamespacesManager};

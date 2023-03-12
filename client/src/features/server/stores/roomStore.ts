@@ -61,14 +61,14 @@ export const useRoom = defineStore("room", {
 
       if (this.activeRoom?.id === data.id) {
         socketStore.ioClient?.emit("leaveRoom", data.id);
+
+        this.joinRoom(room, Number(room?.namespaceId));
+
+        //@ts-ignore
+        await this.router.push(
+          `/channels/${this.activeRoom?.namespaceId}/${room?.id}`
+        );
       }
-
-      //@ts-ignore
-      await this.router.push(
-        `/channels/${this.activeRoom?.namespaceId}/${room?.id}`
-      );
-
-      this.joinRoom(room, Number(room?.namespaceId));
     },
 
     joinRoom(room: RoomInterface | undefined, namespaceId: number) {
@@ -82,11 +82,9 @@ export const useRoom = defineStore("room", {
       this.activeRoom = room;
     },
 
-    getRooms(namespaceId: string): RoomInterface[] {
+    getRooms(namespaceId: number): RoomInterface[] {
       return this.rooms
-        .filter(
-          (room: RoomInterface) => room.namespaceId.toString() === namespaceId
-        )
+        .filter((room: RoomInterface) => room.namespaceId === namespaceId)
         .sort((a, b) => a.index - b.index);
     },
 

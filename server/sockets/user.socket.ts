@@ -109,7 +109,7 @@ class UserManager {
 
     if (data.friends.length) {
       const getUserUpdated = await User.findByPk(userId, {
-        attributes: { exclude: ["password"] },
+        attributes: { exclude: ["email", "password"] },
         raw: true,
       });
 
@@ -213,7 +213,7 @@ class UserManager {
       }
     );
 
-    const user = await User.findByPk(userId, {
+    const user = (await User.findByPk(userId, {
       attributes: [],
       include: [
         {
@@ -221,16 +221,27 @@ class UserManager {
           as: "friends",
           attributes: ["id"],
         },
+        {
+          model: Namespace,
+          as: "namespaces",
+          attributes: ["id"],
+        },
       ],
-    });
+    }))?.toJSON();
+
 
     if (user?.friends?.length) {
       user.friends.forEach((friend) => {
         const socketId = this._clients.get(friend.id);
-
         if (socketId) {
           this._ios.to(socketId).emit("userDisconnect", { id: userId });
         }
+      });
+    }
+
+    if (user?.namespaces?.length) {
+      user.namespaces.forEach((namespace) => {
+          this._ios.to(`server-${namespace.id}`).emit("userDisconnectedFromTheServer", namespace.UserHasNamespace);
       });
     }
   }

@@ -1,19 +1,38 @@
+@font-face {
+  font-family: "Satoshi";
+  src: url("/font/Satoshi-Regular.otf");
+}
+@font-face {
+  font-family: "Satoshi";
+  src: url("/font/Satoshi-Light.otf");
+}
+@font-face {
+  font-family: "Satoshi";
+  src: url("/font/Satoshi-Bold.otf");
+}
 :root {
-  --primary-1: #36393FFF;
-  --primary-2: #2F3136;
-  --primary-3: #202225;
+  --primary-1: #1e78ff;
+  --primary-2: #1E90FF;
+  --primary-3: #f4f4fb;
+  --primary-4: #F6F6F6;
   --danger-1: #e74c3c;
   --danger-2: #D33E43;
   --success-1: #2ecc71;
   --success-2: #27ae60;
-  --gray-1: #f6f6f6;
-  --gray-2: #ddd;
+  --gray-2: rgba(221, 221, 221, 0.65);
   --gray-3: #34495e;
-  --text-color: #444;
   --text-primary-color: #ffffff;
+  --white: #fffbfe;
   --yellow: #EEC643;
+  --text-color: #0E131F;
+  --text-color-white: #F8F8FF;
+  --primary-1-hover: --primary-1;
+  --primary-2-hover: --primary-2;
+  --icons-gradiant: --primary-2;
+  --icons-gradiant-hover: --primary-2;
   --border: 1px solid var(--gray-2);
-  --font-family: "Roboto", sans-serif;
+  --font-family-primary: "Roboto", sans-serif;
+  --font-family-secondary: "Satoshi", sans-serif;
 }
 
 * {
@@ -44,20 +63,17 @@ p {
   color: #F0F0F0;
 }
 
-img {
-  max-width: 100%;
-}
-
 body {
   min-height: 100vh;
   padding: 0;
   margin: 0;
-  font-family: var(--font-family);
-  background-color: var(--primary-1);
+  font-family: var(--font-family-primary);
+  background-color: var(--primary-4);
   overflow: hidden;
 }
 
 input, textarea, select {
+  font-family: var(--font-family-primary);
   border: var(--border);
   border-radius: 4px;
   padding: 8px 15px;
@@ -164,7 +180,7 @@ label {
 }
 
 .mb-5 {
-  margin-bottom: 5px;
+  margin-bottom: 5px !important;
 }
 
 .mb-10 {
@@ -173,6 +189,10 @@ label {
 
 .mb-20 {
   margin-bottom: 20px;
+}
+
+.mb-40 {
+  margin-bottom: 40px;
 }
 
 .ml-15 {
@@ -229,11 +249,11 @@ button {
 }
 
 .btn-primary {
-  background: var(--primary-1);
+  background: var(--primary-2);
   color: var(--text-primary-color);
 }
 .btn-primary:hover {
-  background: var(--primary-2);
+  background: var(--primary-1);
 }
 
 .btn-danger {
@@ -260,75 +280,16 @@ button {
 }
 
 .active {
-  background-color: var(--primary-1) !important;
+  background-color: var(--primary-2) !important;
 }
 
 h2 {
   font-size: 2rem;
 }
 
-.form-signup-container {
-  position: fixed;
-  top: 30%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #f4f4f4;
-  margin-top: 6rem;
-  width: 100%;
-  z-index: 2;
-}
-.form-signup-container .form-signup {
-  width: 25%;
-  min-width: 320px;
-  max-width: 420px;
-  background-color: rgba(54, 57, 63, 0.9);
-  padding: 30px 15px;
-  border-radius: 3px;
-}
-.form-signup-container .form-signup h2 {
-  text-align: center;
-}
-.form-signup-container .form-signup label {
-  color: #f4f4f4;
-  font-size: 1rem;
-}
-.form-signup-container .form-signup input {
-  height: 55px;
-  border: none;
-  outline: none;
-  background-color: var(--primary-3);
-  font-family: "Roboto", sans-serif;
-  color: #f4f4f4;
-}
-.form-signup-container .form-signup p {
-  font-size: 0.8rem;
-}
-.form-signup-container .form-signup a {
-  color: #236cab;
-  font-weight: bold;
-  font-size: 0.8rem;
-}
-.form-signup-container .form-signup button {
-  height: 55px;
-  cursor: pointer;
-  outline: none;
-  border: none;
-  background-color: #236cab;
-  width: 100%;
-  border-radius: 4px;
-}
-.form-signup-container .form-signup .validation-error {
-  color: #eb4144;
-}
-
 .label-file {
   cursor: pointer;
-  color: #00b1ca;
   font-weight: bold;
-}
-
-.label-file:hover {
-  color: #25a5c4;
 }
 
 .input-file {
@@ -341,7 +302,7 @@ h2 {
   left: 0px;
   height: 100vh;
   width: 100%;
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: rgba(0, 0, 0, 0.7);
   z-index: 2;
 }
 
@@ -374,7 +335,7 @@ h2 {
   width: 10px;
 }
 .direction-vertical::-webkit-scrollbar-track {
-  box-shadow: inset 0 0 10px 10px var(--primary-2);
+  box-shadow: inset 0 0 10px 10px var(--primary-1);
   border: solid 3px transparent;
 }
 .direction-vertical::-webkit-scrollbar-thumb {
@@ -389,12 +350,34 @@ h2 {
   padding: 8px 0;
 }
 
-.background {
+.tooltip {
   position: relative;
-  height: 100vh;
-  width: 100vw;
-  background: rgb(54, 57, 53);
-  background: linear-gradient(141deg, rgb(63, 66, 62) 0%, rgb(67, 121, 163) 78%, rgb(54, 142, 217) 100%);
+}
+.tooltip .tooltip-text {
+  visibility: hidden;
+  background-color: var(--primary-2);
+  color: var(--primary-4);
+  text-align: center;
+  padding: 5px 10px;
+  border-radius: 6px;
+  position: absolute;
+  top: 130%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+.tooltip .tooltip-text::after {
+  content: " ";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent var(--primary-2) transparent;
+}
+.tooltip:hover .tooltip-text {
+  visibility: visible;
 }
 
 /*# sourceMappingURL=base.css.map */

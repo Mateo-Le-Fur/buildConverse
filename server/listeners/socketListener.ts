@@ -1,13 +1,13 @@
-import { Namespace, Server } from "socket.io";
-import { NamespaceInterface, SocketCustom } from "../interfaces";
-import { SecurityManager } from "../sockets/security.socket";
-import { AuthorizationsInterface } from "../interfaces/AuthorizationsInterface";
-import { FriendListener } from "./friend.listener";
-import { NamespaceListener } from "./namespace.listener";
-import { UserListener } from "./user.listener";
-import { RoomListener } from "./room.listener";
-import { MessageListener } from "./message.listener";
-import { User, Namespace } from "../models";
+import {Server} from "socket.io";
+import {NamespaceInterface, SocketCustom} from "../interfaces";
+import {SecurityManager} from "../sockets/security.socket";
+import {AuthorizationsInterface} from "../interfaces/AuthorizationsInterface";
+import {FriendListener} from "./friend.listener";
+import {NamespaceListener} from "./namespace.listener";
+import {UserListener} from "./user.listener";
+import {RoomListener} from "./room.listener";
+import {MessageListener} from "./message.listener";
+import {User} from "../models";
 import SocketServer from "./socket";
 import protect from "../config/jwt.config";
 
@@ -63,8 +63,8 @@ class SocketListener {
     const namespaceListener = await new NamespaceListener(this._shared, this._socketServer.namespaceManager);
     const userListener = await new UserListener(this._shared, this._socketServer.userManager);
 
-    const namespaces = await namespaceListener.onConnect();
     const friends = await friendListener.onConnect();
+    const namespaces = await namespaceListener.onConnect();
 
     this.setAuthorizations(namespaces);
 
@@ -74,7 +74,10 @@ class SocketListener {
 
     this._socket.on("disconnect", () => {
       const userId = this._socket.request.user?.id;
+
+      console.log('disconnect')
       userListener.disconnect(this._socket, this._clients);
+
       this._socketServer.listeners.delete(userId);
       this._socket.disconnect();
     });
@@ -92,7 +95,6 @@ class SocketListener {
         this._authorizations.adminServer.add(namespace.id)
       }
     });
-
   }
 
   async joinServers(namespaces: NamespaceInterface[] | undefined) {
@@ -103,6 +105,7 @@ class SocketListener {
   }
 
   async connectUser(namespaces: NamespaceInterface[] | undefined) {
+    console.log('connect')
     if (namespaces) {
       const user = await User.findByPk(this._socket.request.user?.id, {
         attributes: {
@@ -127,4 +130,4 @@ class SocketListener {
   }
 }
 
-export { SocketListener };
+export {SocketListener};

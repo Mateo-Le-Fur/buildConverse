@@ -1,21 +1,7 @@
-<script setup lang="ts">
-import Namespace from "@/components/namespace/Namespace.vue";
-import { useSocket } from "@/shared/stores/socketStore";
-import { useMe } from "@/features/home/stores/meStore";
-import { useUser } from "@/shared/stores";
-import { useRouter } from "vue-router";
-import { useNamespace } from "@/features/server/stores/namespaceStore";
-
-const socketStore = useSocket();
-const namespaceStore = useNamespace();
-const meStore = useMe();
-const userStore = useUser();
-const router = useRouter();
-</script>
+<script setup lang="ts"></script>
 
 <template>
   <div class="app-container shape d-flex">
-    <Namespace v-if="userStore.isAuthenticated" />
     <router-view v-slot="{ Component }">
       <component :is="Component" />
     </router-view>
@@ -27,7 +13,6 @@ const router = useRouter();
 
 .app-container {
   height: 100vh;
-  background-color: var(--primary-1);
 }
 
 .home-enter-from {

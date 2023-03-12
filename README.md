@@ -14,7 +14,7 @@
 
 <img src="./client/src/assets/images/buildconverse.png" alt="buildConverse-logo"/>
 
-<span style="color: #1E90FF;">CONNECTEZ-VOUS AVEC VOS AMIS ET VOS COMMUNAUTÉS
+<span style="color:blue">CONNECTEZ-VOUS AVEC VOS AMIS ET VOS COMMUNAUTÉS
 </span>.
 
 

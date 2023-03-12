@@ -12,7 +12,7 @@
 <img alt="JWT" src="https://img.shields.io/badge/json%20web%20tokens-323330?style=for-the-badge&logo=json-web-tokens&logoColor=pink"  style="margin: 0 5px"/>
 <img alt="Socket.io" src="https://img.shields.io/badge/Socket.io-black?style=for-the-badge&logo=socket.io&badgeColor=010101"  style="margin: 0 5px"/>
 
-<img src="./client/src/assets/images/buildConverse.png" alt="buildConverse-logo"/>
+<img src="./client/src/assets/images/buildconverse.png" alt="buildConverse-logo"/>
 
 ## Fonctionnalités 
 - Gestion du compte utilisateur :

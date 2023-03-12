@@ -26,11 +26,17 @@ const { value: dataValue, errorMessage: dataError } = useField("data");
 
 const submit = handleSubmit((formValue: MessageInterface) => {
   try {
-    socketStore.ioClient?.emit("message", {
-      data: formValue.data,
-      roomId: roomStore.activeRoom?.id,
-      avatar: userStore.currentUser?.avatarUrl,
-    });
+    socketStore.ioClient?.emit(
+      "message",
+      {
+        data: formValue.data,
+        roomId: roomStore.activeRoom?.id,
+        avatar: userStore.currentUser?.avatarUrl,
+      },
+      (response: { status: string; message: string }) => {
+        console.log(response);
+      }
+    );
 
     resetForm();
   } catch (e: any) {
@@ -66,10 +72,15 @@ const submit = handleSubmit((formValue: MessageInterface) => {
     width: 100%;
     border-radius: 8px;
     font-size: 1rem;
-    height: 40px;
+    height: 45px;
     outline: none;
     border: none;
-    background-color: #40444b;
+    background-color: var(--primary-2);
+    color: var(--primary-4);
+
+    &::placeholder {
+      color: var(--primary-4);
+    }
   }
 }
 </style>

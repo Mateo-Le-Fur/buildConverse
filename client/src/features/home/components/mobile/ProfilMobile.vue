@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import ProfilPopup from "@/components/profil/ProfilPopup.vue";
+import ProfilPopup from "@/features/me/components/profil/ProfilPopup.vue";
 
 const openProfil = ref<boolean>(false);
 </script>
@@ -31,7 +31,7 @@ const openProfil = ref<boolean>(false);
   display: none;
   @include mixins.md {
     display: flex;
-    background-color: var(--primary-3);
+    background-color: var(--primary-4);
     padding: 13px;
     border-radius: 50%;
     bottom: 20px;

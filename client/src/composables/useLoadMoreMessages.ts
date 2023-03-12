@@ -24,7 +24,7 @@ export async function useLoadMoreMessages<
     return;
   }
 
-  store.isBeginningConversation = message.length < 50;
+  store.isBeginningConversation = message.length < 20;
 
   if (!message.length) return;
 
@@ -35,7 +35,7 @@ export async function useLoadMoreMessages<
    * qu'il descende à la page 3, car on dispose déjà des messages de cette page dans notre
    * tableau de 'previousMessages' donc il faut récupérer les messages de la page 2 */
   // const start = notChangeDirection ? store.messages.length / 2 : 0;
-  // const count = notChangeDirection ? store.messages.length : message.length;
+  // const count = notChangeDirection ? store.messages.length : Menu.length;
 
   const arrayLength = store.messages.length;
   const midArrayLength = store.messages.length / 2;
@@ -44,7 +44,7 @@ export async function useLoadMoreMessages<
   const count = chatStore.direction === "up" ? arrayLength : midArrayLength;
 
   const index = chatStore.direction === "up" ? -1 : 0;
-  /* On récupère l'index du dernier message juste avant de changer de page pour pouvoir se repositionner
+  /* On récupère l'index du dernier Menu juste avant de changer de page pour pouvoir se repositionner
    * dessus lors du changement de page
    * */
   const lastMessages = [...store.messages]

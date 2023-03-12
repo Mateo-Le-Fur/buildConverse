@@ -4,8 +4,9 @@ import { ref } from "vue";
 import type { MessageInterface } from "@/shared/interfaces/MessageInterface";
 import type { PrivateMessageInterface } from "@/shared/interfaces/PrivateMessageInterface";
 import { useMessage } from "@/features/server/stores/messageStore";
-import { useMe } from "@/features/home/stores/meStore";
+import { useMe } from "@/features/me/stores/meStore";
 import type { Socket } from "socket.io-client";
+import { usePrivateMessage } from "@/features/me/stores/privateMessageStore";
 
 interface ChatState {
   element: Ref<HTMLDivElement | null>;
@@ -38,13 +39,16 @@ function dateSeparator<Type extends MessageInterface>(
   const messageStore = useMessage();
   const meStore = useMe();
   if (previous) {
-    const previousDate = new Date(previous.created_at).getDay();
-    const date = new Date(message.created_at).getDay();
+    const previousDate = new Date(previous.created_at).getDate();
+    const date = new Date(message.created_at).getDate();
 
-    return previousDate !== date;
+    const previousMonth = new Date(previous.created_at).getMonth();
+    const month = new Date(message.created_at).getMonth();
+
+    return previousDate !== date && previousMonth !== month;
   }
 
-  /* Si le premier message est undefined "const previous = values[index - 1] ==> undefined",
+  /* Si le premier Menu est undefined "const previous = values[index - 1] ==> undefined",
    * et que l'on a atteint le début de la conversation alors il faut
    * afficher un séparateur */
   return (
@@ -59,7 +63,7 @@ export const useChat = defineStore("chat", {
     isChangeDirectionToGoDown: null,
     isChangeDirectionToGoUp: null,
     page: 1,
-    limit: 50,
+    limit: 20,
     direction: null,
   }),
 
@@ -115,17 +119,21 @@ export const useChat = defineStore("chat", {
       e: Event,
       socket: { socket: Socket; eventName: string },
       messagesArrayLength: number,
-      roomId: number,
-      namespaceId: number
+      id: number
     ) {
       const messageStore = useMessage();
+      const privateMessageStore = usePrivateMessage();
 
       const target = e.target as HTMLDivElement;
 
       // On sauvegarde la valeur de l'ancienne direction dans une variable temporaire
       let lastDirection;
 
-      if (target.scrollTop <= 0 && !messageStore.isBeginningConversation) {
+      const isBeginningConversation =
+        messageStore.isBeginningConversation ||
+        privateMessageStore.isBeginningConversation;
+
+      if (target.scrollTop <= 0 && !isBeginningConversation) {
         this.page++;
         lastDirection = this.direction;
         this.direction = "up";
@@ -159,9 +167,11 @@ export const useChat = defineStore("chat", {
 
       socket.socket.emit(socket.eventName, {
         messagesArrayLength: this.limit * this.page,
-        id: roomId,
-        namespaceId,
-        isBeginningConversation: messageStore.isBeginningConversation,
+        id,
+        isBeginningConversation:
+          socket.eventName === "loadMoreMessages"
+            ? messageStore.isBeginningConversation
+            : privateMessageStore.isBeginningConversation,
       });
     },
 
@@ -170,8 +180,8 @@ export const useChat = defineStore("chat", {
         const messagesElem: NodeListOf<HTMLDivElement> =
           document.querySelectorAll(".message");
 
-        /* on place la scroll bar sur le dernier message vu afin de ne pas déstabiliser l'utilisateur
-         * lorsqu'il va charger plus de message */
+        /* on place la scroll bar sur le dernier Menu vu afin de ne pas déstabiliser l'utilisateur
+         * lorsqu'il va charger plus de Menu */
         messagesElem?.forEach((el) => {
           if (Number(el.dataset.id) === lastMessage.id) {
             this.element?.scrollTo({

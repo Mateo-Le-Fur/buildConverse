@@ -2,26 +2,30 @@ import { Server } from "socket.io";
 import {
   DeleteUserInterface,
   SocketCustom,
-  UpdateUserInterface,
+  UpdateUserInterface
 } from "../interfaces";
 
 import { UserManager } from "../sockets/user.socket";
 import userValidator from "../validation/schema/user.schema";
 import { AuthorizationsInterface } from "../interfaces/AuthorizationsInterface";
 import { SecurityManager } from "../sockets/security.socket";
+import listenerHandler from "../helpers/listenerHandler";
+import { Acknowledgment } from "../interfaces/Acknowledgment";
+
 class UserListener {
   protected _ios: Server;
   protected _socket: SocketCustom;
   private _authorizations: AuthorizationsInterface;
   private _securityManager: SecurityManager;
   private _userManager: UserManager;
+
   constructor(
     { socket, ios, authorizations, securityManager }: {
       socket: SocketCustom;
       ios: Server;
       authorizations: AuthorizationsInterface;
       securityManager: SecurityManager;
-    },    userManager: UserManager
+    }, userManager: UserManager
   ) {
     this._ios = ios;
     this._socket = socket;
@@ -36,25 +40,17 @@ class UserListener {
   updateUserListener() {
     this._socket.on(
       "updateUser",
-      async (data: UpdateUserInterface, callback) => {
-        try {
+      listenerHandler(async (data: UpdateUserInterface, callback: Acknowledgment) => {
           await userValidator.validateAsync(data);
-
           await this._userManager.updateUser(this._socket, data);
           callback({
             status: "ok",
+            message: ""
           });
-        } catch (e) {
-          if (e instanceof Error) {
-            callback({
-              status: "error",
-              message: e.message,
-            });
-          }
         }
-      }
-    );
+      ));
   }
+
   deleteUserListener() {
     this._socket.on("deleteUser", async (data: DeleteUserInterface) => {
       try {
@@ -72,7 +68,6 @@ class UserListener {
 
     await this._userManager.disconnectUser(this._socket);
 
-    console.log("disconnect home");
   }
 }
 

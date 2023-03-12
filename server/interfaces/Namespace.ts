@@ -11,6 +11,6 @@ export interface NamespaceInterface {
   UserHasNamespace: UserHasNamespaceInterface;
   createdAt: string;
   updatedAt: string;
-
+  usersOnline?: number;
   users?: UserInterface[];
 }

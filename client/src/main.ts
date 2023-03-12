@@ -31,8 +31,7 @@ watch(
   () => {
     if (userStore.isAuthenticated) {
       socketStore.init();
-      socketStore.initMe();
-      socketStore.initNamespaces();
+      socketStore.initAllListeners();
     }
   }
 );

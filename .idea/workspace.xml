@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AnalysisUIOptions">
+    <option name="ANALYZE_INJECTED_CODE" value="false" />
+  </component>
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="7dd53188-6f8a-4de4-bf83-1d74341b66fb" name="Changes" comment="added a background for the login and registration form and fixed a bug in the updateUser method">
+      <change afterPath="$PROJECT_DIR$/client/src/assets/chat.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/assets/chat.css.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/assets/chat.scss" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/assets/font/Satoshi-Bold.otf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/assets/font/Satoshi-Light.otf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/assets/font/Satoshi-Regular.otf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/assets/images/buildconverse.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/assets/login-register.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/assets/login-register.css.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/assets/login-register.scss" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/assets/login.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/assets/login.css.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/components/Home/Home.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/components/selector/Selector.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/components/selector/page/AddFriend.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/components/selector/page/FriendList.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/components/selector/page/Recipient.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/components/selector/page/ServerList.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/features/me/components/friend/FriendInfo.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/features/me/components/friend/PendingFriendRequest.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/features/me/components/profil/Profil.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/features/me/services/friend.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/features/me/stores/privateMessageStore.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/features/server/components/room/EditRoom.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/views/Menu/Menu.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/clone-discord.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/jsLibraryMappings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/jsLinters/eslint.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/sqldialects.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/watcherTasks.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/App.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/App.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/assets/base.css" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/assets/base.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/assets/base.css.map" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/assets/base.css.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/assets/base.scss" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/assets/base.scss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/assets/images/background.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/assets/images/background.webp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/assets/images/upload.svg" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/assets/images/upload.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/assets/images/user-group-solid.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/components/namespace/AddServerPopup.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/me/components/community/AddServerPopup.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/components/namespace/CreateServer.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/me/components/community/CreateServer.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/components/namespace/JoinServer.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/me/components/community/JoinServer.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/components/namespace/Namespace.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/components/profil/Profil.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/components/profil/ProfilPopup.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/me/components/profil/ProfilPopup.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/composables/useGetMessage.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/composables/useGetMessage.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/composables/useLoadMoreMessages.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/composables/useLoadMoreMessages.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/home/Home.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/home/components/chat/ChatTopBar.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/me/components/chat/ChatTopBar.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/home/components/friend/AddFriend.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/home/components/friend/DeleteFriend.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/me/components/friend/DeleteFriend.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/home/components/friend/FriendListTopBar.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/home/components/friend/PendingFriendRequest.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/home/components/message/PrivateMessage.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/home/components/message/SendMessage.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/me/components/chat/SendMessage.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/home/components/mobile/ProfilMobile.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/home/components/mobile/ProfilMobile.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/home/components/search/SearchBar.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/home/stores/meStore.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/me/stores/meStore.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/home/views/Chat.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/me/views/Chat.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/home/views/FriendList.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/server/Server.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/Server.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/server/components/message/SendMessage.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/components/message/SendMessage.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/server/components/namespace/ServerOptions.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/components/community/ServerOptions.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/server/components/namespace/UpdateServer.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/components/community/UpdateServer.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/server/components/room/CreateRoomPopup.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/components/room/CreateRoom.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/server/components/room/Room.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/components/room/Room.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/server/components/search/SearchBar.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/components/search/ChatTopBar.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/server/stores/messageStore.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/stores/messageStore.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/server/stores/namespaceStore.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/stores/namespaceStore.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/server/stores/roomStore.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/stores/roomStore.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/server/stores/userNsStore.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/stores/userNsStore.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/server/views/Chat.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/views/Chat.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/main.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/routes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/routes.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/shared/interfaces/FriendsInterface.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/shared/interfaces/FriendsInterface.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/shared/interfaces/Namespace.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/shared/interfaces/Namespace.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/shared/interfaces/meState.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/shared/interfaces/meState.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/shared/stores/authStore.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/shared/stores/authStore.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/shared/stores/chatStore.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/shared/stores/chatStore.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/shared/stores/socketStore.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/shared/stores/socketStore.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/views/Login.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/views/Login.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/views/Register.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/views/Register.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/app.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/app.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/controllers/auth.controller.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/auth.controller.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/controllers/user.controller.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/user.controller.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/helpers/errorHandler.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/helpers/errorHandler.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/interfaces/FriendsInterface.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/interfaces/FriendsInterface.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/interfaces/Namespace.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/interfaces/Namespace.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/interfaces/User.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/interfaces/User.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/listeners/friend.listener.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/listeners/friend.listener.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/listeners/message.listener.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/listeners/message.listener.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/listeners/namespace.listener.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/listeners/namespace.listener.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/listeners/room.listener.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/listeners/room.listener.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/listeners/socket.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/listeners/socket.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/listeners/socketListener.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/listeners/socketListener.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/listeners/user.listener.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/listeners/user.listener.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/query/namespace.query.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/query/namespace.query.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/routes/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/sockets/friend.socket.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/sockets/friend.socket.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/sockets/message.socket.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/sockets/message.socket.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/sockets/namespace.socket.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/sockets/namespace.socket.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/sockets/room.socket.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/sockets/room.socket.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/sockets/security.socket.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/sockets/security.socket.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/sockets/user.socket.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/sockets/user.socket.ts" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="JavaScript File" />
+        <option value="TypeScript File" />
+        <option value="CSS File" />
+        <option value="Vue Single File Component" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">
+    <option name="selectedUrlAndAccountId">
+      <UrlAndAccount>
+        <option name="accountId" value="2c758908-defa-418e-b87d-94ccdf715200" />
+        <option name="url" value="git@github.com:Mateo-Le-Fur/discord-clone.git" />
+      </UrlAndAccount>
+    </option>
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProblemsViewState">
+    <hideBySeverity>
+      <option value="300" />
+    </hideBySeverity>
+    <option name="selectedTabId" value="ProjectErrors" />
+    <option name="showPreview" value="true" />
+  </component>
+  <component name="ProjectId" id="2GfigMs8E9BCE3qHPr0GQJe6YA2" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "javascript.nodejs.core.library.configured.version": "16.14.2",
+    "javascript.nodejs.core.library.typings.version": "16.18.4",
+    "js.last.introduce.type": "LET",
+    "js.linters.configure.manually.selectedeslint": "true",
+    "last_opened_file_path": "C:/Users/mateo/OneDrive/Bureau/clone-discord-prototype/server/dist/images",
+    "list.type.of.created.stylesheet": "CSS",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.standard": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "C:\\Users\\mateo\\OneDrive\\Bureau\\buildConverse\\server\\node_modules\\eslint",
+    "node.js.selected.package.standard": "",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "prettierjs.PrettierConfiguration.Package": "C:\\Users\\mateo\\OneDrive\\Bureau\\clone-discord\\server\\node_modules\\prettier",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "settings.javascript.linters.eslint",
+    "ts.external.directory.path": "C:\\Users\\mateo\\OneDrive\\Bureau\\buildConverse\\client\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "postgresql"
+    ]
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\mateo\OneDrive\Bureau\clone-discord-prototype\server\dist\images" />
+      <recent name="C:\Users\mateo\OneDrive\Bureau\clone-discord-prototype\server\dist" />
+      <recent name="C:\Users\mateo\OneDrive\Bureau\clone-discord-prototype\server\.well-known\pki-validation" />
+      <recent name="C:\Users\mateo\OneDrive\Bureau\clone-discord\client\src\assets\images" />
+      <recent name="C:\Users\mateo\OneDrive\Bureau\clone-discord\client\src\shared\interfaces" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\mateo\OneDrive\Bureau\buildConverse\client\src\features\me\components" />
+      <recent name="C:\Users\mateo\OneDrive\Bureau\buildConverse\client\src\features\me" />
+      <recent name="C:\Users\mateo\OneDrive\Bureau\buildConverse\client\src\assets\images" />
+      <recent name="C:\Users\mateo\OneDrive\Bureau\buildConverse\client\src\components\Home" />
+      <recent name="C:\Users\mateo\OneDrive\Bureau\buildConverse\client\src\components\selector\page" />
+    </key>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="7dd53188-6f8a-4de4-bf83-1d74341b66fb" name="Changes" comment="" />
+      <created>1666786148467</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1666786148467</updated>
+      <workItem from="1666786149649" duration="343000" />
+      <workItem from="1666786508652" duration="4696000" />
+      <workItem from="1666791281474" duration="5597000" />
+      <workItem from="1666796909597" duration="15649000" />
+      <workItem from="1666825296630" duration="941000" />
+      <workItem from="1666868391706" duration="18933000" />
+      <workItem from="1666907770287" duration="2831000" />
+      <workItem from="1666963992404" duration="11737000" />
+      <workItem from="1667096939003" duration="4676000" />
+      <workItem from="1667106413630" duration="10541000" />
+      <workItem from="1667118966416" duration="6016000" />
+      <workItem from="1667143519401" duration="20349000" />
+      <workItem from="1667241606003" duration="20063000" />
+      <workItem from="1667269605924" duration="8558000" />
+      <workItem from="1667278234869" duration="72055000" />
+      <workItem from="1667422675913" duration="8843000" />
+      <workItem from="1667435264777" duration="641000" />
+      <workItem from="1667482510551" duration="20478000" />
+      <workItem from="1667551577873" duration="13254000" />
+      <workItem from="1667575289732" duration="13813000" />
+      <workItem from="1667599330921" duration="624000" />
+      <workItem from="1667601969747" duration="4000" />
+      <workItem from="1667601986107" duration="16865000" />
+      <workItem from="1667663356652" duration="165000" />
+      <workItem from="1667668618928" duration="121000" />
+      <workItem from="1667767791494" duration="37000" />
+      <workItem from="1667785018779" duration="2822000" />
+      <workItem from="1667840280160" duration="4433000" />
+      <workItem from="1668169535087" duration="2294000" />
+      <workItem from="1668250387552" duration="29557000" />
+      <workItem from="1668335087946" duration="25930000" />
+      <workItem from="1668371227696" duration="1754000" />
+      <workItem from="1668444687618" duration="4321000" />
+      <workItem from="1668627030919" duration="5250000" />
+      <workItem from="1668681054037" duration="14911000" />
+      <workItem from="1668721057916" duration="7241000" />
+      <workItem from="1668978527028" duration="7414000" />
+      <workItem from="1669031055294" duration="39049000" />
+      <workItem from="1669115805700" duration="6269000" />
+      <workItem from="1669122194292" duration="36946000" />
+      <workItem from="1669209380970" duration="14185000" />
+      <workItem from="1669223897328" duration="30286000" />
+      <workItem from="1669294539507" duration="11674000" />
+      <workItem from="1669315864140" duration="5422000" />
+      <workItem from="1669322421568" duration="222000" />
+      <workItem from="1669344598290" duration="369000" />
+      <workItem from="1669393300956" duration="6202000" />
+      <workItem from="1669405628033" duration="2707000" />
+      <workItem from="1669433903671" duration="443000" />
+      <workItem from="1669515522067" duration="1504000" />
+      <workItem from="1669551972428" duration="3700000" />
+      <workItem from="1669590864783" duration="8327000" />
+      <workItem from="1669603529609" duration="10602000" />
+      <workItem from="1669792397045" duration="34118000" />
+      <workItem from="1669879430326" duration="30479000" />
+      <workItem from="1669930141159" duration="69000" />
+      <workItem from="1669930395796" duration="10308000" />
+      <workItem from="1669982074085" duration="23503000" />
+      <workItem from="1670013082568" duration="5713000" />
+      <workItem from="1670027763085" duration="4011000" />
+      <workItem from="1670073155804" duration="15117000" />
+      <workItem from="1670091552700" duration="17296000" />
+      <workItem from="1670154737469" duration="16326000" />
+      <workItem from="1670200398935" duration="9420000" />
+      <workItem from="1670209870667" duration="1178000" />
+      <workItem from="1670247713229" duration="23119000" />
+      <workItem from="1670282789375" duration="8393000" />
+      <workItem from="1670331509396" duration="12096000" />
+      <workItem from="1670356664259" duration="1263000" />
+      <workItem from="1670359344331" duration="8839000" />
+      <workItem from="1670384757080" duration="4297000" />
+      <workItem from="1670409201659" duration="24121000" />
+      <workItem from="1670479896492" duration="5432000" />
+      <workItem from="1670485347029" duration="4594000" />
+      <workItem from="1670536792133" duration="29700000" />
+      <workItem from="1670572770211" duration="1094000" />
+      <workItem from="1670611416359" duration="2856000" />
+      <workItem from="1670625874380" duration="17470000" />
+      <workItem from="1670658797655" duration="325000" />
+      <workItem from="1670741669918" duration="41367000" />
+      <workItem from="1670919146746" duration="32236000" />
+      <workItem from="1670964768794" duration="753000" />
+      <workItem from="1670965540506" duration="5326000" />
+      <workItem from="1671008027367" duration="729000" />
+      <workItem from="1671013298018" duration="31937000" />
+      <workItem from="1671080013588" duration="25431000" />
+      <workItem from="1671124176604" duration="5247000" />
+      <workItem from="1671187445222" duration="17949000" />
+      <workItem from="1671261756880" duration="23185000" />
+      <workItem from="1672001646513" duration="527000" />
+      <workItem from="1672002293281" duration="44000" />
+      <workItem from="1672050863237" duration="19844000" />
+      <workItem from="1672094842591" duration="3752000" />
+      <workItem from="1672137804791" duration="16891000" />
+      <workItem from="1672166367430" duration="12853000" />
+      <workItem from="1672228842847" duration="1898000" />
+      <workItem from="1672317381716" duration="6394000" />
+      <workItem from="1672336036925" duration="6537000" />
+      <workItem from="1672404489684" duration="21255000" />
+      <workItem from="1672748880805" duration="24154000" />
+      <workItem from="1672789835866" duration="3876000" />
+      <workItem from="1672794739569" duration="488000" />
+      <workItem from="1672849643561" duration="14514000" />
+      <workItem from="1672877012129" duration="2339000" />
+      <workItem from="1672928322506" duration="10800000" />
+      <workItem from="1673096557421" duration="9128000" />
+      <workItem from="1673130021150" duration="75000" />
+      <workItem from="1673136846013" duration="3143000" />
+      <workItem from="1673205510062" duration="350000" />
+      <workItem from="1673357792616" duration="17436000" />
+      <workItem from="1673394070286" duration="9844000" />
+      <workItem from="1673440518195" duration="17638000" />
+      <workItem from="1673467972535" duration="7068000" />
+      <workItem from="1673545405358" duration="17345000" />
+      <workItem from="1673565344544" duration="1787000" />
+      <workItem from="1673569176853" duration="11465000" />
+      <workItem from="1673629833066" duration="98000" />
+      <workItem from="1673630041494" duration="11008000" />
+      <workItem from="1673648926273" duration="7548000" />
+      <workItem from="1673715271513" duration="3139000" />
+      <workItem from="1673906131502" duration="581000" />
+      <workItem from="1673976093185" duration="4102000" />
+      <workItem from="1674002822846" duration="3793000" />
+      <workItem from="1674112917630" duration="20944000" />
+      <workItem from="1674247866920" duration="11181000" />
+      <workItem from="1674291435628" duration="15584000" />
+      <workItem from="1674334026005" duration="1544000" />
+      <workItem from="1674402797248" duration="18546000" />
+      <workItem from="1674436566441" duration="477000" />
+      <workItem from="1674463520325" duration="1940000" />
+      <workItem from="1674484188464" duration="1748000" />
+      <workItem from="1674535186528" duration="28006000" />
+      <workItem from="1674646693690" duration="7067000" />
+      <workItem from="1674747055212" duration="6652000" />
+      <workItem from="1674829135073" duration="8502000" />
+      <workItem from="1674837836784" duration="1864000" />
+      <workItem from="1674898187246" duration="55000" />
+      <workItem from="1674902723797" duration="609000" />
+      <workItem from="1675356793040" duration="5189000" />
+      <workItem from="1675388975481" duration="2652000" />
+      <workItem from="1675437543325" duration="4844000" />
+      <workItem from="1675695259128" duration="390000" />
+      <workItem from="1675958065864" duration="13217000" />
+      <workItem from="1675990082031" duration="873000" />
+      <workItem from="1676046672180" duration="7000" />
+      <workItem from="1676056721500" duration="961000" />
+      <workItem from="1676073878079" duration="124000" />
+      <workItem from="1676151351231" duration="2478000" />
+      <workItem from="1676166010139" duration="3990000" />
+      <workItem from="1676174222838" duration="5991000" />
+      <workItem from="1676221089437" duration="6232000" />
+      <workItem from="1676306101243" duration="27046000" />
+      <workItem from="1676401840843" duration="41385000" />
+      <workItem from="1676567487846" duration="15128000" />
+      <workItem from="1676607271381" duration="10437000" />
+      <workItem from="1676658085636" duration="18119000" />
+      <workItem from="1676678916783" duration="7583000" />
+      <workItem from="1676695062813" duration="4910000" />
+      <workItem from="1676699990826" duration="601000" />
+      <workItem from="1676700609026" duration="280000" />
+      <workItem from="1676746018400" duration="5551000" />
+      <workItem from="1676753804640" duration="11207000" />
+      <workItem from="1676773862894" duration="1275000" />
+      <workItem from="1676775274094" duration="19166000" />
+      <workItem from="1676904750072" duration="18408000" />
+      <workItem from="1676974960210" duration="28934000" />
+      <workItem from="1677055823891" duration="3401000" />
+      <workItem from="1677064607271" duration="25795000" />
+      <workItem from="1677106899567" duration="3548000" />
+      <workItem from="1677123221289" duration="1201000" />
+      <workItem from="1677190014608" duration="337000" />
+      <workItem from="1677317342369" duration="221000" />
+      <workItem from="1677398263423" duration="30275000" />
+      <workItem from="1677515497701" duration="5044000" />
+      <workItem from="1677602428565" duration="13758000" />
+      <workItem from="1677702239193" duration="3652000" />
+      <workItem from="1677775128051" duration="7031000" />
+      <workItem from="1677869324966" duration="9272000" />
+      <workItem from="1677921213916" duration="403000" />
+      <workItem from="1678209953568" duration="2195000" />
+      <workItem from="1678212166430" duration="1295000" />
+      <workItem from="1678261758519" duration="24209000" />
+      <workItem from="1678297976718" duration="136000" />
+      <workItem from="1678298154858" duration="73000" />
+      <workItem from="1678298246606" duration="6316000" />
+      <workItem from="1678384112844" duration="6534000" />
+      <workItem from="1678393120038" duration="1550000" />
+      <workItem from="1678437570423" duration="20304000" />
+      <workItem from="1678530658674" duration="28000" />
+      <workItem from="1678612325813" duration="28276000" />
+    </task>
+    <task id="LOCAL-00001" summary="bug fixes and added features">
+      <created>1669122365333</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1669122365333</updated>
+    </task>
+    <task id="LOCAL-00002" summary="added a background for the login and registration form and fixed a bug in the updateUser method">
+      <created>1672794443899</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1672794443899</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+    <option name="exactExcludedFiles">
+      <list>
+        <option value="$PROJECT_DIR$/server/dist/interfaces/UserForm.js" />
+        <option value="$PROJECT_DIR$/server/dist/interfaces/Namespace.js" />
+        <option value="$PROJECT_DIR$/server/dist/interfaces/Room.js" />
+        <option value="$PROJECT_DIR$/server/dist/interfaces/UserHasNamespace.js" />
+        <option value="$PROJECT_DIR$/server/dist/interfaces/LoginForm.js" />
+        <option value="$PROJECT_DIR$/server/dist/interfaces/Message.js" />
+        <option value="$PROJECT_DIR$/server/dist/interfaces/User.js" />
+        <option value="$PROJECT_DIR$/server/dist/interfaces/UpdateUserInterface.js" />
+        <option value="$PROJECT_DIR$/server/dist/interfaces/ReqUserInterface.js" />
+        <option value="$PROJECT_DIR$/server/dist/interfaces/SocketCustom.js" />
+        <option value="$PROJECT_DIR$/server/dist/interfaces/NamespaceHasUsersInterface.js" />
+      </list>
+    </option>
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="CUSTOM_BOOLEAN_PROPERTIES">
+                <map>
+                  <entry key="Show.Git.Branches" value="true" />
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+    <MESSAGE value="bug fixes and added features" />
+    <MESSAGE value="adding a lazy load to the user list" />
+    <MESSAGE value="added a background for the login and registration form and fixed a bug in the updateUser method" />
+    <option name="LAST_COMMIT_MESSAGE" value="added a background for the login and registration form and fixed a bug in the updateUser method" />
+  </component>
+</project>

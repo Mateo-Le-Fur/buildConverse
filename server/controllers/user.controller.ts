@@ -41,11 +41,6 @@ class userController {
   }
 
   async deleteAccount(req: RequestCustom, res: Response) {
-    // const io = req.app.get("socketio");
-
-    // const { id } = req.params;
-    // if (Number(id) !== req.user?.id) throw new ApiError("forbidden", 403);
-
     res.clearCookie("jwt");
 
     res.end();

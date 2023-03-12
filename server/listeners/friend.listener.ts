@@ -8,6 +8,8 @@ import { FriendsManager } from "../sockets/friend.socket";
 import { UserManager } from "../sockets/user.socket";
 import { SecurityManager } from "../sockets/security.socket";
 import { AuthorizationsInterface } from "../interfaces/AuthorizationsInterface";
+import listenerHandler from "../helpers/listenerHandler";
+import { Acknowledgment } from "../interfaces/Acknowledgment";
 
 class FriendListener {
   protected _ios: Server;
@@ -56,47 +58,20 @@ class FriendListener {
   friendRequestListener() {
     this._socket.on(
       "friendRequest",
-      async (data: FriendsInterface, callback) => {
-        try {
-          await this._friendManager.friendRequest(this._socket, data);
-          callback({
-            status: "ok",
-            message: "Demande d'ami envoyé"
-          });
-        } catch (e) {
-          if (e instanceof Error) {
-            callback({
-              status: "error",
-              message: e.message
-            });
-            console.error(e);
-          }
-        }
-      }
-    );
+      listenerHandler(async (data: FriendsInterface, callback: Acknowledgment) => {
+        await this._friendManager.friendRequest(this._socket, data);
+        callback({ status: "ok", message: "Demande d'ami envoyé" });
+      }));
   }
 
   acceptFriendRequestListener() {
     this._socket.on(
       "acceptFriendRequest",
-      async (senderId: number, callback) => {
-        try {
+      listenerHandler(async (senderId: number, callback: Acknowledgment) => {
           await this._friendManager.acceptFriendRequest(this._socket, senderId);
-          callback({
-            status: "ok",
-            message: ""
-          });
-        } catch (e) {
-          if (e instanceof Error) {
-            console.error(e);
-            callback({
-              status: "error",
-              message: e.message
-            });
-          }
+          callback({ status: "ok", message: "" });
         }
-      }
-    );
+      ));
   }
 
   declineFriendRequestListener() {
@@ -170,7 +145,8 @@ class FriendListener {
   loadMorePrivateMessagesListener() {
     this._socket.on(
       "loadMorePrivateMessages",
-      async (data: { id: number; messagesArrayLength: number }) => {
+
+      async (data: { id: number; messagesArrayLength: number, isBeginningConversation: boolean; }) => {
         try {
           await this._friendManager.loadMorePrivateMessages(this._socket, data);
         } catch (e) {

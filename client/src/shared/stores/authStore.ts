@@ -3,7 +3,7 @@ import type { User } from "@/shared/interfaces/User";
 import type { LoginForm } from "@/shared/interfaces/LoginForm";
 import { fetchCurrentUser, login, logout } from "@/shared/services";
 import { useSocket } from "@/shared/stores/socketStore";
-import { useMe } from "@/features/home/stores/meStore";
+import { useMe } from "@/features/me/stores/meStore";
 import { useNamespace } from "@/features/server/stores/namespaceStore";
 
 interface AuthState {

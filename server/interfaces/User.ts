@@ -1,5 +1,7 @@
-import { UserHasPrivateRoomInterface } from "./UserHasPrivateRoom";
-import { UserHasNamespaceInterface } from "./UserHasNamespace";
+import {UserHasPrivateRoomInterface} from "./UserHasPrivateRoom";
+import {UserHasNamespaceInterface} from "./UserHasNamespace";
+import {FriendsInterface} from "./FriendsInterface";
+import {NamespaceInterface} from "./Namespace";
 
 export interface UserInterface {
   id: number;
@@ -13,6 +15,7 @@ export interface UserInterface {
   statusCode?: number;
   loadMore: boolean;
   UserHasNamespace: UserHasNamespaceInterface;
-
   UserHasPrivateRoom: UserHasPrivateRoomInterface;
+  friendRequest?: FriendsInterface[];
+  namespaces?: NamespaceInterface[];
 }

@@ -1,0 +1,55 @@
+.form-signup-container {
+  position: fixed;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #f4f4f4;
+  margin-top: 6rem;
+  width: 100%;
+  z-index: 2;
+}
+.form-signup-container .form-signup {
+  width: 25%;
+  min-width: 320px;
+  max-width: 420px;
+  background-color: rgba(54, 57, 63, 0.9);
+  padding: 30px 15px;
+  border-radius: 3px;
+}
+.form-signup-container .form-signup h2 {
+  text-align: center;
+}
+.form-signup-container .form-signup label {
+  color: #f4f4f4;
+  font-size: 1rem;
+}
+.form-signup-container .form-signup input {
+  height: 55px;
+  border: none;
+  outline: none;
+  background-color: var(--text-color-white);
+  font-family: "Roboto", sans-serif;
+  color: #f4f4f4;
+}
+.form-signup-container .form-signup p {
+  font-size: 0.8rem;
+}
+.form-signup-container .form-signup a {
+  color: #236cab;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+.form-signup-container .form-signup button {
+  height: 55px;
+  cursor: pointer;
+  outline: none;
+  border: none;
+  background-color: #236cab;
+  width: 100%;
+  border-radius: 4px;
+}
+.form-signup-container .form-signup .validation-error {
+  color: #eb4144;
+}
+
+/*# sourceMappingURL=login.css.map */

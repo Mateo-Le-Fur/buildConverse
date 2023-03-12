@@ -3,6 +3,8 @@ import { MessageInterface, SocketCustom } from "../interfaces";
 import { MessageManager } from "../sockets/message.socket";
 import { AuthorizationsInterface } from "../interfaces/AuthorizationsInterface";
 import { SecurityManager } from "../sockets/security.socket";
+import listenerHandler from "../helpers/listenerHandler";
+import { Acknowledgment } from "../interfaces/Acknowledgment";
 
 class MessageListener {
   protected _ios: Server;
@@ -31,15 +33,12 @@ class MessageListener {
   }
 
   messageListener() {
-    this._socket.on("message", async (data: MessageInterface) => {
-      try {
-        const checkAuthorization = this._authorizations.room.has(data.roomId);
-        if (!checkAuthorization) throw new Error("forbidden");
-        await this._messageManager.sendMessage(this._socket, data);
-      } catch (e) {
-        console.error(e);
-      }
-    });
+    this._socket.on("message", listenerHandler(async (data: MessageInterface, callback: Acknowledgment) => {
+      const checkAuthorization = this._authorizations.room.has(data.roomId);
+      if (!checkAuthorization) throw new Error("forbidden");
+      await this._messageManager.sendMessage(this._socket, data);
+      callback({ status: "ok", message: "" });
+    }));
   }
 }
 

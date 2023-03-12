@@ -30,7 +30,7 @@ class RoomsManager {
           roomId: roomId,
         },
         order: [["id", "desc"]],
-        limit: 100,
+        limit: 40,
       })
     ).map((el: Message) => el.toJSON());
 
@@ -75,7 +75,7 @@ class RoomsManager {
           roomId: data.id,
         },
         order: [["id", "desc"]],
-        limit: 50,
+        limit: 20,
         offset: data.messagesArrayLength,
       })
     ).map((el: Message) => el.toJSON());

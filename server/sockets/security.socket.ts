@@ -108,6 +108,24 @@ class SecurityManager {
       rooms?.add(roomId);
     }
   }
+
+  async beforeUserJoinNamespace(socket: SocketCustom, userLimit: number) {
+    const userId = socket.request.user?.id;
+    const check = await Promise.allSettled([
+      this.checkIfUserAlreadyHasTheServer(
+        socket,
+        userId
+      ),
+      this.checkIfServerIsFull(
+        socket,
+        userLimit
+      ),
+      this.checkUserNamespacesLimit(
+        userId,
+        userLimit
+      )
+    ]);
+  }
 }
 
 export { SecurityManager };

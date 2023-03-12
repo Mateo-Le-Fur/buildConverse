@@ -11,7 +11,6 @@ import {
 } from "./index";
 import { SocketCustom } from "../interfaces";
 import { SocketListener } from "./socketListener";
-import sizeof from "object-sizeof"
 
 class SocketServer {
   get listeners(): Map<number | undefined, Set<SocketListener>> {

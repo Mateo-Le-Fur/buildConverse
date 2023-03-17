@@ -87,11 +87,7 @@ onBeforeUnmount(() => {
             :data-id="message.id"
           >
             <div>
-              <img
-                class="mr-10"
-                :src="message.avatarAuthor"
-                :alt="message.authorName"
-              />
+              <img :src="message.avatarAuthor" :alt="message.authorName" />
             </div>
             <div class="d-flex flex-column w-100">
               <div class="d-flex align-items-center mb-5">

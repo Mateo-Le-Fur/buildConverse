@@ -10,19 +10,10 @@
     <list default="true" id="7dd53188-6f8a-4de4-bf83-1d74341b66fb" name="Changes" comment="added a background for the login and registration form and fixed a bug in the updateUser method">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/assets/base.css" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/assets/base.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/assets/base.css.map" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/assets/base.css.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/assets/base.scss" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/assets/base.scss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/features/server/components/search/ChatTopBar.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/components/topBar/ChatTopBar.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/features/server/components/user/UserList.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/components/user/UserList.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/features/server/components/user/UserLoading.vue" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/features/server/stores/userNsStore.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/stores/userNsStore.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/assets/chat.css" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/assets/chat.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/assets/chat.scss" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/assets/chat.scss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/me/views/Chat.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/me/views/Chat.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/features/server/views/Chat.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/views/Chat.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/shared/stores/chatStore.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/shared/stores/chatStore.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/config/jwt.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/config/jwt.config.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/interfaces/ReqUserInterface.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/interfaces/ReqUserInterface.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/listeners/message.listener.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/listeners/message.listener.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/listeners/socket.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/listeners/socket.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/sockets/message.socket.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/sockets/message.socket.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

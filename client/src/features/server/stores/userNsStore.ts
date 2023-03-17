@@ -24,6 +24,17 @@ export const useNsUser = defineStore("userSocket", {
     error: null,
   }),
 
+  getters: {
+    getFiveMembers(state): () => (User | undefined)[] {
+      return () =>
+        state.userList.map((user: User, index) => {
+          if (index < 5 - 1) {
+            return user;
+          }
+        });
+    },
+  },
+
   actions: {
     getUsersData(data: { users: User[]; numberOfUsers: number }) {
       this.userList = data.users;
@@ -102,8 +113,6 @@ export const useNsUser = defineStore("userSocket", {
           namespace.usersOnline++;
         }
       });
-
-      this.userList.push(userData);
     },
 
     userDisconnect(data: UserHasNamespace) {

@@ -37,7 +37,7 @@ function dateSeparator<Type extends MessageInterface>(
   message: Type
 ): boolean {
   const messageStore = useMessage();
-  const meStore = useMe();
+  const privateMessageStore = usePrivateMessage();
   if (previous) {
     const previousDate = new Date(previous.created_at).getDate();
     const date = new Date(message.created_at).getDate();
@@ -48,11 +48,9 @@ function dateSeparator<Type extends MessageInterface>(
     return previousDate !== date && previousMonth !== month;
   }
 
-  /* Si le premier Menu est undefined "const previous = values[index - 1] ==> undefined",
-   * et que l'on a atteint le début de la conversation alors il faut
-   * afficher un séparateur */
   return (
-    messageStore.isBeginningConversation || meStore.isBeginningConversation
+    messageStore.isBeginningConversation ||
+    privateMessageStore.isBeginningConversation
   );
 }
 

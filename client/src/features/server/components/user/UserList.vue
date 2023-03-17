@@ -19,7 +19,7 @@ function loadMoreUser(e: Event) {
   if (target.scrollTop + target.clientHeight >= target.scrollHeight) {
     socketStore.ioClient?.emit("loadMoreUser", {
       currentArrayLength: props.userList.length,
-      namespaceId: props.params.idChannel,
+      namespaceId: props.params.serverId,
     });
   }
 }
@@ -27,7 +27,7 @@ function loadMoreUser(e: Event) {
 
 <template>
   <div class="user-container d-flex flex-column">
-    <p>Membres: {{ userNsStore.numberOfUsers }}</p>
+    <h2>Liste des membres</h2>
     <RecycleScroller
       @scroll="loadMoreUser($event)"
       :items="userList"
@@ -36,7 +36,7 @@ function loadMoreUser(e: Event) {
       v-slot="{ item }"
       class="scroller"
     >
-      <div>
+      <div class="user">
         <img :src="item.avatarUrl" />
         <p :class="{ admin: item.UserHasNamespace?.admin }">
           {{ item.pseudo }}
@@ -56,14 +56,19 @@ function loadMoreUser(e: Event) {
 @use "@/assets/mixins.scss";
 
 .user-container {
-  padding: 15px 2px 15px 15px;
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(calc(-50% + 30px));
+  padding: 2.5rem 1.5rem;
   gap: 15px;
-  width: 240px;
+  width: 30%;
   min-width: 240px;
-  background-color: var(--primary-2);
+  background-color: var(--primary-1);
+  border-radius: 5px;
 
-  @include mixins.xl {
-    display: none;
+  h2 {
+    text-align: center;
   }
 
   .scroller {
@@ -71,11 +76,18 @@ function loadMoreUser(e: Event) {
   }
 
   .user {
+    max-height: 50px;
+    display: flex;
+    align-items: center;
     gap: 15px;
-  }
+    padding: 3px;
+    background-color: var(--primary-3);
+    border-radius: 10px;
 
-  div {
-    position: relative;
+    p {
+      color: var(--text-color);
+      font-size: 1.2rem;
+    }
 
     img {
       width: 40px;
@@ -85,29 +97,29 @@ function loadMoreUser(e: Event) {
 
     .online {
       position: absolute;
-      bottom: 8px;
-      left: 25px;
+      bottom: 3px;
+      left: 32px;
       background-color: green;
       height: 17px;
       width: 17px;
       border-radius: 100%;
-      border: 3px solid var(--primary-2);
+      border: 3px solid var(--primary-3);
     }
 
     .offline {
       position: absolute;
-      bottom: 8px;
-      left: 25px;
+      bottom: 3px;
+      left: 32px;
       background-color: #6d6d6d;
       height: 17px;
       width: 17px;
       border-radius: 100%;
-      border: 3px solid var(--primary-2);
+      border: 3px solid var(--primary-3);
     }
   }
 }
 
 .admin {
-  color: #e80354;
+  color: #e80354 !important;
 }
 </style>

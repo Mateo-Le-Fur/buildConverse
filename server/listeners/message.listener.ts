@@ -27,6 +27,9 @@ class MessageListener {
     this._authorizations = authorizations;
     this._securityManager = securityManager;
 
+    console.log(this._socket.request.user)
+
+
     this._messageManager = messageManager;
 
     this.messageListener();

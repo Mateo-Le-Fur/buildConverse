@@ -1,8 +1,8 @@
-import { User, Message } from "../models";
-import { Server, Socket } from "socket.io";
-import { MessageInterface } from "../interfaces/Message";
-import { SocketCustom } from "../interfaces/SocketCustom";
-import { Namespace } from "socket.io/dist/namespace";
+import {User, Message} from "../models";
+import {Server, Socket} from "socket.io";
+import {MessageInterface} from "../interfaces/Message";
+import {SocketCustom} from "../interfaces/SocketCustom";
+import {Namespace} from "socket.io/dist/namespace";
 
 class MessageManager {
   protected _ios: Server;
@@ -14,10 +14,12 @@ class MessageManager {
   public async sendMessage(socket: SocketCustom, data: MessageInterface) {
     const userId = socket.request.user?.id;
 
+
     const user = await User.findByPk(userId, {
       attributes: ["pseudo", ["avatar_url", "avatarUrl"]],
       raw: true,
     });
+
 
     if (user) {
       let message = (
@@ -43,4 +45,4 @@ class MessageManager {
   }
 }
 
-export { MessageManager };
+export {MessageManager};

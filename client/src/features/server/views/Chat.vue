@@ -13,7 +13,7 @@ import { useChat } from "@/shared/stores/chatStore";
 import { useMessage } from "@/features/server/stores/messageStore";
 import type { MessageInterface } from "@/shared/interfaces/MessageInterface";
 import { useSocket } from "@/shared/stores/socketStore";
-import ChatTopBar from "@/features/server/components/search/ChatTopBar.vue";
+import ChatTopBar from "@/features/server/components/topBar/ChatTopBar.vue";
 
 const chatStore = useChat();
 const roomStore = useRoom();

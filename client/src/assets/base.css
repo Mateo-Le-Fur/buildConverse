@@ -19,7 +19,7 @@
   --danger-2: #D33E43;
   --success-1: #2ecc71;
   --success-2: #27ae60;
-  --gray-2: rgba(221, 221, 221, 0.65);
+  --gray-2: rgba(221, 221, 221, 0.85);
   --gray-3: #34495e;
   --text-primary-color: #ffffff;
   --white: #fffbfe;
@@ -341,13 +341,6 @@ h2 {
 .direction-vertical::-webkit-scrollbar-thumb {
   box-shadow: inset 0 0 10px 10px var(--primary-3);
   border: solid 3px transparent;
-}
-
-.vue-recycle-scroller__item-view > div:first-child {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  padding: 8px 0;
 }
 
 .tooltip {

@@ -35,7 +35,7 @@ class authProtect {
     if (!token) throw new ApiError("Vous devez être connecté", 403);
 
     try {
-      req.user = <JWTPayload>this.decodedToken(token);
+      req.user = this.decodedToken(token);
       next();
     } catch (e) {
       if (e instanceof Error) {

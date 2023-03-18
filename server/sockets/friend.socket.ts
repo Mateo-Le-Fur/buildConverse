@@ -53,9 +53,6 @@ class FriendsManager {
 
       return {
         ...friend,
-        avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
-          friend.id
-        }/${Date.now()}/avatar`,
         status: checkIfUserIsOnline ? "online" : "offline"
       };
     });
@@ -63,9 +60,6 @@ class FriendsManager {
     friendsRequest = friendsRequest?.map((friend) => {
       return {
         ...friend,
-        avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
-          friend.id
-        }/${Date.now()}/avatar`,
         status: "pending"
       };
     });
@@ -107,9 +101,6 @@ class FriendsManager {
 
     if (sender) {
       sender.status = "pending";
-      sender.avatarUrl = `${process.env.DEV_AVATAR_URL}/user/${
-        sender.id
-      }/${Date.now()}/avatar`;
     }
 
     const socketId = this._clients.get(foundUser.id);
@@ -168,9 +159,6 @@ class FriendsManager {
 
       if (user) {
         user.status = "online";
-        user.avatarUrl = `${
-          process.env.DEV_AVATAR_URL
-        }/user/${userId}/${Date.now()}/avatar`;
       }
 
       this._ios.to(socketId).emit("friendRequestAccepted", {
@@ -243,9 +231,6 @@ class FriendsManager {
         if (filteredUser) {
           return {
             ...filteredUser,
-            avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
-              filteredUser.id
-            }/${Date.now()}/avatar`,
             privateRoomId: element.id,
             active: element.active
           };
@@ -360,9 +345,6 @@ class FriendsManager {
 
       const friend = {
         ...getFriend,
-        avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
-          getFriend?.id
-        }/${Date.now()}/avatar`,
         active: true,
         privateRoomId: data.privateRoomId
       };
@@ -382,14 +364,6 @@ class FriendsManager {
       })
     ).map((message: PrivateMessage) => message.toJSON());
 
-    messages = messages.map((message) => {
-      return {
-        ...message,
-        avatarAuthor: `${process.env.DEV_AVATAR_URL}/user/${
-          message.userId
-        }/${Date.now()}/avatar`
-      };
-    });
 
     if (isBeginningConversation) return messages;
 
@@ -427,14 +401,6 @@ class FriendsManager {
       })
     ).map((message: PrivateMessage) => message.toJSON());
 
-    messages = messages.map((message) => {
-      return {
-        ...message,
-        avatarAuthor: `${process.env.DEV_AVATAR_URL}/user/${
-          message.userId
-        }/${Date.now()}/avatar`
-      };
-    });
 
     socket.emit("loadMorePrivateMessages", messages);
   }
@@ -461,13 +427,6 @@ class FriendsManager {
           avatarAuthor: user.avatarUrl
         })
       ).get();
-
-      message = {
-        ...message,
-        avatarAuthor: `${
-          process.env.DEV_AVATAR_URL
-        }/user/${userId}/${Date.now()}/avatar`
-      };
 
       const socketId = this._clients.get(data.recipientId);
 

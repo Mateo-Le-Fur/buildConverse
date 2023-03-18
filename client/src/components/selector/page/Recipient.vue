@@ -2,8 +2,11 @@
 import { useMe } from "@/features/me/stores/meStore";
 import { ref } from "vue";
 import { router } from "@/routes";
+import { getUserAvatar } from "@/utils/getUserAvatar";
 
 const meStore = useMe();
+
+const avatarURL = import.meta.env.VITE_AVATAR;
 
 const emit = defineEmits<{
   (e: "navigate", page: string): void;
@@ -52,7 +55,7 @@ async function disableConversation(privateRoomId: number) {
         (recipient) => recipient.active === true
       )"
       :class="{
-        activeRecipient: recipient.privateRoomId === meStore.currentRecipientId,
+        activeRecipient: recipient.privateRoomId === meStore.currentRoomId,
       }"
       :key="recipient.id"
       class="private-message d-flex flex-column"
@@ -65,7 +68,7 @@ async function disableConversation(privateRoomId: number) {
       >
         <div class="d-flex align-items-center flex-fill g-10">
           <div class="avatar">
-            <img :src="recipient.avatarUrl" />
+            <img :src="getUserAvatar(recipient.id)" :alt="recipient.pseudo" />
           </div>
           <div class="d-flex flex-column justify-content-center">
             <p class="pseudo">{{ recipient.pseudo }}</p>
@@ -103,7 +106,7 @@ async function disableConversation(privateRoomId: number) {
     box-shadow: -1px 1px 2px 0 #a8a8a8;
 
     &:hover {
-      background-color: var(--primary-2);
+      background-color: var(--primary-1);
       .pseudo {
         color: var(--primary-4);
         font-weight: 500;
@@ -145,7 +148,7 @@ async function disableConversation(privateRoomId: number) {
   }
 
   .activeRecipient {
-    background-color: var(--primary-2);
+    background-color: var(--primary-1);
 
     p {
       color: var(--primary-4) !important;

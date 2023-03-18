@@ -14,6 +14,7 @@ import { useMessage } from "@/features/server/stores/messageStore";
 import type { MessageInterface } from "@/shared/interfaces/MessageInterface";
 import { useSocket } from "@/shared/stores/socketStore";
 import ChatTopBar from "@/features/server/components/topBar/ChatTopBar.vue";
+import { getUserAvatar } from "@/utils/getUserAvatar";
 
 const chatStore = useChat();
 const roomStore = useRoom();
@@ -87,7 +88,10 @@ onBeforeUnmount(() => {
             :data-id="message.id"
           >
             <div>
-              <img :src="message.avatarAuthor" :alt="message.authorName" />
+              <img
+                :src="getUserAvatar(message.userId)"
+                :alt="message.authorName"
+              />
             </div>
             <div class="d-flex flex-column w-100">
               <div class="d-flex align-items-center mb-5">

@@ -22,7 +22,7 @@ class MessageManager {
 
 
     if (user) {
-      let message = (
+      const message = (
         await Message.create({
           data: data.data,
           dataType: "text",
@@ -33,12 +33,6 @@ class MessageManager {
         })
       ).get();
 
-      message = {
-        ...message,
-        avatarAuthor: `${
-          process.env.DEV_AVATAR_URL
-        }/user/${userId}/${Date.now()}/avatar`,
-      };
 
       this._ios.to(`room-${data.roomId}`).emit("message", message);
     }

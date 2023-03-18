@@ -3,9 +3,9 @@ import type { RecipientInterface } from "@/shared/interfaces/RecipientInterface"
 import type { MessageInterface } from "@/shared/interfaces/MessageInterface";
 
 export interface MeState {
-  friends: FriendsInterface[] | any[];
+  friends: FriendsInterface[];
   recipients: RecipientInterface[];
   currentRecipient: RecipientInterface | null;
-  currentRecipientId: number | null;
+  currentRoomId: number | null;
   error: null | string;
 }

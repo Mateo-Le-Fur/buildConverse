@@ -3,8 +3,10 @@ import { reactive } from "vue";
 import { useUser } from "@/shared/stores";
 
 import ProfilPopup from "@/features/me/components/profil/ProfilPopup.vue";
+import { getUserAvatar } from "@/utils/getUserAvatar";
 
 const userStore = useUser();
+const avatarURL = import.meta.env.VITE_AVATAR;
 
 const state = reactive<{
   isProfilOpen: boolean;
@@ -27,7 +29,10 @@ function resetClick() {
       @click="state.isProfilOpen = true"
       class="profil d-flex align-items-center"
     >
-      <img :src="userStore.currentUser?.avatarUrl" alt="" />
+      <img
+        :src="getUserAvatar(userStore.currentUser?.id)"
+        :alt="userStore.currentUser?.pseudo"
+      />
       <div class="status-container d-flex flex-column">
         <p class="pseudo">{{ userStore.currentUser?.pseudo }}</p>
         <p class="status">
@@ -139,7 +144,7 @@ function resetClick() {
     }
 
     &:hover {
-      background: var(--primary-2);
+      background: var(--primary-1);
 
       svg {
         fill: var(--text-color-white);

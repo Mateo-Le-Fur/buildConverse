@@ -7,12 +7,12 @@ import { toFormValidator } from "@vee-validate/zod";
 import { z } from "zod";
 import { useField, useForm } from "vee-validate";
 import { useSocket } from "@/shared/stores/socketStore";
-import { useUser } from "@/shared/stores";
 import { useNamespace } from "@/features/server/stores/namespaceStore";
+import { getCommunityAvatar } from "@/utils/getCommunityAvatar";
 
 const socketStore = useSocket();
 const namespaceStore = useNamespace();
-const userStore = useUser();
+const avatarURL = import.meta.env.VITE_AVATAR;
 
 const newInviteCode = ref<string | null>(null);
 let avatar = ref<File | null>();
@@ -118,13 +118,11 @@ function previewAvatar(e: Event) {
     <label for="file" class="label-file">
       <img
         :src="
-          src
-            ? src
-            : currentNamespace.imgUrl
-            ? currentNamespace.imgUrl
-            : uploadImgUrl
+          src ??
+          getCommunityAvatar(namespaceStore.activeNamespaceId) ??
+          uploadImgUrl
         "
-        alt="server-logo"
+        :alt="namespaceStore.activeNamespace?.name"
       />
     </label>
     <input

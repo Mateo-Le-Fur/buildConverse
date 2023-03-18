@@ -46,9 +46,6 @@ class friendController {
     const friends = foundFriends.map((friend) => {
       const data = {
         ...friend,
-        avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
-          friend.id
-        }/${Date.now()}/avatar`,
         requestAlreadySent: friend.friendsRequests?.some((friendRequest) => friendRequest.id === userId),
         alreadyFriend: friend.friends?.some((friend) => friend.id === userId),
       };

@@ -11,13 +11,14 @@ import { getActivePinia } from "pinia";
 import { toFormValidator } from "@vee-validate/zod";
 import { z } from "zod";
 import { useField, useForm } from "vee-validate";
+import { getUserAvatar } from "@/utils/getUserAvatar";
 
 const userStore = useUser();
 const socketStore = useSocket();
 const namespaceStore = useNamespace();
 const meStore = useMe();
 const router = useRouter();
-
+const avatarURL = import.meta.env.VITE_AVATAR;
 let avatar = ref<File | null>();
 let src = ref<string | ArrayBuffer | null>();
 
@@ -152,7 +153,8 @@ watchEffect(() => {
         <label for="file" class="label-file mb-20">
           <img
             class="avatar"
-            :src="src ? src : userStore.currentUser?.avatarUrl"
+            :src="src ?? getUserAvatar(userStore.currentUser?.id)"
+            :alt="userStore.currentUser?.pseudo"
           />
         </label>
         <input

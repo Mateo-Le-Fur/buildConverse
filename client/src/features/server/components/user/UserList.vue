@@ -5,6 +5,7 @@ import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
 import { useSocket } from "@/shared/stores/socketStore";
 import { useNsUser } from "@/features/server/stores/userNsStore";
 import { watch } from "vue";
+import { getUserAvatar } from "@/utils/getUserAvatar";
 
 const socketStore = useSocket();
 const userNsStore = useNsUser();
@@ -37,7 +38,7 @@ function loadMoreUser(e: Event) {
       class="scroller"
     >
       <div class="user">
-        <img :src="item.avatarUrl" />
+        <img :src="getUserAvatar(item.id)" :alt="item.pseudo" />
         <p :class="{ admin: item.UserHasNamespace?.admin }">
           {{ item.pseudo }}
         </p>

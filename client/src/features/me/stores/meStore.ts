@@ -10,15 +10,22 @@ export const useMe = defineStore("me", {
     friends: [],
     recipients: [],
     currentRecipient: null,
-    currentRecipientId: null,
+    currentRoomId: null,
     error: null,
   }),
 
   getters: {
-    getNextFriend(): (id: number) => FriendsInterface {
-      return (id: number): FriendsInterface => {
-        return this.friends.find((friend) => friend.id !== id);
-      };
+    getCurrentRecipient(
+      state
+    ): (privateRoomId: number) => RecipientInterface | undefined {
+      return (privateRoomId: number) =>
+        state.recipients.find(
+          (recipient) => recipient.privateRoomId === privateRoomId
+        );
+    },
+
+    getNextFriend(state): (id: number) => FriendsInterface | undefined {
+      return (id: number) => state.friends.find((friend) => friend.id !== id);
     },
   },
 
@@ -36,7 +43,7 @@ export const useMe = defineStore("me", {
         ) ?? null;
 
       if (this.currentRecipient) {
-        this.currentRecipientId = this.currentRecipient?.privateRoomId;
+        this.currentRoomId = this.currentRecipient?.privateRoomId;
         namespaceStore.activeNamespaceId = null;
       }
 
@@ -141,16 +148,18 @@ export const useMe = defineStore("me", {
         (friend) => friend.id === data.id
       );
 
-      if (this.friends.length && userIndex !== -1 && userIndex !== undefined) {
+      if (this.friends.length && userIndex !== -1) {
         this.friends[userIndex] = data;
       }
 
       this.recipients?.forEach((recipient) => {
         if (recipient.id === data.id) {
-          recipient.avatarUrl = data.avatarUrl;
           recipient.pseudo = data.pseudo;
           recipient.description = data.description;
         }
+
+        if (recipient.id === this.currentRecipient?.id)
+          this.currentRecipient = { ...recipient };
       });
     },
 

@@ -36,7 +36,7 @@ watch(namespaceImage, (NewValue) => {
     <div class="d-flex align-items-center flex-column add-server">
       <h2>Créer une communauté</h2>
       <label for="file" class="label-file">
-        <img :src="src ? src : uploadImgUrl" />
+        <img :src="src ? src : uploadImgUrl" alt="avatar" />
       </label>
       <input
         @change="previewAvatar($event)"

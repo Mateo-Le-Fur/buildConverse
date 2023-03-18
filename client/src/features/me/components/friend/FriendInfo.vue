@@ -2,6 +2,7 @@
 import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
 
 import { useMe } from "@/features/me/stores/meStore";
+import { getUserAvatar } from "@/utils/getUserAvatar";
 
 const meStore = useMe();
 </script>
@@ -10,7 +11,18 @@ const meStore = useMe();
   <div class="user-container d-flex align-items-center flex-column">
     <div class="user d-flex flex-column w-100">
       <div class="avatar">
-        <img :src="meStore.currentRecipient?.avatarUrl" alt="avatar" />
+        <img
+          :src="
+            getUserAvatar(
+              meStore.getCurrentRecipient(Number($route.params.privateRoomId))
+                .id
+            )
+          "
+          :alt="
+            meStore.getCurrentRecipient(Number($route.params.privateRoomId))
+              .pseudo
+          "
+        />
         <div
           :class="{
             online: meStore.currentRecipient?.status === 'online',

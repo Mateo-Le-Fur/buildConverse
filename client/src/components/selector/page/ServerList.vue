@@ -10,6 +10,7 @@ import { useRoute } from "vue-router";
 import { useNamespace } from "@/features/server/stores/namespaceStore";
 import Burger from "@/components/mobile/Burger.vue";
 import { useNsUser } from "@/features/server/stores/userNsStore";
+import { getCommunityAvatar } from "@/utils/getCommunityAvatar";
 
 const socketStore = useSocket();
 const namespaceStore = useNamespace();
@@ -20,6 +21,7 @@ const addServerPopup = ref<boolean>(false);
 
 const isOpen = ref<boolean>(false);
 const isMobile = ref<boolean>(!matchMedia("(min-width: 575px)").matches);
+const avatarURL = import.meta.env.VITE_AVATAR;
 
 function changeNamespace(namespaceId: number) {
   if (namespaceId !== Number(route.params.serverId)) {
@@ -79,7 +81,7 @@ watch(
       }"
     >
       <div class="avatar">
-        <img :src="namespace.imgUrl" />
+        <img :src="getCommunityAvatar(namespace.id)" :alt="namespace.name" />
       </div>
       <div class="d-flex flex-column justify-content-center">
         <p class="name">
@@ -111,7 +113,7 @@ watch(
   border-radius: 10px;
 
   &:hover {
-    background-color: var(--primary-2);
+    background-color: var(--primary-1);
 
     .name {
       color: var(--text-color-white);
@@ -198,7 +200,7 @@ watch(
 }
 
 .activeNamespace {
-  background-color: var(--primary-2);
+  background-color: var(--primary-1);
 
   p {
     color: var(--text-color-white) !important;
@@ -212,7 +214,7 @@ watch(
   padding: 12px 15px;
 
   &:hover {
-    background-color: var(--primary-2);
+    background-color: var(--primary-1);
 
     p {
       color: var(--text-color-white);

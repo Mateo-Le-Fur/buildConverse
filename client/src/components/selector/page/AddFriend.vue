@@ -8,11 +8,13 @@ import { addFriends } from "@/features/me/services/friend.service";
 import type { FriendsInterface } from "@/shared/interfaces/FriendsInterface";
 import { useSocket } from "@/shared/stores/socketStore";
 import { useMe } from "@/features/me/stores/meStore";
+import { getUserAvatar } from "@/utils/getUserAvatar";
 
 const socketStore = useSocket();
 const meStore = useMe();
 const isRequestSend = ref<boolean>(false);
 const targetId = ref<number>();
+const avatarURL = import.meta.env.VITE_AVATAR;
 
 const state = reactive<{
   friends: FriendsInterface[] | null;
@@ -113,7 +115,7 @@ function getConversationWithAFriend(friendId: number) {
       class="show-friend d-flex align-items-center flex-fill g-10"
     >
       <div class="avatar d-flex align-items-center">
-        <img :src="friend.avatarUrl" />
+        <img :src="getUserAvatar(friend.id)" :alt="friend.pseudo" />
       </div>
       <div
         class="d-flex w-100 justify-content-space-between align-items-center g-10"
@@ -226,7 +228,7 @@ function getConversationWithAFriend(friendId: number) {
     border-radius: 10px;
 
     &:hover {
-      background-color: var(--primary-2);
+      background-color: var(--primary-1);
 
       .pseudo {
         color: var(--text-color-white);

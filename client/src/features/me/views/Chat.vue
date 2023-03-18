@@ -1,23 +1,14 @@
 <script setup lang="ts">
 import SendMessage from "@/features/me/components/chat/SendMessage.vue";
 import { useMe } from "@/features/me/stores/meStore";
-import ChatTopBar from "@/features/me/components/chat/ChatTopBar.vue";
-import {
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  onUnmounted,
-  onUpdated,
-  ref,
-  watch,
-  watchEffect,
-} from "vue";
+
+import { nextTick, onBeforeUnmount, watch, watchEffect } from "vue";
 import { useChat } from "@/shared/stores/chatStore";
 import { useSocket } from "@/shared/stores/socketStore";
 import { usePrivateMessage } from "@/features/me/stores/privateMessageStore";
 import { useRoute } from "vue-router";
-import UserList from "@/features/server/components/user/UserList.vue";
 import FriendInfo from "@/features/me/components/friend/FriendInfo.vue";
+import { getUserAvatar } from "@/utils/getUserAvatar";
 
 const meStore = useMe();
 const socketStore = useSocket();
@@ -25,12 +16,14 @@ const privateMessageStore = usePrivateMessage();
 const chatStore = useChat();
 const route = useRoute();
 
+const avatarURL = import.meta.env.VITE_AVATAR;
+
 watch(
   [() => route.params.privateRoomId, () => meStore.recipients],
   ([privateRoomId, recipients]) => {
     if (privateRoomId && recipients) {
-      meStore.isBeginningConversation = false;
-      meStore.messages = [];
+      privateMessageStore.isBeginningConversation = false;
+      privateMessageStore.messages = [];
       meStore.getCurrentConversation(Number(privateRoomId));
     }
   },
@@ -102,7 +95,10 @@ onBeforeUnmount(() => {
             :data-id="message.id"
           >
             <div>
-              <img :src="message.avatarAuthor" />
+              <img
+                :src="getUserAvatar(message.userId)"
+                :alt="message.authorName"
+              />
             </div>
             <div class="d-flex flex-column w-100">
               <div class="d-flex align-items-center mb-5">

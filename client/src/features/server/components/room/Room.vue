@@ -300,7 +300,7 @@ async function updateRoom(
     }
 
     &:hover {
-      background-color: var(--primary-2);
+      background-color: var(--primary-1);
 
       p {
         color: var(--text-color-white);
@@ -348,7 +348,7 @@ async function updateRoom(
 }
 
 .activeRoom {
-  background-color: var(--primary-2);
+  background-color: var(--primary-1);
   p {
     color: var(--text-color-white) !important;
   }

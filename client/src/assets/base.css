@@ -280,7 +280,7 @@ button {
 }
 
 .active {
-  background-color: var(--primary-2) !important;
+  background-color: var(--primary-1) !important;
 }
 
 h2 {
@@ -348,7 +348,7 @@ h2 {
 }
 .tooltip .tooltip-text {
   visibility: hidden;
-  background-color: var(--primary-2);
+  background-color: var(--primary-1);
   color: var(--primary-4);
   text-align: center;
   padding: 5px 10px;
@@ -367,7 +367,7 @@ h2 {
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: transparent transparent var(--primary-2) transparent;
+  border-color: transparent transparent var(--primary-1) transparent;
 }
 .tooltip:hover .tooltip-text {
   visibility: visible;

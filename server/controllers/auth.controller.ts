@@ -37,7 +37,6 @@ class authController {
         pseudo,
         email,
         password: hashPassword,
-        avatarUrl: "/images/default-avatar"
       })
     ).get();
 
@@ -72,14 +71,7 @@ class authController {
 
     jwtToken.createJwtToken(req, res, jwtPayload);
 
-    const updateUser = {
-      ...foundUser,
-      avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
-        foundUser.id
-      }/${Date.now()}/avatar`
-    };
-
-    res.json(updateUser);
+    res.json(foundUser);
   }
 
   async logout(req: Request, res: Response) {
@@ -95,14 +87,8 @@ class authController {
       raw: true
     });
 
-    const updateUser = {
-      ...foundUser,
-      avatarUrl: `${
-        process.env.DEV_AVATAR_URL
-      }/user/${id}/${Date.now()}/avatar`
-    };
 
-    res.json(updateUser);
+    res.json(foundUser);
   }
 }
 

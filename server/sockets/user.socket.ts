@@ -91,16 +91,7 @@ class UserManager {
             })
           )?.toJSON();
 
-          const user = namespace?.users?.map((element: UserInterface) => {
-            if (element) {
-              return {
-                ...element,
-                avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
-                  element.id
-                }/${Date.now()}/avatar`,
-              };
-            }
-          });
+          const user = namespace?.users
 
           if (user) this._ios.to(`server-${ns}`).emit("updateUser", user[0]);
         })
@@ -108,22 +99,15 @@ class UserManager {
     }
 
     if (data.friends.length) {
-      const getUserUpdated = await User.findByPk(userId, {
+      const UpdatedUser = await User.findByPk(userId, {
         attributes: { exclude: ["email", "password"] },
         raw: true,
       });
 
-      const user = {
-        ...getUserUpdated,
-        avatarUrl: `${process.env.DEV_AVATAR_URL}/user/${
-          getUserUpdated?.id
-        }/${Date.now()}/avatar`,
-      };
-
       data.friends.forEach((id) => {
         const socketId = this._clients.get(id);
 
-        if (socketId) this._ios.to(socketId).emit("updateUser", user);
+        if (socketId) this._ios.to(socketId).emit("updateUser", UpdatedUser);
       });
     }
   }

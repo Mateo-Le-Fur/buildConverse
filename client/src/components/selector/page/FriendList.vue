@@ -5,6 +5,7 @@ import type { FriendsInterface } from "@/shared/interfaces/FriendsInterface";
 import { useSocket } from "@/shared/stores/socketStore";
 import DeleteFriendPopup from "@/features/me/components/friend/DeleteFriend.vue";
 import PendingFriendRequest from "@/features/me/components/friend/PendingFriendRequest.vue";
+import { getUserAvatar } from "@/utils/getUserAvatar";
 
 const confirmDeletePopup = ref<boolean>(false);
 const idToDelete = ref<number | null>(null);
@@ -73,7 +74,7 @@ function deleteFriend(friendId: number) {
   >
     <div class="friend d-flex align-items-center flex-fill g-10">
       <div class="avatar">
-        <img :src="friend.avatarUrl" />
+        <img :src="getUserAvatar(friend.id)" :alt="friend.pseudo" />
       </div>
       <div class="d-flex flex-column justify-content-center">
         <p class="pseudo">{{ friend.pseudo }}</p>
@@ -130,7 +131,7 @@ function deleteFriend(friendId: number) {
     align-items: center;
   }
   &:hover {
-    background-color: var(--primary-2);
+    background-color: var(--primary-1);
     .pseudo {
       font-weight: 500;
       color: var(--primary-4);

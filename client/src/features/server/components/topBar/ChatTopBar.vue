@@ -4,11 +4,14 @@ import { useNsUser } from "@/features/server/stores/userNsStore";
 import { ref } from "vue";
 import UserList from "@/features/server/components/user/UserList.vue";
 import { useRoute } from "vue-router";
+import { getUserAvatar } from "@/utils/getUserAvatar";
 
 const roomStore = useRoom();
 const userNsStore = useNsUser();
 const route = useRoute();
 const isUserListPopupOpen = ref<boolean>(false);
+
+const avatarURL = import.meta.env.VITE_AVATAR;
 </script>
 
 <template>
@@ -23,7 +26,7 @@ const isUserListPopupOpen = ref<boolean>(false);
       class="members-container d-flex align-items-center"
     >
       <div class="member" v-for="user of userNsStore.getFiveMembers()">
-        <img loading="lazy" :src="user.avatarUrl" :alt="user.pseudo" />
+        <img loading="lazy" :src="getUserAvatar(user.id)" :alt="user.pseudo" />
       </div>
     </div>
   </div>

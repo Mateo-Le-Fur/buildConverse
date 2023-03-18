@@ -34,15 +34,6 @@ class RoomsManager {
       })
     ).map((el: Message) => el.toJSON());
 
-    messages = messages.map((message: MessageInterface) => {
-      return {
-        ...message,
-        avatarAuthor: `${process.env.DEV_AVATAR_URL}/user/${
-          message.userId
-        }/${Date.now()}/avatar`,
-      };
-    });
-
     if (isBeginningConversation) return messages;
 
     socket.emit("history", messages);
@@ -80,14 +71,6 @@ class RoomsManager {
       })
     ).map((el: Message) => el.toJSON());
 
-    messages = messages.map((message: MessageInterface) => {
-      return {
-        ...message,
-        avatarAuthor: `${process.env.DEV_AVATAR_URL}/user/${
-          message.userId
-        }/${Date.now()}/avatar`,
-      };
-    });
 
     socket.emit("loadMoreMessages", messages);
   }

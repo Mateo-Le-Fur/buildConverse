@@ -91,7 +91,7 @@ const emit = defineEmits<{
       }
 
       &:hover {
-        background: var(--primary-2);
+        background: var(--primary-1);
 
         svg {
           fill: var(--text-color-white);
@@ -102,7 +102,7 @@ const emit = defineEmits<{
 }
 
 .activeComponent {
-  background: var(--primary-2);
+  background: var(--primary-1);
 
   svg {
     fill: var(--primary-4) !important;

@@ -139,7 +139,7 @@ function leaveNamespace(namespaceId: number) {
     }
 
     &:hover {
-      background-color: var(--primary-2);
+      background-color: var(--primary-1);
       border-radius: 10px;
 
       h3 {
@@ -200,7 +200,7 @@ function leaveNamespace(namespaceId: number) {
 
       &:hover {
         color: var(--primary-4);
-        background-color: var(--primary-2);
+        background-color: var(--primary-1);
         border-radius: 4px;
       }
     }

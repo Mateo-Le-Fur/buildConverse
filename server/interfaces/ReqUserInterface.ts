@@ -8,5 +8,5 @@ export interface JWTPayload extends JwtPayload {
 }
 
 export interface RequestCustom extends Request {
-  user: JWTPayload | string;
+  user?: JWTPayload ;
 }

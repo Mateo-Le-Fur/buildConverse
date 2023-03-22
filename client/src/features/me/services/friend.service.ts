@@ -3,17 +3,11 @@ import type { FriendsInterface } from "@/shared/interfaces/FriendsInterface";
 
 const BASE_URL = "/api/friend";
 
-export async function addFriends(
+export async function getFriends(
   friendForm: UserForm
 ): Promise<FriendsInterface[]> {
   try {
-    const response = await fetch(`${BASE_URL}/add`, {
-      method: "POST",
-      body: JSON.stringify(friendForm),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await fetch(`${BASE_URL}/add/${friendForm.pseudo}`);
 
     if (!response.ok) {
       throw await response.json();

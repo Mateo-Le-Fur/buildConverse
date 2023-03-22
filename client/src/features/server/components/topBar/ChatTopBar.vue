@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useRoom } from "@/features/server/stores/roomStore";
 import { useNsUser } from "@/features/server/stores/userNsStore";
-import { ref } from "vue";
-import UserList from "@/features/server/components/user/UserList.vue";
+import { onUnmounted, ref, watch } from "vue";
+import UserList from "@/features/server/components/member/MembersList.vue";
 import { useRoute } from "vue-router";
 import { getUserAvatar } from "@/utils/getUserAvatar";
 
@@ -10,8 +10,6 @@ const roomStore = useRoom();
 const userNsStore = useNsUser();
 const route = useRoute();
 const isUserListPopupOpen = ref<boolean>(false);
-
-const avatarURL = import.meta.env.VITE_AVATAR;
 </script>
 
 <template>
@@ -34,14 +32,15 @@ const avatarURL = import.meta.env.VITE_AVATAR;
     <UserList
       v-if="isUserListPopupOpen"
       v-click-outside="() => (isUserListPopupOpen = false)"
-      :user-list="userNsStore.userList"
-      :params="route.params"
-    />
+    >
+      <div @click="isUserListPopupOpen = false" class="calc"></div>
+    </UserList>
   </Teleport>
 </template>
 
 <style scoped lang="scss">
 .top-bar-container {
+  position: relative;
   padding: 0 3.2rem;
   width: auto;
   z-index: 0;
@@ -60,6 +59,10 @@ const avatarURL = import.meta.env.VITE_AVATAR;
   }
 
   .members-container {
+    position: absolute;
+    top: 50%;
+    right: 1.8rem;
+    transform: translateY(-50%);
     cursor: pointer;
     height: 40px;
     min-width: 80px;

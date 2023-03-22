@@ -175,7 +175,6 @@ class UserManager {
     if (friends?.length) {
       friends.forEach((friendId) => {
         const socketId = this._clients.get(friendId);
-
         if (socketId) {
           this._ios.to(socketId).emit("userConnect", { id: userId });
         }

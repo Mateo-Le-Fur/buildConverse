@@ -4,9 +4,8 @@ import { Router } from "express";
 
 const router = Router();
 
-router.post(
-  "/add",
-  controllerHandler(controllerHandler(friendController.addFriend))
+router.get(
+  "/add/:pseudo", controllerHandler(friendController.foundFriends)
 );
 
 export default router;

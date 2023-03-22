@@ -103,7 +103,6 @@ User.belongsToMany(Namespace, {
   through: UserHasNamespace,
   foreignKey: "user_id",
   otherKey: "namespace_id",
-  timestamps: false,
 });
 
 Namespace.belongsToMany(User, {
@@ -111,7 +110,6 @@ Namespace.belongsToMany(User, {
   through: UserHasNamespace,
   foreignKey: "namespace_id",
   otherKey: "user_id",
-  timestamps: false,
 });
 
 export {

@@ -8,20 +8,16 @@ import { useRoom } from "@/features/server/stores/roomStore";
 import AddServerPopup from "@/features/me/components/community/AddServerPopup.vue";
 import { useRoute } from "vue-router";
 import { useNamespace } from "@/features/server/stores/namespaceStore";
-import Burger from "@/components/mobile/Burger.vue";
-import { useNsUser } from "@/features/server/stores/userNsStore";
 import { getCommunityAvatar } from "@/utils/getCommunityAvatar";
 
 const socketStore = useSocket();
 const namespaceStore = useNamespace();
-const userNsStore = useNsUser();
 const roomStore = useRoom();
 const route = useRoute();
 const addServerPopup = ref<boolean>(false);
 
 const isOpen = ref<boolean>(false);
 const isMobile = ref<boolean>(!matchMedia("(min-width: 575px)").matches);
-const avatarURL = import.meta.env.VITE_AVATAR;
 
 function changeNamespace(namespaceId: number) {
   if (namespaceId !== Number(route.params.serverId)) {
@@ -76,7 +72,7 @@ watch(
         name: 'server.room',
         params: {
           serverId: namespace.id,
-          roomId: roomStore.getFirstRoom(namespace.id),
+          roomId: roomStore.getFirstRoom(namespace.id) ?? 0,
         },
       }"
     >

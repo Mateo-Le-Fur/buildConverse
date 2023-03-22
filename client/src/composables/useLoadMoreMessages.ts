@@ -44,9 +44,7 @@ export async function useLoadMoreMessages<
   const count = chatStore.direction === "up" ? arrayLength : midArrayLength;
 
   const index = chatStore.direction === "up" ? -1 : 0;
-  /* On récupère l'index du dernier Menu juste avant de changer de page pour pouvoir se repositionner
-   * dessus lors du changement de page
-   * */
+
   const lastMessages = [...store.messages]
     .sort((a, b) => b.id - a.id)
     .at(index);
@@ -57,10 +55,7 @@ export async function useLoadMoreMessages<
     (a, b) => b.id - a.id
   );
 
-  // On attend que la vue se mette à jour
   await nextTick();
 
-  /* Les nouveaux messages sont chargés on peut se positionner sur le précédent pour reprendre
-   * la navigation ou elle en était */
   chatStore.newMessagesLoaded(lastMessages);
 }

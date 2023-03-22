@@ -1,9 +1,10 @@
 import type { Request, Response, NextFunction } from "express";
+import {RequestCustom} from "../interfaces";
 
 export default (
-    controller: (req: Request, res: Response, next: NextFunction) => void
+    controller: (req: RequestCustom, res: Response, next: NextFunction) => void
   ) =>
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: RequestCustom, res: Response, next: NextFunction) => {
     try {
       await controller(req, res, next);
     } catch (error) {

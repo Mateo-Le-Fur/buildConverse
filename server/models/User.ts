@@ -20,6 +20,7 @@ class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare avatarUrl: string;
   declare friends?: FriendsInterface[];
   declare friendsRequests?: FriendsInterface[];
+  declare pendingRequests?: FriendsInterface[];
   declare namespaces?: NamespaceInterface[];
 }
 

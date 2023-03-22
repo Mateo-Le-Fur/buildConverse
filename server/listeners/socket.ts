@@ -68,8 +68,6 @@ class SocketServer {
 
         listenersSet.add(listener);
         this._listeners.set(userId, listenersSet);
-
-
       } catch (e) {
         console.error(e);
       }

@@ -1,21 +1,15 @@
 <script setup lang="ts">
-import { nextTick } from "vue";
+import { usePage } from "@/shared/stores/pageStore";
 
-const props = defineProps<{
-  active: string | null;
-}>();
-
-const emit = defineEmits<{
-  (e: "navigate", page: string): void;
-}>();
+const pageStore = usePage();
 </script>
 
 <template>
   <nav class="selector-container d-flex justify-content-center">
     <ul class="items d-flex align-items-center">
       <li
-        @click="emit('navigate', 'Recipient')"
-        :class="{ activeComponent: props.active === 'Recipient' }"
+        @click="pageStore.navigate('Recipient')"
+        :class="{ activeComponent: pageStore.active === 'Recipient' }"
         class="privates-item item d-flex align-items-center tooltip"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
@@ -27,9 +21,9 @@ const emit = defineEmits<{
         <span class="tooltip-text">Messages</span>
       </li>
       <li
-        @click="emit('navigate', 'FriendList')"
+        @click="pageStore.navigate('FriendList')"
         class="friends-item item d-flex align-items-center tooltip"
-        :class="{ activeComponent: props.active === 'FriendList' }"
+        :class="{ activeComponent: pageStore.active === 'FriendList' }"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
           <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
@@ -41,9 +35,9 @@ const emit = defineEmits<{
       </li>
 
       <li
-        @click="emit('navigate', 'AddFriend')"
+        @click="pageStore.navigate('AddFriend')"
         class="add-item item d-flex align-items-center tooltip"
-        :class="{ activeComponent: props.active === 'AddFriend' }"
+        :class="{ activeComponent: pageStore.active === 'AddFriend' }"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
           <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
@@ -54,8 +48,8 @@ const emit = defineEmits<{
         <span class="tooltip-text">Ajouter</span>
       </li>
       <li
-        @click="emit('navigate', 'Namespace')"
-        :class="{ activeComponent: props.active === 'Namespace' }"
+        @click="pageStore.navigate('Namespace')"
+        :class="{ activeComponent: pageStore.active === 'Namespace' }"
         class="server-item item d-flex align-items-center tooltip"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">

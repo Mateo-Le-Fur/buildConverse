@@ -1,21 +1,19 @@
 <script setup lang="ts">
-import { ref, watch, watchEffect } from "vue";
+import { ref, watchEffect } from "vue";
 import { useMe } from "@/features/me/stores/meStore";
 import type { FriendsInterface } from "@/shared/interfaces/FriendsInterface";
 import { useSocket } from "@/shared/stores/socketStore";
 import DeleteFriendPopup from "@/features/me/components/friend/DeleteFriend.vue";
 import PendingFriendRequest from "@/features/me/components/friend/PendingFriendRequest.vue";
 import { getUserAvatar } from "@/utils/getUserAvatar";
+import { usePage } from "@/shared/stores/pageStore";
 
 const confirmDeletePopup = ref<boolean>(false);
 const idToDelete = ref<number | null>(null);
 
 const socketStore = useSocket();
 const meStore = useMe();
-
-const emit = defineEmits<{
-  (e: "navigate", page: string): void;
-}>();
+const pageStore = usePage();
 
 watchEffect(() => {
   if (meStore.friends.length) {
@@ -46,7 +44,7 @@ function getConversationWithAFriend(friendId: number) {
     (conversation) => conversation.id === friendId
   );
 
-  emit("navigate", "Recipient");
+  pageStore.navigate("Recipient");
 
   socketStore.ioClient?.emit("getConversationWithAFriend", {
     friendId,

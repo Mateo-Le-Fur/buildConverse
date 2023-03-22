@@ -25,13 +25,20 @@ export const useNsUser = defineStore("userSocket", {
   }),
 
   getters: {
-    getFiveMembers(state): () => (User | undefined)[] {
-      return () =>
-        state.userList.map((user: User, index) => {
-          if (index < 5 - 1) {
-            return user;
-          }
-        });
+    viewMemberProfil(state): (id: number) => User | undefined {
+      return (id: number): User | undefined =>
+        state.userList.find((user) => user.id === id);
+    },
+
+    getFiveMembers(state): () => User[] {
+      return (): User[] => {
+        const users: User[] = [];
+        for (let i = 0; i < 5; i++) {
+          if (state.userList[i] === undefined) return users;
+          users.push(state.userList[i]);
+        }
+        return users;
+      };
     },
   },
 

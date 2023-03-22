@@ -51,15 +51,13 @@ class FriendListener {
     const friends = await this._friendManager.getUserFriends(this._socket);
     await this._usersManager.connectUser(this._socket, friends);
     await this._friendManager.getAllConversations(this._socket);
-
-    return friends;
   }
 
   friendRequestListener() {
     this._socket.on(
       "friendRequest",
       listenerHandler(async (data: FriendsInterface, callback: Acknowledgment) => {
-        await this._friendManager.friendRequest(this._socket, data);
+        await this._friendManager.sendFriendRequest(this._socket, data);
         callback({ status: "ok", message: "Demande d'ami envoyé" });
       }));
   }

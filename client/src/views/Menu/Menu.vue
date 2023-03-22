@@ -2,25 +2,16 @@
 import Profil from "@/features/me/components/profil/Profil.vue";
 import FriendList from "@/components/selector/page/FriendList.vue";
 import Recipient from "@/components/selector/page/Recipient.vue";
-import AddFriend from "@/components/selector/page/AddFriend.vue";
+import AddFriend from "@/components/selector/page/FoundFriend.vue";
 import Namespace from "@/components/selector/page/ServerList.vue";
-import { type Component, onMounted, reactive, ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { type Component, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import Selector from "@/components/selector/Selector.vue";
 import Home from "@/components/Home/Home.vue";
-import { useNamespace } from "@/features/server/stores/namespaceStore";
+import { usePage } from "@/shared/stores/pageStore";
 
 const route = useRoute();
-const router = useRouter();
-const namespaceStore = useNamespace();
-
-const state = reactive<{
-  page: string | null;
-  active: string | null;
-}>({
-  page: localStorage.getItem("item") ?? "FriendList",
-  active: localStorage.getItem("item") ?? null,
-});
+const pageStore = usePage();
 
 const pages: { [s: string]: Component } = {
   FriendList,
@@ -28,17 +19,6 @@ const pages: { [s: string]: Component } = {
   AddFriend,
   Namespace,
 };
-
-onMounted(() => {
-  console.log(route.fullPath);
-});
-
-function navigate(page: string | null): void {
-  state.page = page;
-  state.active = page;
-
-  if (page) localStorage.setItem("item", page);
-}
 </script>
 
 <template>
@@ -46,10 +26,10 @@ function navigate(page: string | null): void {
     <Profil />
     <div class="separator"></div>
     <nav class="nav-container d-flex flex-column">
-      <Selector :active="state.active" @navigate="navigate" />
+      <Selector />
       <div class="separator mb-5"></div>
       <div class="items-container d-flex flex-column g-5 p-5">
-        <Component @navigate="navigate" :is="pages[state.page]"></Component>
+        <Component :is="pages[pageStore.page]"></Component>
       </div>
     </nav>
   </div>

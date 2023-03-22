@@ -9,6 +9,7 @@ export const useMe = defineStore("me", {
   state: (): MeState => ({
     friends: [],
     recipients: [],
+    pendingRequestsId: [],
     currentRecipient: null,
     currentRoomId: null,
     error: null,
@@ -24,6 +25,18 @@ export const useMe = defineStore("me", {
         );
     },
 
+    friendRequestAlreadySent(state): (id: number) => boolean {
+      return (id: number) =>
+        state.pendingRequestsId.some((request) => request.id === id);
+    },
+
+    checkIfFriend(state): (id: number) => boolean {
+      return (id: number) =>
+        state.friends.some(
+          (friend) => friend.id === id && friend.status !== "pending"
+        );
+    },
+
     getNextFriend(state): (id: number) => FriendsInterface | undefined {
       return (id: number) => state.friends.find((friend) => friend.id !== id);
     },
@@ -31,7 +44,10 @@ export const useMe = defineStore("me", {
 
   actions: {
     getFriends(data: FriendsInterface[]) {
-      this.friends = data;
+      this.friends = data.filter((friend) => friend.status !== "sent");
+      this.pendingRequestsId = data.filter(
+        (request) => request.status === "sent"
+      );
     },
 
     getCurrentConversation(id: number) {
@@ -135,6 +151,10 @@ export const useMe = defineStore("me", {
           (recipient) => recipient.privateRoomId !== data.privateRoomId
         );
       }
+
+      this.pendingRequestsId = this.pendingRequestsId.filter(
+        (request) => request.id !== data.id
+      );
 
       if (this.currentRecipient?.privateRoomId === data.privateRoomId) {
         this.currentRecipient = null;

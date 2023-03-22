@@ -8,40 +8,44 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7dd53188-6f8a-4de4-bf83-1d74341b66fb" name="Changes" comment="added a background for the login and registration form and fixed a bug in the updateUser method">
-      <change afterPath="$PROJECT_DIR$/client/.env" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/utils/getCommunityAvatar.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/utils/getUserAvatar.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/components/friend/AddFriend.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/components/friend/AddFriendButton.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/features/server/components/member/Member.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/features/server/components/member/MemberProfil.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/shared/stores/pageStore.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/client/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/App.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/App.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/assets/base.css" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/assets/base.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/assets/base.css.map" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/assets/base.css.map" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/assets/base.scss" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/assets/base.scss" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/assets/chat.css" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/assets/chat.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/components/selector/Selector.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/selector/Selector.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/components/selector/page/AddFriend.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/selector/page/AddFriend.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/components/selector/page/AddFriend.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/selector/page/FoundFriend.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/components/selector/page/FriendList.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/selector/page/FriendList.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/components/selector/page/Recipient.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/selector/page/Recipient.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/components/selector/page/ServerList.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/selector/page/ServerList.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/features/me/components/community/AddServerPopup.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/me/components/community/AddServerPopup.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/features/me/components/friend/FriendInfo.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/me/components/friend/FriendInfo.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/features/me/components/profil/Profil.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/me/components/profil/Profil.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/features/me/components/profil/ProfilPopup.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/me/components/profil/ProfilPopup.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/composables/useLoadMoreMessages.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/composables/useLoadMoreMessages.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/me/services/friend.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/me/services/friend.service.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/features/me/stores/meStore.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/me/stores/meStore.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/features/me/views/Chat.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/me/views/Chat.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/features/server/components/community/ServerOptions.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/components/community/ServerOptions.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/features/server/components/community/UpdateServer.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/components/community/UpdateServer.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/features/server/components/room/Room.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/components/room/Room.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/features/server/components/topBar/ChatTopBar.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/components/topBar/ChatTopBar.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/features/server/components/user/UserList.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/components/user/UserList.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/server/components/user/UserList.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/components/member/MembersList.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/features/server/stores/userNsStore.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/stores/userNsStore.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/features/server/views/Chat.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/features/server/views/Chat.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/shared/interfaces/UserHasNamespace.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/shared/interfaces/UserHasNamespace.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/shared/interfaces/meState.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/shared/interfaces/meState.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/vite.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/vite.config.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/controllers/auth.controller.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/auth.controller.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/shared/stores/chatStore.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/shared/stores/chatStore.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/views/Menu/Menu.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/views/Menu/Menu.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/controllers/friend.controller.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/friend.controller.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/helpers/controllerHandler.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/helpers/controllerHandler.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/interfaces/ReqUserInterface.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/interfaces/ReqUserInterface.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/listeners/friend.listener.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/listeners/friend.listener.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/listeners/socket.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/listeners/socket.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/listeners/socketListener.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/listeners/socketListener.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/models/User.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/models/User.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/models/UserHasNamespace.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/models/UserHasNamespace.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/models/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/models/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/routes/friend.route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/friend.route.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/sockets/friend.socket.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/sockets/friend.socket.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/sockets/message.socket.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/sockets/message.socket.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/sockets/namespace.socket.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/sockets/namespace.socket.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/sockets/room.socket.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/sockets/room.socket.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/sockets/user.socket.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/sockets/user.socket.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -54,8 +58,8 @@
       <list>
         <option value="JavaScript File" />
         <option value="CSS File" />
-        <option value="Vue Single File Component" />
         <option value="TypeScript File" />
+        <option value="Vue Single File Component" />
       </list>
     </option>
   </component>
@@ -346,6 +350,12 @@
       <workItem from="1678820681769" duration="2176000" />
       <workItem from="1679052057642" duration="5928000" />
       <workItem from="1679164975220" duration="8987000" />
+      <workItem from="1679258033664" duration="749000" />
+      <workItem from="1679262502273" duration="633000" />
+      <workItem from="1679333766219" duration="9413000" />
+      <workItem from="1679419951030" duration="1000" />
+      <workItem from="1679428134298" duration="23000" />
+      <workItem from="1679468727873" duration="19258000" />
     </task>
     <task id="LOCAL-00001" summary="bug fixes and added features">
       <created>1669122365333</created>

@@ -63,7 +63,7 @@ class SocketListener {
     const namespaceListener = await new NamespaceListener(this._shared, this._socketServer.namespaceManager);
     const userListener = await new UserListener(this._shared, this._socketServer.userManager);
 
-    const friends = await friendListener.onConnect();
+    await friendListener.onConnect();
     const namespaces = await namespaceListener.onConnect();
 
     this.setAuthorizations(namespaces);

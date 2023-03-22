@@ -40,6 +40,12 @@ class FriendsManager {
             as: "friendsRequests",
             required: false,
             attributes: { exclude: ["password", "email"] }
+          },
+          {
+            model: User,
+            as: "pendingRequests",
+            required: false,
+            attributes: ["id"],
           }
         ]
       })
@@ -47,6 +53,8 @@ class FriendsManager {
 
     let friends = foundUserFriends?.friends;
     let friendsRequest = foundUserFriends?.friendsRequests;
+    let pendingRequests = foundUserFriends?.pendingRequests;
+
 
     friends = friends?.map((friend: FriendsInterface) => {
       const checkIfUserIsOnline = this._clients.get(friend.id);
@@ -64,10 +72,18 @@ class FriendsManager {
       };
     });
 
+    pendingRequests = pendingRequests?.map((friend) => {
+      return {
+        ...friend,
+        status: "sent"
+      };
+    });
+
     const merge = [
       // @ts-ignore
       ...friends,
-      ...friendsRequest
+      ...friendsRequest,
+      ...pendingRequests,
     ];
 
     const friendsId = friends?.map((friend) => friend.id);
@@ -77,12 +93,12 @@ class FriendsManager {
     return friendsId;
   }
 
-  public async friendRequest(socket: SocketCustom, data: FriendsInterface) {
+  public async sendFriendRequest(socket: SocketCustom, data: FriendsInterface) {
     const userId = socket.request.user?.id;
 
     const foundUser = await User.findOne({
       where: {
-        pseudo: data.pseudo
+        id: data.id
       },
       raw: true
     });

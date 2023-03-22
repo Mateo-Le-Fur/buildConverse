@@ -3,14 +3,10 @@ import { useMe } from "@/features/me/stores/meStore";
 import { ref } from "vue";
 import { router } from "@/routes";
 import { getUserAvatar } from "@/utils/getUserAvatar";
+import { usePage } from "@/shared/stores/pageStore";
 
 const meStore = useMe();
-
-const avatarURL = import.meta.env.VITE_AVATAR;
-
-const emit = defineEmits<{
-  (e: "navigate", page: string): void;
-}>();
+const pageStore = usePage();
 
 const recipientHover = ref<boolean>(false);
 const recipientId = ref<number | null>(null);
@@ -37,7 +33,7 @@ async function disableConversation(privateRoomId: number) {
     const nextFriend = meStore.getNextFriend(meStore.currentRecipient.id);
 
     if (!nextFriend) {
-      emit("navigate", "FriendList");
+      pageStore.navigate("FriendList");
       router.push("/channels/me");
       return;
     }

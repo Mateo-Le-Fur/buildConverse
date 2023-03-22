@@ -44,11 +44,15 @@ UserHasNamespace.init(
       allowNull: false,
       defaultValue: false,
     },
+
   },
   {
     sequelize,
     tableName: "user_has_namespace",
-    timestamps: false,
+    timestamps: true,
+    createdAt: "createdAt",
+    updatedAt: false
+
   }
 );
 

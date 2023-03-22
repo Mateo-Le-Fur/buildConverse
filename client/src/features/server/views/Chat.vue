@@ -15,11 +15,13 @@ import type { MessageInterface } from "@/shared/interfaces/MessageInterface";
 import { useSocket } from "@/shared/stores/socketStore";
 import ChatTopBar from "@/features/server/components/topBar/ChatTopBar.vue";
 import { getUserAvatar } from "@/utils/getUserAvatar";
+import { useNamespace } from "@/features/server/stores/namespaceStore";
 
 const chatStore = useChat();
 const roomStore = useRoom();
 const socketStore = useSocket();
 const messageStore = useMessage();
+const namespaceStore = useNamespace();
 
 const state = reactive<{
   messages: MessageInterface[];
@@ -129,7 +131,7 @@ onBeforeUnmount(() => {
           </div>
         </template>
       </div>
-      <SendMessage />
+      <SendMessage v-if="namespaceStore.activeNamespace?.rooms.length" />
     </div>
   </div>
 </template>
